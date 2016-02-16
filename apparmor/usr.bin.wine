@@ -1,0 +1,80 @@
+#Example pruned wine-preloader profile, needs to be further expanded to be functional
+#include <tunables/global>
+/usr/bin/wine-preloader {
+#include <abstractions/base>
+#include <abstractions/fonts>
+#include <abstractions/nameservice>
+#include <abstractions/ubuntu-gnome-terminal>
+#include <abstractions/p11-kit>
+
+/usr/bin/wine-preloader rix,
+/usr/bin/wineserver px,
+/usr/bin/wine mr,
+/usr/lib{,32,64}/** mr,
+
+/usr/bin/wine64-preloader rix,
+/usr/bin/wine64 mr,
+
+/usr/share/wine/** r,
+
+/sys/devices/system/cpu/** r,
+/run/dbus/system_bus_socket r,
+/proc/scsi/scsi r,
+
+/usr/share/wine/fonts/ r,
+/usr/share/wine/fonts/** r,
+/usr/share/wine/wine.inf r,
+/etc/fstab r,
+
+owner /home/*/.wine/ rw,
+owner /home/*/.wine/** rwmk,
+
+/opt/wine/.wine/** r,
+
+deny @{HOME}/.Private/** w,
+deny @{HOME}/.ecryptfs/*/.Private/** w,
+deny @{HOME}/.cache/ w,
+deny @{HOME}/.cache/** w,
+deny @{HOME}/.config/ w,
+deny @{HOME}/.config/** w,
+deny @{HOME}/.fonts.cache-* w,
+deny @{HOME}/.local/ w,
+deny @{HOME}/.local/** w,
+deny @{HOME}/.recently-used.xbel* w,
+deny @{HOME}/tmp/ w,
+deny @{HOME}/tmp/** w,
+}
+
+/usr/bin/wineserver {
+#include <abstractions/base>
+#include <abstractions/nameservice>
+
+/usr/bin/wineserver r,
+
+/usr/share/wine/** r,
+
+/tmp/.wine-*/ rw,
+/tmp/.wine-*/server-*/ rw,
+/tmp/.wine-*/server-*/* rwmk,
+
+owner /home/*/.wine/ rw,
+owner /home/*/.wine/** rwmk,
+"/opt/wine/.wine/*/Program Files/**.exe/" r,
+
+/run/dbus/system_bus_socket r,
+/proc/scsi/scsi r,
+
+deny @{HOME}/.Private/** w,
+deny @{HOME}/.ecryptfs/*/.Private/** w,
+deny @{HOME}/.cache/ w,
+deny @{HOME}/.cache/** w,
+deny @{HOME}/.config/ w,
+deny @{HOME}/.config/** w,
+deny @{HOME}/.fonts.cache-* w,
+deny @{HOME}/.local/ w,
+deny @{HOME}/.local/** w,
+deny @{HOME}/.recently-used.xbel* w,
+deny @{HOME}/tmp/ w,
+deny @{HOME}/tmp/** w,
+}
+
