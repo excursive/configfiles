@@ -8,7 +8,7 @@
 #include <abstractions/p11-kit>
 
 /usr/bin/wine-preloader rix,
-/usr/bin/wineserver px,
+/usr/bin/wineserver Px,
 /usr/bin/wine mr,
 /usr/lib{,32,64}/** mr,
 
@@ -63,6 +63,40 @@ owner /home/*/.wine/** rwmk,
 
 /run/dbus/system_bus_socket r,
 /proc/scsi/scsi r,
+
+deny @{HOME}/.Private/** w,
+deny @{HOME}/.ecryptfs/*/.Private/** w,
+deny @{HOME}/.cache/ w,
+deny @{HOME}/.cache/** w,
+deny @{HOME}/.config/ w,
+deny @{HOME}/.config/** w,
+deny @{HOME}/.fonts.cache-* w,
+deny @{HOME}/.local/ w,
+deny @{HOME}/.local/** w,
+deny @{HOME}/.recently-used.xbel* w,
+deny @{HOME}/tmp/ w,
+deny @{HOME}/tmp/** w,
+}
+
+/usr/bin/wine* {
+
+/usr/** mr,
+/usr/bin/** mrPix,
+/lib/** r,
+/etc/** r,
+
+/sys/devices/system/cpu/** r,
+/run/dbus/system_bus_socket r,
+/proc/scsi/scsi r,
+
+owner /home/*/.wine/ rw,
+owner /home/*/.wine/** rwmk,
+
+/opt/wine/.wine/** r,
+
+/tmp/.wine-*/ rw,
+/tmp/.wine-*/server-*/ rw,
+/tmp/.wine-*/server-*/* rwmk,
 
 deny @{HOME}/.Private/** w,
 deny @{HOME}/.ecryptfs/*/.Private/** w,
