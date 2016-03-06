@@ -2,9 +2,6 @@
 #include <tunables/global>
 /usr/bin/wine-preloader {
 
-
-
-
   # (Note that the ldd profile has inlined this file; if you make
   # modifications here, please consider including them in the ldd
   # profile as well.)
@@ -129,55 +126,6 @@
   # owner @{HOME}/.Private/** mrixwlk,
   # new-style encrypted $HOME
   # owner @{HOMEDIRS}/.ecryptfs/*/.Private/** mrixwlk,
-
-
-
-
-  /usr/share/AbiSuite/fonts/**          r,
-
-  /usr/lib/xorg/modules/fonts/**.so*    mr,
-
-  /usr/share/fonts/                     r,
-  /usr/share/fonts/**                   r,
-
-  /etc/fonts/**                         r,
-  /usr/share/fontconfig/conf.avail/**   r,
-
-  /opt/kde3/share/fonts/**              r,
-
-  /usr/lib{,32,64}/openoffice/share/fonts/**    r,
-
-  /var/cache/fonts/**                   r,
-  /var/cache/fontconfig/**              mr,
-  /var/lib/defoma/**                    mr,
-
-  /usr/share/a2ps/fonts/**              r,
-  /usr/share/xfce/fonts/**              r,
-  /usr/share/ghostscript/fonts/**       r,
-  /usr/share/javascript/*/fonts/**      r,
-  /usr/share/texmf/{,*/}fonts/**        r,
-  /usr/share/texlive/texmf-dist/fonts/** r,
-  /var/lib/ghostscript/**               r,
-
-  owner @{HOME}/.fonts.conf             r,
-  owner @{HOME}/.fonts/                 r,
-  owner @{HOME}/.fonts/**               r,
-  owner @{HOME}/.fonts.cache-2          mr,
-  owner @{HOME}/.{,cache/}fontconfig/   r,
-  owner @{HOME}/.{,cache/}fontconfig/** mrl,
-  owner @{HOME}/.fonts.conf.d/          r,
-  owner @{HOME}/.fonts.conf.d/**        r,
-  owner @{HOME}/.config/fontconfig/     r,
-  owner @{HOME}/.config/fontconfig/**   r,
-
-  /usr/local/share/fonts/               r,
-  /usr/local/share/fonts/**             r,
-
-  # poppler CMap tables
-  /usr/share/poppler/cMap/**            r,
-
-  # data files for LibThai
-  /usr/share/libthai/thbrk.tri          r,
 
 
 
@@ -310,6 +258,55 @@
 
   # interface details
   @{PROC}/@{pid}/net/route r,
+
+
+
+
+  /usr/share/AbiSuite/fonts/**          r,
+
+  /usr/lib/xorg/modules/fonts/**.so*    mr,
+
+  /usr/share/fonts/                     r,
+  /usr/share/fonts/**                   r,
+
+  /etc/fonts/**                         r,
+  /usr/share/fontconfig/conf.avail/**   r,
+
+  /opt/kde3/share/fonts/**              r,
+
+  /usr/lib{,32,64}/openoffice/share/fonts/**    r,
+
+  /var/cache/fonts/**                   r,
+  /var/cache/fontconfig/**              mr,
+  /var/lib/defoma/**                    mr,
+
+  /usr/share/a2ps/fonts/**              r,
+  /usr/share/xfce/fonts/**              r,
+  /usr/share/ghostscript/fonts/**       r,
+  /usr/share/javascript/*/fonts/**      r,
+  /usr/share/texmf/{,*/}fonts/**        r,
+  /usr/share/texlive/texmf-dist/fonts/** r,
+  /var/lib/ghostscript/**               r,
+
+  owner @{HOME}/.fonts.conf             r,
+  owner @{HOME}/.fonts/                 r,
+  owner @{HOME}/.fonts/**               r,
+  owner @{HOME}/.fonts.cache-2          mr,
+  owner @{HOME}/.{,cache/}fontconfig/   r,
+  owner @{HOME}/.{,cache/}fontconfig/** mrl,
+  owner @{HOME}/.fonts.conf.d/          r,
+  owner @{HOME}/.fonts.conf.d/**        r,
+  owner @{HOME}/.config/fontconfig/     r,
+  owner @{HOME}/.config/fontconfig/**   r,
+
+  /usr/local/share/fonts/               r,
+  /usr/local/share/fonts/**             r,
+
+  # poppler CMap tables
+  /usr/share/poppler/cMap/**            r,
+
+  # data files for LibThai
+  /usr/share/libthai/thbrk.tri          r,
 
 
 
@@ -404,6 +401,19 @@
 
 
 
+  # per-user tmp directories
+  # owner @{HOME}/tmp/**  rwkl,
+  # owner @{HOME}/tmp/    rw,
+
+  # global tmp directories
+  # owner /var/tmp/**     rwkl,
+  # /var/tmp/             rw,
+  # owner /tmp/**         rwkl,
+  # /tmp/                 rw,
+
+
+
+
   # systemwide gtk defaults
   /etc/gnome/gtkrc*               r,
   /etc/gtk/*                      r,
@@ -476,8 +486,10 @@
 
 
 
+
   # do not use ux or PUx here. Use at a minimum ix
   /usr/bin/gnome-terminal ix,
+
 
 
 
@@ -493,11 +505,12 @@
   /usr/share/p11-kit/modules/* r,
 
   # gnome-keyring pkcs11 module
-  owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 r,
+  owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 rw,
 
   # p11-kit also supports reading user configuration from ~/.pkcs11 depending
   # on how /etc/pkcs11/pkcs11.conf is configured. This should generally not be
   # included in this abstraction.
+
 
 
 
@@ -524,13 +537,22 @@ owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
 
 /opt/wine/.wine/** r,
+
+deny @{HOME}/.Private/** w,
+deny @{HOME}/.ecryptfs/*/.Private/** w,
+deny @{HOME}/.cache/ w,
+deny @{HOME}/.cache/** w,
+deny @{HOME}/.config/ w,
+deny @{HOME}/.config/** w,
+deny @{HOME}/.fonts.cache-* w,
+deny @{HOME}/.local/ w,
+deny @{HOME}/.local/** w,
+deny @{HOME}/.recently-used.xbel* w,
+deny @{HOME}/tmp/ w,
+deny @{HOME}/tmp/** w,
 }
 
 /usr/bin/wineserver {
-
-
-
-
 
   # (Note that the ldd profile has inlined this file; if you make
   # modifications here, please consider including them in the ldd
@@ -656,7 +678,6 @@ owner /home/*/.wine/** rwmk,
   # owner @{HOME}/.Private/** mrixwlk,
   # new-style encrypted $HOME
   # owner @{HOMEDIRS}/.ecryptfs/*/.Private/** mrixwlk,
-
 
 
 
@@ -793,7 +814,6 @@ owner /home/*/.wine/** rwmk,
 
 
 
-
 /usr/bin/wineserver r,
 
 /usr/share/wine/** r,
@@ -808,7 +828,6 @@ owner /home/*/.wine/** rwmk,
 /run/dbus/system_bus_socket r,
 /proc/scsi/scsi r,
 }
-
 
 /usr/bin/wine* {
 
