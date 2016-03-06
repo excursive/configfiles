@@ -505,7 +505,7 @@
   /usr/share/p11-kit/modules/* r,
 
   # gnome-keyring pkcs11 module
-  owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 rw,
+  owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 r,
 
   # p11-kit also supports reading user configuration from ~/.pkcs11 depending
   # on how /etc/pkcs11/pkcs11.conf is configured. This should generally not be
@@ -537,19 +537,6 @@ owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
 
 /opt/wine/.wine/** r,
-
-deny @{HOME}/.Private/** w,
-deny @{HOME}/.ecryptfs/*/.Private/** w,
-deny @{HOME}/.cache/ w,
-deny @{HOME}/.cache/** w,
-deny @{HOME}/.config/ w,
-deny @{HOME}/.config/** w,
-deny @{HOME}/.fonts.cache-* w,
-deny @{HOME}/.local/ w,
-deny @{HOME}/.local/** w,
-deny @{HOME}/.recently-used.xbel* w,
-deny @{HOME}/tmp/ w,
-deny @{HOME}/tmp/** w,
 }
 
 /usr/bin/wineserver {
