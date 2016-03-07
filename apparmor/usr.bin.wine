@@ -146,7 +146,7 @@
   # and the nss plugin also needs to talk to a pipe
   /var/lib/sss/mc/group   r,
   /var/lib/sss/mc/passwd  r,
-  /var/lib/sss/pipes/nss  rw,
+  /var/lib/sss/pipes/nss  r,
 
   /etc/resolv.conf        r,
   # on systems using resolvconf, /etc/resolv.conf is a symlink to
@@ -161,8 +161,8 @@
   /var/lib/misc/*.db      r,
   # The Name Service Cache Daemon can cache lookups, sometimes leading
   # to vast speed increases when working with network-based lookups.
-  /{,var/}run/.nscd_socket   rw,
-  /{,var/}run/nscd/socket    rw,
+  /{,var/}run/.nscd_socket   r,
+  /{,var/}run/nscd/socket    r,
   /var/{db,cache,run}/nscd/{passwd,group,services,host}    r,
   # nscd renames and unlinks files in it's operation that clients will
   # have open
@@ -220,12 +220,12 @@
 
   # likewise
   /tmp/.lwidentity/pipe       rw,
-  /var/lib/likewise-open/lwidentity_privileged/pipe rw,
+  /var/lib/likewise-open/lwidentity_privileged/pipe r,
 
   # mdnsd
   # mdnsd
   /etc/nss_mdns.conf r,
-  /{,var/}run/mdnsd w,
+  # /{,var/}run/mdnsd w,
 
   # kerberos
   # files required by kerberos client programs
@@ -321,7 +321,7 @@
   owner /{,var/}run/lightdm/*/xauthority r,
 
   # the unix socket to use to connect to the display
-  /tmp/.X11-unix/*           w,
+  # /tmp/.X11-unix/*           w,
 
   /usr/include/X11/               r,
   /usr/include/X11/**             r,
@@ -387,12 +387,12 @@
   # Entries based on:
   # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
-  owner @{HOME}/.cache/ r,
+  # owner @{HOME}/.cache/ r,
 
-  owner @{HOME}/.config/ r,
+  # owner @{HOME}/.config/ r,
 
-  owner @{HOME}/.local/ r,
-  owner @{HOME}/.local/share/ r,
+  # owner @{HOME}/.local/ r,
+  # owner @{HOME}/.local/share/ r,
 
   # fallbacks
   /usr/share/ r,
@@ -538,6 +538,7 @@ owner /home/*/.wine/** rwmk,
 
 /opt/wine/.wine/** r,
 }
+
 
 /usr/bin/wineserver {
 
@@ -685,7 +686,7 @@ owner /home/*/.wine/** rwmk,
   # and the nss plugin also needs to talk to a pipe
   /var/lib/sss/mc/group   r,
   /var/lib/sss/mc/passwd  r,
-  /var/lib/sss/pipes/nss  rw,
+  /var/lib/sss/pipes/nss  r,
 
   /etc/resolv.conf        r,
   # on systems using resolvconf, /etc/resolv.conf is a symlink to
@@ -700,8 +701,8 @@ owner /home/*/.wine/** rwmk,
   /var/lib/misc/*.db      r,
   # The Name Service Cache Daemon can cache lookups, sometimes leading
   # to vast speed increases when working with network-based lookups.
-  /{,var/}run/.nscd_socket   rw,
-  /{,var/}run/nscd/socket    rw,
+  /{,var/}run/.nscd_socket   r,
+  /{,var/}run/nscd/socket    r,
   /var/{db,cache,run}/nscd/{passwd,group,services,host}    r,
   # nscd renames and unlinks files in it's operation that clients will
   # have open
@@ -716,7 +717,7 @@ owner /home/*/.wine/** rwmk,
   /etc/default/nss               r,
 
   # avahi-daemon is used for mdns4 resolution
-  /{,var/}run/avahi-daemon/socket rw,
+  /{,var/}run/avahi-daemon/socket r,
 
   # nis
   # NIS rules
@@ -759,12 +760,12 @@ owner /home/*/.wine/** rwmk,
 
   # likewise
   /tmp/.lwidentity/pipe       rw,
-  /var/lib/likewise-open/lwidentity_privileged/pipe rw,
+  /var/lib/likewise-open/lwidentity_privileged/pipe r,
 
   # mdnsd
   # mdnsd
   /etc/nss_mdns.conf r,
-  /{,var/}run/mdnsd w,
+  # /{,var/}run/mdnsd w,
 
   # kerberos
   # files required by kerberos client programs
@@ -815,6 +816,7 @@ owner /home/*/.wine/** rwmk,
 /run/dbus/system_bus_socket r,
 /proc/scsi/scsi r,
 }
+
 
 /usr/bin/wine* {
 
