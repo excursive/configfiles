@@ -533,6 +533,13 @@
 /usr/share/wine/wine.inf r,
 /etc/fstab r,
 
+owner /tmp/.wine-*/ rw,
+owner /tmp/.wine-*/server-*/ rw,
+owner /tmp/.wine-*/server-*/* rwmk,
+
+owner /home/*/.local/share/icons/ rw,
+owner /home/*/.local/share/icons/** rw,
+
 owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
 
@@ -806,9 +813,9 @@ owner /home/*/.wine/** rwmk,
 
 /usr/share/wine/** r,
 
-/tmp/.wine-*/ rw,
-/tmp/.wine-*/server-*/ rw,
-/tmp/.wine-*/server-*/* rwmk,
+owner /tmp/.wine-*/ rw,
+owner /tmp/.wine-*/server-*/ rw,
+owner /tmp/.wine-*/server-*/* rwmk,
 
 owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
@@ -834,8 +841,8 @@ owner /home/*/.wine/** rwmk,
 
 /opt/wine/.wine/** r,
 
-/tmp/.wine-*/ rw,
-/tmp/.wine-*/server-*/ rw,
-/tmp/.wine-*/server-*/* rwmk,
+owner /tmp/.wine-*/ rw,
+owner /tmp/.wine-*/server-*/ rw,
+owner /tmp/.wine-*/server-*/* rwmk,
 }
 
