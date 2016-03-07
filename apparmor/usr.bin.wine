@@ -219,7 +219,7 @@
   /usr/share/samba/codepages/{lowcase,upcase,valid}.dat r,
 
   # likewise
-  /tmp/.lwidentity/pipe       rw,
+  /tmp/.lwidentity/pipe       r,
   /var/lib/likewise-open/lwidentity_privileged/pipe r,
 
   # mdnsd
@@ -293,7 +293,7 @@
   owner @{HOME}/.fonts/**               r,
   owner @{HOME}/.fonts.cache-2          mr,
   owner @{HOME}/.{,cache/}fontconfig/   r,
-  owner @{HOME}/.{,cache/}fontconfig/** mrl,
+  owner @{HOME}/.{,cache/}fontconfig/** mr,
   owner @{HOME}/.fonts.conf.d/          r,
   owner @{HOME}/.fonts.conf.d/**        r,
   owner @{HOME}/.config/fontconfig/     r,
@@ -454,7 +454,7 @@
   owner @{HOME}/.gnome/application-info             r,
 
   # per-user font business
-  owner @{HOME}/.fonts.cache-*    rl,
+  owner @{HOME}/.fonts.cache-*    r,
 
   # icon caches
   /var/cache/**/icon-theme.cache  r,
@@ -759,7 +759,7 @@ owner /home/*/.wine/** rwmk,
   /usr/share/samba/codepages/{lowcase,upcase,valid}.dat r,
 
   # likewise
-  /tmp/.lwidentity/pipe       rw,
+  /tmp/.lwidentity/pipe       r,
   /var/lib/likewise-open/lwidentity_privileged/pipe r,
 
   # mdnsd
