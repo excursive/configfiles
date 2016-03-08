@@ -505,7 +505,7 @@
   /usr/share/p11-kit/modules/* r,
 
   # gnome-keyring pkcs11 module
-  owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 r,
+  # owner /{,var/}run/user/[0-9]*/keyring*/pkcs11 r,
 
   # p11-kit also supports reading user configuration from ~/.pkcs11 depending
   # on how /etc/pkcs11/pkcs11.conf is configured. This should generally not be
@@ -514,27 +514,16 @@
 
 
 
-/usr/lib/wine-development/wine-preloader rix,
-/usr/lib/wine-development/wineserver Px,
-/usr/lib/wine-development/wineserver32 Px,
+/usr/lib/wine-development/wine*-preloader rix,
+/usr/lib/wine-development/wineserver* Px,
 /usr/lib/wine-development/wine mr,
-/usr/lib{,32,64}/** mr,
-
-/usr/bin/wine64-preloader rix,
-/usr/bin/wine64 mr,
 
 /usr/share/wine-development/** r,
 
 /sys/devices/system/cpu/** r,
-/run/dbus/system_bus_socket r,
 /proc/scsi/scsi r,
-
-/usr/share/wine/fonts/ r,
-/usr/share/wine/fonts/** r,
-/usr/share/wine/wine.inf r,
 /etc/fstab r,
 /etc/mtab r,
-/etc/pulse/** r,
 
 signal peer=/usr/lib/wine-development/wineserver*,
 
@@ -546,14 +535,9 @@ owner /home/*/.local/share/icons/ rw,
 owner /home/*/.local/share/icons/** rw,
 owner /home/*/.cache/fontconfig/** rwl,
 owner /home/*/.local/share/applications/wine-extension-* rw,
-owner /home/*/.config/pulse/ r,
-owner /home/*/.config/pulse/** r,
-owner /home/*/.pulse-cookie r,
 
 owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
-
-/opt/wine/.wine/** r,
 }
 
 
@@ -819,10 +803,7 @@ owner /home/*/.wine/** rwmk,
 
 
 
-/bin/** rix,
-/usr/bin/** rix,
-/usr/lib/wine-development/wineserver rix,
-/usr/lib/wine-development/wineserver32 rix,
+/usr/lib/wine-development/wineserver* r,
 
 /usr/share/wine-development/** r,
 
@@ -840,15 +821,9 @@ owner /home/*/.local/share/icons/ rw,
 owner /home/*/.local/share/icons/** rw,
 owner /home/*/.cache/fontconfig/** rwl,
 owner /home/*/.local/share/applications/wine-extension-* rw,
-owner /home/*/.config/pulse/ r,
-owner /home/*/.config/pulse/** r,
-owner /home/*/.pulse-cookie r,
 
 owner /home/*/.wine/ rw,
 owner /home/*/.wine/** rwmk,
-
-/run/dbus/system_bus_socket r,
-/proc/scsi/scsi r,
 }
 
 
@@ -858,24 +833,25 @@ owner /home/*/.wine/** rwmk,
 @{PROC}/@{pid}/mounts r,
 
 /bin/** mrPix,
-/usr/lib/wine-development/** mrPix,
+/usr/lib/wine-development/** mrPx,
 /usr/** mr,
 /usr/bin/** mrPix,
 /lib/** r,
 /etc/** r,
 
 /sys/devices/system/cpu/** r,
-/run/dbus/system_bus_socket r,
-/proc/scsi/scsi r,
-
-owner /home/*/.wine/ rw,
-owner /home/*/.wine/** rwmk,
-
-/opt/wine/.wine/** r,
 
 owner /tmp/.wine-*/ rw,
 owner /tmp/.wine-*/server-*/ rw,
 owner /tmp/.wine-*/server-*/* rwmk,
+
+owner /home/*/.local/share/icons/ rw,
+owner /home/*/.local/share/icons/** rw,
+owner /home/*/.cache/fontconfig/** rwl,
+owner /home/*/.local/share/applications/wine-extension-* rw,
+
+owner /home/*/.wine/ rw,
+owner /home/*/.wine/** rwmk,
 }
 
 /usr/bin/*-development {
@@ -884,23 +860,24 @@ owner /tmp/.wine-*/server-*/* rwmk,
 @{PROC}/@{pid}/mounts r,
 
 /bin/** mrPix,
-/usr/lib/wine-development/** mrPix,
+/usr/lib/wine-development/** mrPx,
 /usr/** mr,
 /usr/bin/** mrPix,
 /lib/** r,
 /etc/** r,
 
 /sys/devices/system/cpu/** r,
-/run/dbus/system_bus_socket r,
-/proc/scsi/scsi r,
-
-owner /home/*/.wine/ rw,
-owner /home/*/.wine/** rwmk,
-
-/opt/wine/.wine/** r,
 
 owner /tmp/.wine-*/ rw,
 owner /tmp/.wine-*/server-*/ rw,
 owner /tmp/.wine-*/server-*/* rwmk,
+
+owner /home/*/.local/share/icons/ rw,
+owner /home/*/.local/share/icons/** rw,
+owner /home/*/.cache/fontconfig/** rwl,
+owner /home/*/.local/share/applications/wine-extension-* rw,
+
+owner /home/*/.wine/ rw,
+owner /home/*/.wine/** rwmk,
 }
 
