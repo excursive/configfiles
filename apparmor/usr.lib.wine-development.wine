@@ -514,9 +514,9 @@
 
 
 
-/usr/lib/wine-development/wine*-preloader rix,
-/usr/lib/wine-development/wineserver* Px,
-/usr/lib/wine-development/wine mr,
+/usr/lib/wine-development/wine{,32,64}-preloader rix,
+/usr/lib/wine-development/wineserver{,32,64} Px,
+/usr/lib/wine-development/wine{,32,64} mr,
 
 /usr/share/wine-development/** r,
 
@@ -802,7 +802,7 @@ owner /home/*/.wine/** rwmk,
 
 
 
-/usr/lib/wine-development/wineserver* r,
+/usr/lib/wine-development/wineserver{,32,64} r,
 
 /usr/share/wine-development/** r,
 
