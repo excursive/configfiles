@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+X-GNOME-Autostart-Delay=5
+Exec=xgamma -rgamma 0.85 -ggamma 0.85 -bgamma 0.8
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=gamma
+Name=gamma
+Comment[en_US]=
+Comment=
