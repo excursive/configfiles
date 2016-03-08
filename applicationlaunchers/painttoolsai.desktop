@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=PaintToolSAI
 Type=Application
-Exec=sh -c "cd /home/tessa/.wine/drive_c/PaintToolSAI/; wine sai.exe"
+Exec=sh -c "cd /home/tessa/.wine/drive_c/PaintToolSAI/; wine-development sai.exe"
 Icon=wine
 Terminal=false
 Categories=Wine;
