@@ -521,7 +521,6 @@
 /usr/share/wine-development/** r,
 
 /sys/devices/system/cpu/** r,
-/proc/scsi/scsi r,
 /etc/fstab r,
 /etc/mtab r,
 
