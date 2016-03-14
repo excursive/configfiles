@@ -1,22 +1,22 @@
 /***********************************************************************
  *           GetSystemFirmwareTable       (KERNEL32.@)
  */
-struct RawSMBIOSData
-{
-    BYTE Used20CallingMethod;
-    BYTE SMBIOSMajorVersion;
-    BYTE SMBIOSMinorVersion;
-    BYTE DmiRevision;
-    DWORD Length;
-    BYTE SMBIOSTableData[];
-};
-
 UINT WINAPI GetSystemFirmwareTable(DWORD provider, DWORD id, PVOID buffer, DWORD size)
 {
     if (size < 16)
     {
         return 16;
     }
+
+    struct RawSMBIOSData
+    {
+        BYTE Used20CallingMethod;
+        BYTE SMBIOSMajorVersion;
+        BYTE SMBIOSMinorVersion;
+        BYTE DmiRevision;
+        DWORD Length;
+        BYTE SMBIOSTableData[];
+    };
 
     struct RawSMBIOSData * s = (struct RawSMBIOSData *) buffer;
 
