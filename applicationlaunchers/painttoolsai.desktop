@@ -1,8 +1,9 @@
 [Desktop Entry]
-Name=PaintToolSAI
+Name=PaintTool SAI
 Type=Application
 Exec=sh -c "cd /home/tessa/.wine/drive_c/PaintToolSAI/; wine-development sai.exe"
-Icon=wine
+StartupWMClass=sai.exe
+Icon=sai.png
 Terminal=false
 Categories=Wine;
 StartupNotify=true
