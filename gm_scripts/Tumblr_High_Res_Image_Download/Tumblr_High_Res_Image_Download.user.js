@@ -33,6 +33,8 @@ for (var i = 0; i < images.length; i++) {
     image.parentNode.replaceChild(link, image);
     image.style.display = 'block';
     image.style.position = 'static';
+    image.style.width = '100%';
+    image.style.height = 'auto';
     link.appendChild(image);
     link.className = 'highresimglink';
   }
