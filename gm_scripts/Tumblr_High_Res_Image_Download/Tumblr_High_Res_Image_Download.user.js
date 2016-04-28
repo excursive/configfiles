@@ -11,43 +11,29 @@
 // @exclude     https://media.tumblr.com/*
 // @exclude     https://*.media.tumblr.com/*
 // @version     1
-// @grant       none
+// @grant       GM_addStyle
 // ==/UserScript==
+
+GM_addStyle('.highresimglink:hover { opacity: 0.65; }');
 
 var images = document.getElementsByTagName('img');
 for (var i = 0; i < images.length; i++) {
   var image = images[i];
   if (isPostImage(image.src)) {
-    var imgBox = document.createElement('div');
-    imgBox.style.display = image.style.display;
-    imgBox.style.position = 'relative';
-    imgBox.style.width = image.style.width;
-    imgBox.style.height = image.style.height;
-    imgBox.style.minWidth = '50px';
-    imgBox.style.minHeight = '50px';
-    image.parentNode.replaceChild(imgBox, image);
+    var link = document.createElement('a');
+    link.style.display = image.style.display;
+    link.style.width = image.style.width;
+    link.style.height = image.style.height;
+    link.style.minWidth = '50px';
+    link.style.minHeight = '50px';
+    link.href = getHighResLink(image.src);
+    link.onclick = function(e) {e.stopPropagation();};
+    link.target = '_blank';
+    image.parentNode.replaceChild(link, image);
     image.style.display = 'block';
     image.style.position = 'static';
-    imgBox.appendChild(image);
-    var highResLink = document.createElement('a');
-    highResLink.href = getHighResLink(image.src);
-    highResLink.onclick = function(e) {e.stopPropagation();};
-    highResLink.target = '_blank';
-    highResLink.innerHTML = '\u25BC';
-    highResLink.style.position = 'absolute';
-    highResLink.style.top = '8px';
-    highResLink.style.left = '8px';
-    highResLink.style.color = 'white';
-    highResLink.style.fontFamily = 'Helvetica, Arial, sans-serif';
-    highResLink.style.fontSize = '24px';
-    highResLink.style.fontWeight = 'normal';
-    highResLink.style.textDecoration = 'none';
-    highResLink.style.lineHeight = 'initial';
-    highResLink.style.textShadow = '0px 0px 1px black';
-    highResLink.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
-    highResLink.style.padding = '0em 0.15em';
-    highResLink.style.border = '1px solid rgba(255, 255, 255, 0.5)';
-    imgBox.appendChild(highResLink);
+    link.appendChild(image);
+    link.className = 'highresimglink';
   }
 }
 
