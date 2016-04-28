@@ -23,7 +23,7 @@ for (var i = 0; i < images.length; i++) {
     var link = document.createElement('a');
     link.style.display = image.style.display;
     link.style.position = image.style.position;
-    link.style.width = image.style.width;
+    link.style.width = image.offsetWidth;
     link.style.height = image.style.height;
     link.style.minWidth = '50px';
     link.style.minHeight = '50px';
@@ -33,8 +33,6 @@ for (var i = 0; i < images.length; i++) {
     image.parentNode.replaceChild(link, image);
     image.style.display = 'block';
     image.style.position = 'static';
-    image.style.width = '100%';
-    image.style.height = 'auto';
     link.appendChild(image);
     link.className = 'highresimglink';
   }
