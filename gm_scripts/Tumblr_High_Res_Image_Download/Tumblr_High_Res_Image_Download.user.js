@@ -22,6 +22,7 @@ for (var i = 0; i < images.length; i++) {
   if (isPostImage(image.src)) {
     var link = document.createElement('a');
     link.style.display = image.style.display;
+    link.style.position = image.style.position;
     link.style.width = image.style.width;
     link.style.height = image.style.height;
     link.style.minWidth = '50px';
