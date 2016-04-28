@@ -21,18 +21,30 @@ for (var i = 0; i < images.length; i++) {
   var image = images[i];
   if (isPostImage(image.src)) {
     var link = document.createElement('a');
-    link.style.display = image.style.display;
-    link.style.position = image.style.position;
-    link.style.width = image.offsetWidth;
+    var imgStyle = window.getComputedStyle(image);
+    if (imgStyle.getPropertyValue('display') === 'block') {
+      link.style.display = 'block';
+    } else {
+      link.style.display = 'inline-block';
+    }
+    link.style.position = imgStyle.getPropertyValue('position');
+    if (image.style.width) {
+      // preserve percentage width value if set
+      link.style.width = image.style.width;
+    } else {
+      link.style.width = imgStyle.getPropertyValue('width');
+    }
     link.style.height = image.style.height;
-    link.style.minWidth = '50px';
-    link.style.minHeight = '50px';
+    link.style.minWidth = '75px';
+    link.style.minHeight = '75px';
     link.href = getHighResLink(image.src);
     link.onclick = function(e) {e.stopPropagation();};
     link.target = '_blank';
     image.parentNode.replaceChild(link, image);
     image.style.display = 'block';
     image.style.position = 'static';
+    image.style.width = '100%';
+    image.style.height = 'auto';
     link.appendChild(image);
     link.className = 'highresimglink';
   }
