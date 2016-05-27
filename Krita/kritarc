@@ -1,0 +1,36 @@
+AutoSaveInterval=600
+OpenGLFilterMode=3
+PaintopPopupDetached=false
+ToolOptionsInDocker=false
+ToolOptionsPopupDetached=false
+compressLayersInKra=true
+enableOpenGLDebugging=false
+enablePerfLog=false
+enableProgressReporting=false
+hideDockersFullScreen=true
+hideMenuFullScreen=true
+hidePopups=false
+hideScrollbars=true
+hideScrollbarsFullScreen=true
+hideStatusbarFullScreen=true
+hideTitleBarFullscreen=true
+hideToolbarFullscreen=true
+mdi_viewmode=0
+numFavoritePresets=16
+tabletPressureCurve=0,0;0.78,1;
+toolbarslider_1=flow
+toolbarslider_2=opacity
+toolbarslider_3=size
+undoStackLimit=100
+useOpenGL=true
+useOpenGLTextureBuffer=true
+
+[Shortcut Schemes]
+Current Scheme=dvorak
+
+[SplashScreen]
+HideSplashAfterStartup=true
+
+[advancedColorSelector]
+hsxSettingType=1
+minimalShadeSelectorLineHeight=12
