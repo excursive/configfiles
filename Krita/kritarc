@@ -22,6 +22,7 @@ toolbarslider_1=flow
 toolbarslider_2=opacity
 toolbarslider_3=size
 undoStackLimit=100
+useDirtyPresets=true
 useOpenGL=true
 useOpenGLTextureBuffer=true
 
