@@ -28,7 +28,7 @@ owner /proc/*/fd/ r,
 owner /tmp/RS2LauncherConnection_* rw,
 
 owner @{HOME}/Jagex/ rw,
-owner @{HOME}/*/Jagex/** rw,
+owner @{HOME}/Jagex/** rw,
 owner @{HOME}/.runescape* rw,
 
 owner @{HOME}/.config/enchant/ r,
