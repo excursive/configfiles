@@ -135,5 +135,6 @@ owner @{HOME}/.local/share/applications/wine-extension-* rw,
 
 owner @{HOME}/.wine/ rw,
 owner @{HOME}/.wine/** rwmk,
+
 }
 
