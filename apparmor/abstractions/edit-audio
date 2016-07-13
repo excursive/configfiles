@@ -1,0 +1,73 @@
+# vim:syntax=apparmor
+# ------------------------------------------------------------------
+#
+#    Copyright (C) 2002-2009 Novell/SUSE
+#    Copyright (C) 2009 Canonical Ltd.
+#
+#    This program is free software; you can redistribute it and/or
+#    modify it under the terms of version 2 of the GNU General Public
+#    License published by the Free Software Foundation.
+#
+# ------------------------------------------------------------------
+
+
+
+/dev/admmidi*   r,
+/dev/adsp*      r,
+/dev/aload*     r,
+/dev/amidi*     r,
+/dev/audio*     r,
+/dev/dmfm*      r,
+/dev/dmmidi*    r,
+/dev/dsp*       r,
+/dev/midi*      r,
+/dev/mixer*     r,
+/dev/mpu401data r,
+/dev/mpu401stat r,
+/dev/patmgr*    r,
+/dev/phone*     r,
+/dev/radio*     r,
+/dev/rmidi*     r,
+/dev/sequencer  r,
+/dev/sequencer2 r,
+/dev/smpte*     r,
+
+/dev/snd/*      r,
+/dev/sound/*    r,
+
+@{PROC}/asound/** r,
+
+/usr/share/alsa/** r,
+/usr/share/sounds/** r,
+
+owner @{HOME}/.esd_auth r,
+owner @{HOME}/.asoundrc r,
+/etc/esound/esd.conf r,
+
+# libcanberra
+owner @{HOME}/.cache/event-sound-cache.* r,
+
+# pulse
+/etc/pulse/ r,
+/etc/pulse/* r,
+/{run,dev}/shm/ r,
+owner /{run,dev}/shm/pulse-shm* r,
+owner @{HOME}/.pulse-cookie r,
+owner @{HOME}/.pulse/ r,
+owner @{HOME}/.pulse/* r,
+owner /{,var/}run/user/*/pulse/  r,
+owner /{,var/}run/user/*/pulse/{native,pid} r,
+owner @{HOME}/.config/pulse/cookie r,
+owner /tmp/pulse-*/ r,
+owner /tmp/pulse-*/* r,
+
+# libgnome2
+/etc/sound/ r,
+/etc/sound/** r,
+
+# openal
+/etc/openal/alsoft.conf r,
+owner @{HOME}/.alsoftrc r,
+
+# wildmidi
+/etc/wildmidi/wildmidi.cfg r,
