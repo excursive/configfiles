@@ -22,8 +22,11 @@
 /sys/devices/system/cpu/** r,
 /etc/fstab r,
 /etc/mtab r,
+/proc/scsi/scsi r,
 
 signal peer=/usr/lib/wine-development/wineserver*,
+
+unix type=stream addr=none,
 
 owner /tmp/.wine-*/ rw,
 owner /tmp/.wine-*/server-*/ rw,
@@ -64,6 +67,8 @@ owner @{HOME}/.wine/** rwmk,
 /etc/dpkg/dpkg.cfg r,
 
 signal peer=/usr/lib/wine-development/wine*-preloader,
+
+unix type=stream addr=none,
 
 owner /tmp/.wine-*/ rw,
 owner /tmp/.wine-*/server-*/ rw,
