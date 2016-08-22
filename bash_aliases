@@ -8,3 +8,7 @@ alias pngoptim="optipng -strip all -o7"
 
 alias aadebug="apparmor_parser -Q --debug"
 
+function cmpimg() {
+  compare -metric AE "$1" "$2" "${3:-/dev/null}"
+  echo
+}
