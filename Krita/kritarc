@@ -15,6 +15,7 @@ hideScrollbarsFullScreen=true
 hideStatusbarFullScreen=true
 hideTitleBarFullscreen=false
 hideToolbarFullscreen=true
+levelOfDetailEnabled=false
 mdi_viewmode=0
 numFavoritePresets=16
 tabletPressureCurve=0,0;0.75,1;
@@ -33,5 +34,6 @@ Current Scheme=dvorak
 HideSplashAfterStartup=true
 
 [advancedColorSelector]
-hsxSettingType=1
+colorSelectorConfiguration=2|4|15|17
+hsxSettingType=3
 minimalShadeSelectorLineHeight=12
