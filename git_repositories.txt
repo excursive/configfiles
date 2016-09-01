@@ -1,1 +1,8 @@
 https://phabricator.kde.org/diffusion/KRITA/krita.git
+https://github.com/excursive/kritabrushes.git
+https://github.com/excursive/configfiles.git
+https://github.com/mozilla/mozjpeg.git
+v3.1
+commit: 5198654f739552ed24c7f014574d1e74ee9ef8ac
+https://github.com/mozilla/mozjpeg/releases/download/v3.1/mozjpeg-3.1-release-source.tar.gz
+sha256: deedd88342c5da219f0047d9a290cd58eebe1b7a513564fcd8ebc49670077a1f
