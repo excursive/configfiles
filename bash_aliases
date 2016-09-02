@@ -22,29 +22,32 @@ function md5audio() {
 }
 
 function jpgoptim() {
-  if [ ! -z "$2" ] && [ -e "$2" ]; then
-    echo "Output file already exists. Exiting."
+  for in_file in "$@"
+  do
     echo
-    return 1
-  fi
-  
-  in_size=$(stat -c %s "$1")
-  echo "Input file size = $in_size bytes"
-  echo
-  
-  if [ -z "$2" ]; then
-    temp=$(mktemp "$1.XXXXXX")
-    $HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize "$1" > "$temp"
-    rm "$1"
-    mv "$temp" "$1"
-    out_size=$(stat -c %s "$1")
-  else
-    $HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize "$1" > "$2"
-    out_size=$(stat -c %s "$2")
-  fi
-  
-  size_diff=$(($in_size - $out_size))
-  percent_diff=$(echo "100 * $size_diff / $in_size" | bc -l)
-  echo "Output file size = $out_size bytes ($size_diff bytes = $percent_diff% decrease)"
-  echo
+    echo "** Processing: $in_file"
+    in_size=$(stat -c %s "$in_file")
+    echo "Input file size = $in_size bytes"
+    echo
+    
+    temp=$(mktemp "$in_file.XXXXXX")
+    $HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize "$in_file" > "$temp"
+    
+    ret=$?
+    if [ "$ret" -ne 0 ]; then
+      rm "$temp"
+      echo "Error. Skipping $in_file"
+      echo
+      continue
+    fi
+    
+    rm "$in_file"
+    mv "$temp" "$in_file"
+    out_size=$(stat -c %s "$in_file")
+    
+    size_diff=$(($in_size - $out_size))
+    percent_diff=$(echo "100 * $size_diff / $in_size" | bc -l)
+    echo "Output file size = $out_size bytes ($size_diff bytes = $percent_diff% decrease)"
+    echo
+  done
 }
