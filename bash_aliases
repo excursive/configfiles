@@ -51,3 +51,16 @@ function jpgoptim() {
     echo
   done
 }
+
+function kppextract() {
+  line=$(identify -verbose "$1" | grep "preset:")
+  l1=${line#*preset: }
+  formatted=${l1//> <param />$'\n'<param }
+  echo "$formatted" > "$1.txt"
+}
+
+function kppwrite() {
+  text=$(<"$2")
+  unformatted=${text//>$'\n'<param /> <param }
+  convert "$1" -set 'preset' "$unformatted" out.png
+}
