@@ -26,6 +26,12 @@
                 (locked)
                 (tab-style automatic)
                 (aux-info
+                    (show-button-bar "true")))
+            (dockable "gimp-tool-preset-list"
+                (locked)
+                (tab-style automatic)
+                (preview-size 24)
+                (aux-info
                     (show-button-bar "true")))))
     (gimp-dock
         (side right)
@@ -37,6 +43,11 @@
                 (aux-info
                     (frame-1-mode "pixel")
                     (frame-2-mode "rgb")))
+            (dockable "gimp-color-editor"
+                (locked)
+                (tab-style automatic)
+                (aux-info
+                    (current-page "GimpColorScales")))
             (dockable "gimp-histogram-editor"
                 (locked)
                 (tab-style automatic))
