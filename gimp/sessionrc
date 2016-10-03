@@ -56,7 +56,7 @@
             (dockable "gimp-layer-list"
                 (locked)
                 (tab-style automatic)
-                (preview-size 16)
+                (preview-size 32)
                 (aux-info
                     (show-button-bar "true"))))
         (book
