@@ -6,10 +6,6 @@
 # you quit GIMP.  If this file isn't found, defaults are used.
 
 (session-info "toplevel"
-    (factory-entry "gimp-empty-image-window")
-    (position 410 370)
-    (size 620 200))
-(session-info "toplevel"
     (factory-entry "gimp-single-image-window")
     (position 0 21)
     (size 1366 747)
@@ -78,9 +74,6 @@
                 (tab-style automatic)
                 (aux-info
                     (show-button-bar "false"))))))
-(session-info "toplevel"
-    (factory-entry "gimp-preferences-dialog")
-    (position 0 97))
 
 (hide-docks no)
 (single-window-mode yes)
