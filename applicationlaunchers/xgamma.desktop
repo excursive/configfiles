@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 X-GNOME-Autostart-Delay=5
-Exec=xgamma -rgamma 0.85 -ggamma 0.85 -bgamma 0.8
+Exec=xgamma -rgamma 0.919 -ggamma 0.930 -bgamma 0.877
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
