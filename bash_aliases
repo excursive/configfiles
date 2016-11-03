@@ -13,12 +13,16 @@ function cmpimg() {
   echo
 }
 
-function stripaudio() {
-  ffmpeg -i "$1" -id3v2_version 3 -c copy -map 0:0 "$2"
+function stripmp3() {
+  ffmpeg -i "$1" -id3v2_version 3 -c copy -map 0:a:0 "$2"
 }
 
 function md5audio() {
   ffmpeg -i "$1" -map 0:a -f md5 - 2>/dev/null
+}
+
+function md5video() {
+  ffmpeg -i "$1" -map 0:v -f md5 - 2>/dev/null
 }
 
 function stripvideo() {
