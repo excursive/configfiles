@@ -1,0 +1,7 @@
+{
+    "download-queue-size": 2, 
+    "peer-limit-global": 50, 
+    "peer-limit-per-torrent": 25, 
+    "peer-port-random-on-start": true, 
+    "start-added-torrents": false, 
+}
