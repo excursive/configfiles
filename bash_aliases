@@ -101,3 +101,7 @@ function kppwrite() {
   unformatted=${text//>$'\n'<param /> <param }
   convert "$1" -set 'preset' "$unformatted" out.png
 }
+
+if [ -f ~/.bash_aliases_extra ]; then
+  . ~/.bash_aliases_extra
+fi
