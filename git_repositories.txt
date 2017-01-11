@@ -1,4 +1,4 @@
-https://phabricator.kde.org/diffusion/KRITA/krita.git
+https://anongit.kde.org/krita
 https://github.com/excursive/kritabrushes.git
 https://github.com/excursive/configfiles.git
 https://github.com/mozilla/mozjpeg.git
