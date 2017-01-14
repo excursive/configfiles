@@ -10,7 +10,7 @@ alias pngoptim="optipng -strip all -o7"
 
 alias aadebug="apparmor_parser -Q --debug"
 
-alias youtube-music-dl="youtube-dl --output '%(uploader)s_%(title)s_%(id)s.%(ext)s' --no-continue --no-mtime --no-call-home --extract-audio"
+alias youtube-music-dl="youtube-dl --output '%(uploader)s_%(title)s_%(id)s.%(ext)s' --no-continue --no-mtime --no-call-home"
 
 function cmpimg() {
   compare -metric AE "$1" "$2" "${3:-/dev/null}"
