@@ -8,6 +8,8 @@ alias sha256c="sha256sum -c --quiet"
 
 alias pngoptim="optipng -strip all -o7"
 
+alias mozjpegoptim="$HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize -perfect"
+
 alias aadebug="apparmor_parser -Q --debug"
 
 alias youtube-music-dl="youtube-dl --output '%(uploader)s_%(title)s_%(id)s.%(ext)s' --no-continue --no-mtime --no-call-home"
