@@ -98,8 +98,19 @@ function jpgoptim() {
 function kppextract() {
   line=$(identify -verbose "$1" | grep "preset:")
   l1=${line#*preset: }
-  formatted=${l1//> <param />$'\n'<param }
+  echo "$l1"
+}
+
+function kpptotxt() {
+  preset=$(kppextract "$1")
+  formatted=${preset//> <param />$'\n'<param }
   echo "$formatted" > "$1.txt"
+}
+
+function kppdiff() {
+  preset1=$(kppextract "$1" | xmllint --c14n - | xmllint --format -)
+  preset2=$(kppextract "$2" | xmllint --c14n - | xmllint --format -)
+  diff <(echo "$preset1") <(echo "$preset2")
 }
 
 function kppwrite() {
