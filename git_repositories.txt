@@ -2,6 +2,7 @@ https://anongit.kde.org/krita
 https://github.com/excursive/kritabrushes.git
 https://github.com/excursive/configfiles.git
 https://github.com/mozilla/mozjpeg.git
+https://github.com/rg3/youtube-dl.git
 v3.1
 commit: 5198654f739552ed24c7f014574d1e74ee9ef8ac
 https://github.com/mozilla/mozjpeg/releases/download/v3.1/mozjpeg-3.1-release-source.tar.gz
