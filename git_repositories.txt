@@ -3,7 +3,7 @@ https://github.com/excursive/kritabrushes.git
 https://github.com/mozilla/mozjpeg.git
 https://github.com/ytdl-org/youtube-dl.git
 https://github.com/godotengine/godot.git
-https://github.com/callaa/Drawpile.git
+https://github.com/drawpile/Drawpile.git
 
 mozjpeg v3.1 commit: 5198654f739552ed24c7f014574d1e74ee9ef8ac
 https://github.com/mozilla/mozjpeg/releases/download/v3.1/mozjpeg-3.1-release-source.tar.gz
