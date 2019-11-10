@@ -12,7 +12,15 @@ alias mozjpegoptim="$HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimiz
 
 alias aadebug="apparmor_parser -Q --debug"
 
-alias youtube-music-dl="youtube-dl --output '%(uploader)s_%(title)s_%(id)s.%(ext)s' --no-continue --no-mtime --no-call-home"
+#alias ytdl="python ~/INSTALL_LOCATION/youtube-dl/youtube_dl/__main__.py --output '%(uploader)s_%(title)s_%(id)s.%(ext)s' --no-continue --no-mtime --no-call-home"
+
+alias screenrec720panim="ffmpeg -f x11grab -framerate 30 -video_size 1280x720 -draw_mouse 0 -show_region 0 -i :0.0+640,254 -f pulse -channels 2 -ac 2 -thread_queue_size 512 -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor -c:v libx264 -threads 2 -pix_fmt yuv420p -preset veryfast -crf 17 -tune animation -c:a flac -map 0:v:0 -map 1:a:0 -flags bitexact recording.mkv"
+
+alias enc24fpsanim="ffmpeg -i recording.mkv -ss -to -vf "decimate=cycle=5,setpts=N/24/TB" -c:v libx264 -threads 1 -crf 23 -preset veryfast -tune animation -c:a aac -map_metadata -1 -map 0:v:0 -map 0:a:0 -strict -2 -flags bitexact encoded.mp4"
+
+#alias protonrun="STEAM_COMPAT_DATA_PATH=~/PREFIX_LOCATION/ ~/.steam/steam/steamapps/common/Proton\ 3.7/proton run ~/PROGRAM_LOCATION"
+
+#wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/tag+name/page" https://staff.tumblr.com/tagged/tag+name
 
 function cmpimg() {
   compare -metric AE "$1" "$2" "${3:-/dev/null}"
