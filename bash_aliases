@@ -39,6 +39,14 @@ function md5video() {
   ffmpeg -i "$1" -map 0:v -f md5 - 2>/dev/null
 }
 
+function tumblrbackuptag() {
+  wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/$2/page" "https://$1.tumblr.com/tagged/$2"
+}
+
+function tumblrbackuppost() {
+  wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post/$2" "https://$1.tumblr.com/post/$2"
+}
+
 function stripvideo() {
   for in_file in "$@"
   do
