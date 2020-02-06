@@ -19,6 +19,7 @@ user_pref("browser.privacy.trackingprotection.menu", "always");
 user_pref("browser.search.hiddenOneOffs", "Google,Bing,Amazon.com,DuckDuckGo,eBay,Twitter,Wikipedia (en)");
 user_pref("browser.search.widget.inNavBar", true);
 user_pref("browser.sessionstore.restore_pinned_tabs_on_demand", true);
+user_pref("browser.sessionstore.warnOnQuit", true);
 user_pref("browser.shell.checkDefaultBrowser", true);
 user_pref("browser.startup.homepage_override.mstone", "ignore");
 user_pref("browser.startup.page", 3);
