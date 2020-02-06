@@ -1,6 +1,7 @@
 user_pref("accessibility.force_disabled", 1);
 user_pref("app.shield.optoutstudies.enabled", false);
 user_pref("browser.bookmarks.restore_default_bookmarks", false);
+user_pref("browser.contentblocking.category", "custom");
 user_pref("browser.formfill.enable", false);
 user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false);
 user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false);
@@ -15,6 +16,7 @@ user_pref("browser.newtabpage.activity-stream.section.highlights.includePocket",
 user_pref("browser.newtabpage.activity-stream.section.highlights.includeVisited", false);
 user_pref("browser.newtabpage.activity-stream.showSponsored", false);
 user_pref("browser.privacy.trackingprotection.menu", "always");
+user_pref("browser.search.hiddenOneOffs", "Google,Bing,Amazon.com,DuckDuckGo,eBay,Twitter,Wikipedia (en)");
 user_pref("browser.search.widget.inNavBar", true);
 user_pref("browser.sessionstore.restore_pinned_tabs_on_demand", true);
 user_pref("browser.shell.checkDefaultBrowser", true);
