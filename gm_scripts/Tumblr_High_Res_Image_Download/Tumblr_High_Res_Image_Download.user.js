@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Tumblr High Res Image Download
-// @namespace   http://excursiveart.deviantart.com/
+// @namespace   http://github.com/excursive
 // @description Shows a link to the highest res version of an image on tumblr
 // @include     http://*.tumblr.com/*
 // @include     http://tumblr.com/*
@@ -10,11 +10,14 @@
 // @exclude     http://*.media.tumblr.com/*
 // @exclude     https://media.tumblr.com/*
 // @exclude     https://*.media.tumblr.com/*
-// @version     1
-// @grant       GM_addStyle
+// @version     1.1
+// @run-at      document-idle
 // ==/UserScript==
 
-GM_addStyle('.highresimglink:hover { opacity: 0.65; }');
+var linkcss = '.highresimglink:hover { opacity: 0.65; }';
+var styleNode = document.createElement('style');
+styleNode.innerHTML = linkcss;
+document.head.appendChild(styleNode);
 
 var images = document.getElementsByTagName('img');
 for (var i = 0; i < images.length; i++) {
@@ -67,6 +70,7 @@ function isPostImage(url) {
          endsWith(url, '_400.jpg') ||
          endsWith(url, '_500.jpg') ||
          endsWith(url, '_540.jpg') ||
+         endsWith(url, '_640.jpg') ||
          endsWith(url, '_1280.jpg') ||
     
          endsWith(url, '_75sq.png') ||
@@ -75,13 +79,17 @@ function isPostImage(url) {
          endsWith(url, '_400.png') ||
          endsWith(url, '_500.png') ||
          endsWith(url, '_540.png') ||
-         endsWith(url, '_1280.png')/* ||
+         endsWith(url, '_640.png') ||
+         endsWith(url, '_1280.png') ||
     
          endsWith(url, '_75sq.gif') ||
          endsWith(url, '_100.gif') ||
          endsWith(url, '_250.gif') ||
          endsWith(url, '_400.gif') ||
-         endsWith(url, '_500.gif')*/;
+         endsWith(url, '_500.gif') ||
+         endsWith(url, '_540.gif') ||
+         endsWith(url, '_640.gif') ||
+         endsWith(url, '_1280.gif');
 }
 
 function endsWith(str, suffix) {
