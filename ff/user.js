@@ -47,7 +47,7 @@ user_pref("privacy.cpd.offlineApps", true);
 user_pref("privacy.cpd.siteSettings", true);
 user_pref("privacy.donottrackheader.enabled", true);
 user_pref("privacy.history.custom", true);
-//user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting", true);
 user_pref("privacy.sanitize.sanitizeOnShutdown", true);
 user_pref("privacy.sanitize.timeSpan", 0);
 user_pref("privacy.trackingprotection.enabled", true);
