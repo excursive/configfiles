@@ -41,7 +41,7 @@ user_pref("network.http.speculative-parallel-limit", 0);
 user_pref("network.IDN_show_punycode", true);
 user_pref("network.predictor.enabled", false);
 user_pref("network.prefetch-next", false);
-user_pref("network.trr.mode", 2);
+user_pref("network.trr.mode", 3);
 user_pref("plugin.disable_full_page_plugin_for_types", "application/pdf");
 user_pref("privacy.clearOnShutdown.cookies", false);
 user_pref("privacy.clearOnShutdown.downloads", false);
