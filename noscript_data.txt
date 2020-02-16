@@ -16,8 +16,8 @@
         "frame",
         "font",
         "fetch",
-        "other",
-        "ping"
+        "ping",
+        "other"
       ],
       "temp": false
     },
@@ -105,16 +105,14 @@
     "debug": false,
     "showCtxMenuItem": false,
     "showCountBadge": true,
-    "showFullAddresses": false,
-    "storage": "local"
+    "showFullAddresses": false
   },
   "sync": {
     "global": false,
     "xss": true,
     "cascadeRestrictions": false,
-    "overrideTorBrowserPolicy": false,
-    "clearclick": true,
-    "storage": "sync"
+    "overrideTorBrowserPolicy": true,
+    "clearclick": true
   },
   "xssUserChoices": {}
 }
