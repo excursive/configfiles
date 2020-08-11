@@ -28,6 +28,7 @@ user_pref("browser.urlbar.searchSuggestionsChoice", false);
 user_pref("browser.urlbar.suggest.history", false);
 user_pref("browser.urlbar.suggest.openpage", false);
 user_pref("browser.urlbar.suggest.searches", false);
+user_pref("browser.urlbar.suggest.topsites", false);
 user_pref("datareporting.healthreport.uploadEnabled", false);
 user_pref("devtools.onboarding.telemetry.logged", false);
 user_pref("extensions.formautofill.addresses.enabled", false);
