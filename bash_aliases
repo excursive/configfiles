@@ -12,7 +12,7 @@ alias mozjpegoptim="$HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimiz
 
 alias aadebug="apparmor_parser -Q --debug"
 
-alias ytdl="python ~/binaries/youtube-dl/__main__.py --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home"
+alias ytdl="python ~/binaries/youtube-dl/youtube_dl/__main__.py --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home"
 
 alias screenrec720panim="ffmpeg -f x11grab -framerate 30 -video_size 1280x720 -draw_mouse 0 -show_region 0 -i :0.0+640,254 -f pulse -channels 2 -ac 2 -thread_queue_size 512 -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor -c:v libx264 -threads 2 -pix_fmt yuv420p -preset veryfast -crf 17 -tune animation -c:a flac -map 0:v:0 -map 1:a:0 -flags bitexact recording.mkv"
 
