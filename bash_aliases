@@ -31,12 +31,12 @@ function stripmp3() {
   ffmpeg -i "$1" -id3v2_version 3 -c copy -map 0:a:0 "$2"
 }
 
-function md5audio() {
-  ffmpeg -i "$1" -map 0:a -f md5 - 2>/dev/null
+function sha256audio() {
+  ffmpeg -loglevel error -i "$1" -map 0:a -f hash -
 }
 
-function md5video() {
-  ffmpeg -i "$1" -map 0:v -f md5 - 2>/dev/null
+function sha256video() {
+  ffmpeg -loglevel error -i "$1" -map 0:v -f hash -
 }
 
 function tumblrbackuptag() {
