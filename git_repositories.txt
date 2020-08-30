@@ -5,4 +5,5 @@ https://github.com/ytdl-org/youtube-dl.git
 https://github.com/godotengine/godot.git
 https://github.com/drawpile/Drawpile.git
 https://chromium.googlesource.com/chromium/tools/depot_tools.git
+https://skia.googlesource.com/skia.git
 https://github.com/aseprite/aseprite.git
