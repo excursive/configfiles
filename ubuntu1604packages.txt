@@ -13,3 +13,20 @@ libtool nasm
 
 godot dependencies (excluding yasm):
 scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
+
+aesprite dependencies:
+ninja-build libfontconfig1-dev
+
+mouse speed/acceleration:
+gsettings describe org.gnome.desktop.peripherals.mouse speed
+gsettings describe org.gnome.desktop.peripherals.mouse accel-profile
+gsettings range org.gnome.desktop.peripherals.mouse speed
+gsettings range org.gnome.desktop.peripherals.mouse accel-profile
+
+for desktop use:
+gsettings set org.gnome.desktop.peripherals.mouse speed '-0.25'
+gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'default'
+
+for gaming:
+gsettings set org.gnome.desktop.peripherals.mouse speed '0'
+gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat'
