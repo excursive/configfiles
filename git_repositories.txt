@@ -7,3 +7,47 @@ https://github.com/drawpile/Drawpile.git
 https://chromium.googlesource.com/chromium/tools/depot_tools.git
 https://skia.googlesource.com/skia.git
 https://github.com/aseprite/aseprite.git
+
+
+#===================building mozjpeg========================
+
+#cd BULID_DIRECTORY
+cmake -G "Unix Makefiles" ADDITIONAL_CMAKE_FLAGS SOURCE_DIRECTORY
+make
+
+
+
+#=================buliding godotengine 3.2==================
+
+scons platform=x11
+
+
+
+#===================building godotengine====================
+
+# in root dir of engine source code:
+scons platform=linuxbsd
+scons -j3 platform=linuxbsd
+
+
+
+#=====================building skia=========================
+
+#git clone ...
+#git clone ...
+#export PATH="${PATH}:${PWD}/depot_tools"
+
+cd skia
+python tools/git-sync-deps
+bin/gn gen out/Release-x64 --args='is_debug=false is_official_build=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false'
+ninja -C out/Release-x64 skia modules
+
+
+
+#====================building aseprite======================
+
+#git clone ...
+
+cd BUILD_DIRECTORY
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLAF_BACKEND=skia -DSKIA_DIR=$HOME/deps/skia -DSKIA_LIBRARY_DIR=$HOME/deps/skia/out/Release-x64 -DSKIA_LIBRARY=$HOME/deps/skia/out/Release-x64/libskia.a -G ninja
+ninja aseprite
