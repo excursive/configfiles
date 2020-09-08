@@ -8,7 +8,7 @@ alias sha256c="sha256sum -c --quiet"
 
 alias pngoptim="optipng -strip all -o7"
 
-alias mozjpegoptim="$HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize -perfect"
+alias mozjpegoptim="$HOME/binaries/mozjpeg/jpegtran -copy none -optimize -perfect"
 
 alias aadebug="apparmor_parser -Q --debug"
 
@@ -97,7 +97,7 @@ function jpgoptim() {
     echo
     
     temp=$(mktemp "$in_file.XXXXXX")
-    $HOME/binaries/mozjpeg/inst/bin/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
+    $HOME/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
     
     ret=$?
     echo
