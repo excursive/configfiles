@@ -71,6 +71,7 @@
         "§:pinterest.com",
         "§:pixiv.net",
         "§:pixiv.org",
+        "§:privatter.net",
         "§:protonmail.com",
         "§:protonvpn.com",
         "§:pximg.net",
