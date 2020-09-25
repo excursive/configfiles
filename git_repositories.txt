@@ -66,14 +66,30 @@ git checkout 3e98c0e1d11516347ecc594959af2c1da4d04fc9
 # insert line at 1878:
             return;
 
+
 #====== include/private/SkFloatingPoint.h
 # change return value from float to double on line 249
+
+
+#====== gn/toolchain/BUILD.gn
+# edit and comment out line 66 and add preceding comment:
+    # Setup the env before
+    #env_setup = "cmd /c $win_sdk\\bin\\SetEnv.cmd /x86 && "
+
+
+#====== third_party/harfbuzz/BUILD.gn
+# insert line at 25:
+    include_dirs = [ "../externals/freetype/include" ]
+# insert line at previously 30/now 31:
+      "HAVE_FREETYPE",
+
 
 #====== src/gpu/GrProcessorUnitTest.cpp
 # change line 49 from:
             return {p, ct, at};
 # to
             return std::make_tuple(p, ct, at);
+
 
 #====== src/gpu/text/GrTextBlob.cpp
 # change line 833 from:
@@ -85,6 +101,7 @@ git checkout 3e98c0e1d11516347ecc594959af2c1da4d04fc9
         return {true, end - begin};
 # to
         return std::make_tuple(true, end - begin);
+
 
 
 #================ now build skia ================
