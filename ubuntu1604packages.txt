@@ -17,6 +17,9 @@ scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libgl
 aesprite dependencies:
 ninja-build libfontconfig1-dev
 
+skia dependencies (excluding freeglut3-dev):
+build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
+
 mouse speed/acceleration:
 gsettings describe org.gnome.desktop.peripherals.mouse speed
 gsettings describe org.gnome.desktop.peripherals.mouse accel-profile
