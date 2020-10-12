@@ -1,7 +1,7 @@
 alias srm="rm -I"
 
-alias md5r="find . -type f -exec md5sum {} +"
-alias sha256r="find . -type f -exec sha256sum {} +"
+alias md5r="find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty md5sum"
+alias sha256r="find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum"
 
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
@@ -64,7 +64,7 @@ function stripvideo() {
     echo "Input file size = $in_size bytes"
     echo
     
-    temp=$(mktemp "$in_file.XXXXXX.mp4")
+    temp=$(mkstemp "$in_file.XXXXXX.mp4")
     ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -map 0:v:0 -map 0:a:0 "$temp"
     
     ret=$?
@@ -96,7 +96,7 @@ function jpgoptim() {
     echo "Input file size = $in_size bytes"
     echo
     
-    temp=$(mktemp "$in_file.XXXXXX")
+    temp=$(mkstemp "$in_file.XXXXXX")
     $HOME/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
     
     ret=$?

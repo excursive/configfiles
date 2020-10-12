@@ -1,12 +1,12 @@
-git clone 'https://github.com/excursive/configfiles.git'
-git clone 'https://github.com/excursive/kritabrushes.git'
-git clone 'https://github.com/mozilla/mozjpeg.git'
-git clone 'https://github.com/ytdl-org/youtube-dl.git'
-git clone 'https://github.com/godotengine/godot.git'
-git clone 'https://github.com/drawpile/Drawpile.git'
-git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
-git clone 'https://skia.googlesource.com/skia.git'
-git clone 'https://github.com/aseprite/aseprite.git'
+git clone --no-checkout 'https://github.com/excursive/configfiles.git'
+git clone --no-checkout 'https://github.com/excursive/kritabrushes.git'
+git clone --no-checkout 'https://github.com/mozilla/mozjpeg.git'
+git clone --no-checkout 'https://github.com/ytdl-org/youtube-dl.git'
+git clone --no-checkout 'https://github.com/godotengine/godot.git'
+git clone --no-checkout 'https://github.com/drawpile/Drawpile.git'
+git clone --no-checkout 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
+git clone --no-checkout 'https://skia.googlesource.com/skia.git'
+git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
 
 
 
