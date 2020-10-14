@@ -15,7 +15,7 @@ godot dependencies (excluding yasm):
 scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
 
 aesprite dependencies:
-ninja-build libfontconfig1-dev
+ninja-build libfontconfig1-dev libpixman-1-dev
 
 skia dependencies (excluding freeglut3-dev):
 build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
