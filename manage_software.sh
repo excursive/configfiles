@@ -6,7 +6,7 @@
 # 2 = install
 # 3 = version (if applicable, usually a git commit sha1)
 
-isValidSha1() {
+is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
 }
 
@@ -18,7 +18,7 @@ get_aseprite() {
   skiabuilddir="${parentdir}/skia-build"
   asesrcdir="${parentdir}/src/aseprite"
   skiasrcdir="${parentdir}/src/skia"
-  depottoolsdir="${parentdir}/src/depot_tools"
+  #depottoolsdir="${parentdir}/src/depot_tools"
   tempbindir="${parentdir}/tempbin"
   
   if [ -d "${parentdir}" ] || \
@@ -55,7 +55,7 @@ get_aseprite() {
   git checkout 3e98c0e1d11516347ecc594959af2c1da4d04fc9
   
   echo ''
-  echo '======== Modifying files to match aseprite-m81 skia.'
+  echo '======== Modifying files to match aseprite-m81 skia'
   sed -i -e '1878i\
             return;' \
                'src/gpu/GrRenderTargetContext.cpp'
@@ -133,21 +133,24 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
 case "$1" in
   'aseprite')
     get_aseprite
-    ;;
+  ;;
   'other')
-    #if ! isValidSha1 "$3"; then
+    #if ! is_valid_sha1 "$3"; then
     #  echo 'Specified version is not a sha1 hash. Exiting.'
-    #  exit 1
+      exit 1
     #fi
-    ;;
+  ;;
   '')
     echo 'No software name specified. Exiting.'
     exit 1
-    ;;
+  ;;
   *)
     echo 'Invalid software name. Exiting'
     exit 1
-    ;;
+  ;;
 esac
+
+echo '***************************'
+echo '======== All done! ========'
 
 exit 0
