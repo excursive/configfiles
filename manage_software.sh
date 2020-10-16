@@ -1,28 +1,50 @@
 #!/bin/bash
 
 # Usage:
-# manage_software.sh 1 2 3
-# 1 = aseprite
-# 2 = install
-# 3 = version (if applicable, usually a git commit sha1)
+# manage_software.sh 1 2 3 4 (5)
+# 1 = software name [ aseprite ]
+# 2 = [ install | update ]
+# 3 = software version [ default | (a git commit sha1) ]
+# 4 = where to create installation directory
+# 5 = sources directory:
+#       if installing, optional directory to keep source repos afterwards
+#       if updating, location of source repos on disk
 
 is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
+}
+
+sha256r() {
+  if [ -n "$1" ]; then
+    output="$(sha256r)"
+    if [ -e "$1" ]; then
+      echo 'Error: Output file already exists'
+      exit 1
+    fi
+    echo "$output" > "$1"
+  else
+    find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
+  fi
 }
 
 get_aseprite() {
   echo ''
   echo '======== Creating directories'
   parentdir="${PWD}/aseprite"
-  asebuilddir="${parentdir}/aseprite-build"
-  skiabuilddir="${parentdir}/skia-build"
-  asesrcdir="${parentdir}/src/aseprite"
-  skiasrcdir="${parentdir}/src/skia"
-  #depottoolsdir="${parentdir}/src/depot_tools"
+  
+  builddir="${parentdir}/build"
+  asebuilddir="${builddir}/aseprite"
+  skiabuilddir="${builddir}/skia"
+  
+  srcdir="${parentdir}/src"
+  asesrcdir="${srcdir}/aseprite"
+  skiasrcdir="${srcdir}/skia"
+  #depottoolsdir="${srcdir}/depot_tools"
+  
   tempbindir="${parentdir}/tempbin"
   
   if [ -d "${parentdir}" ] || \
-     ! mkdir "${parentdir}" "${asebuilddir}" "${skiabuilddir}" "${parentdir}/src" "${tempbindir}"; then
+     ! mkdir "${parentdir}" "${builddir}" "${asebuilddir}" "${skiabuilddir}" "${srcdir}" "${tempbindir}"; then
     echo 'Directories could not be created. Exiting.'
     #exit 1
   fi
@@ -126,6 +148,21 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         -G Ninja \
         "${asesrcdir}"
   ninja aseprite
+  
+  echo ''
+  echo '======== Moving final builds'
+  mv --no-target-directory "${asebuilddir}/bin" "${parentdir}/bin"
+  mv --no-target-directory "${asebuilddir}/lib" "${parentdir}/lib"
+  mv --no-target-directory "${skiabuilddir}/out/Release-x64" "${parentdir}/lib/skia"
+  
+  echo ''
+  echo '======== Generating hashsums'
+  cd "${parentdir}"
+  sha256r 'aseprite_sha256sums.txt'
+  
+  echo ''
+  echo '======== Cleaning up'
+  rm -R "${builddir}" "${srcdir}" "${tempbindir}"
 }
 
 
@@ -150,7 +187,7 @@ case "$1" in
   ;;
 esac
 
-echo '***************************'
-echo '======== All done! ========'
+echo ''
+echo '======== All done!'
 
 exit 0
