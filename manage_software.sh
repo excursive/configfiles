@@ -6,9 +6,7 @@
 # 2 = [ install | update ]
 # 3 = software version [ default | (a git commit sha1) ]
 # 4 = where to create installation directory
-# 5 = sources directory:
-#       if installing, optional directory to keep source repos afterwards
-#       if updating, location of source repos on disk
+# 5 = 'keep_sources' will keep source repos after building, all other values ignored
 
 is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
@@ -27,10 +25,14 @@ sha256r() {
   fi
 }
 
-get_aseprite() {
+# if 1 = 'keep_sources' then keep source repos after building
+create_aseprite_dirs() {
   echo ''
   echo '======== Creating directories'
   parentdir="${PWD}/aseprite"
+  
+  aseinstalldir="${parentdir}/aseprite-1_2_25"
+  skiainstalldir="${parentdir}/skia-aseprite-m81"
   
   builddir="${parentdir}/build"
   asebuilddir="${builddir}/aseprite"
@@ -44,7 +46,10 @@ get_aseprite() {
   tempbindir="${parentdir}/tempbin"
   
   if [ -d "${parentdir}" ] || \
-     ! mkdir "${parentdir}" "${builddir}" "${asebuilddir}" "${skiabuilddir}" "${srcdir}" "${tempbindir}"; then
+     ! mkdir "${parentdir}" "${aseinstalldir}" "${skiainstalldir}" \
+                            "${builddir}" "${asebuilddir}" "${skiabuilddir}" \
+                            "${srcdir}" \
+                            "${tempbindir}"; then
     echo 'Directories could not be created. Exiting.'
     #exit 1
   fi
@@ -55,7 +60,7 @@ get_aseprite() {
   
   echo ''
   echo '======== Checking out git repositories'
-  cd "${parentdir}/src"
+  cd "${srcdir}"
   #git clone --no-checkout 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
   git clone --no-checkout 'https://skia.googlesource.com/skia.git'
   git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
@@ -75,9 +80,10 @@ get_aseprite() {
   echo '======== Checking out commit aseprite-m81 skia was forked from'
   cd "${skiasrcdir}"
   git checkout 3e98c0e1d11516347ecc594959af2c1da4d04fc9
+  PATH="${PATH}:${tempbindir}" python tools/git-sync-deps
   
   echo ''
-  echo '======== Modifying files to match aseprite-m81 skia'
+  echo '==== Modifying files to match aseprite-m81 skia'
   sed -i -e '1878i\
             return;' \
                'src/gpu/GrRenderTargetContext.cpp'
@@ -100,28 +106,29 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
          -e '856c\
         return std::make_tuple(true, end - begin);' \
                'src/gpu/text/GrTextBlob.cpp'
+  echo ''
   echo '==== Done modifying skia files.'
   
   echo ''
   echo '======== Building skia'
   cd "${skiasrcdir}"
-  PATH="${PATH}:${tempbindir}" python tools/git-sync-deps
-  PATH="${PATH}:${tempbindir}" bin/gn gen out/Release-x64 \
+  PATH="${PATH}:${tempbindir}" bin/gn gen "${skiabuilddir}" \
     --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
-  ninja -C out/Release-x64 skia modules
+  cd "${skiabuilddir}"
+  ninja -C "${skiabuilddir}" skia modules
   
   echo ''
   echo '======== Copying built skia into aseprite/skia-build'
   cd "${skiasrcdir}"
   cp -R --parents \
-    out/Release-x64/*.a \
+    "${skiabuilddir}"/*.a \
     include \
     modules/particles/include/*.h \
     modules/skottie/include/*.h \
     modules/skresources/include/*.h \
     modules/sksg/include/*.h \
     modules/skshaper/include/*.h \
-    "${skiabuilddir}"
+    "${skiainstalldir}"
   
   echo ''
   echo '======== Building aseprite'
@@ -151,18 +158,25 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   echo ''
   echo '======== Moving final builds'
-  mv --no-target-directory "${asebuilddir}/bin" "${parentdir}/bin"
-  mv --no-target-directory "${asebuilddir}/lib" "${parentdir}/lib"
-  mv --no-target-directory "${skiabuilddir}/out/Release-x64" "${parentdir}/lib/skia"
+  mv --no-target-directory "${asebuilddir}/bin" "${aseinstalldir}/bin"
+  mv --no-target-directory "${asebuilddir}/lib" "${aseinstalldir}/lib"
+  cp --no-target-directory "${skiabuilddir}" "${aseinstalldir}/lib/skia"
   
   echo ''
   echo '======== Generating hashsums'
-  cd "${parentdir}"
-  sha256r 'aseprite_sha256sums.txt'
+  cd "${aseinstalldir}"
+  sha256r 'aseprite-1_2_25-sha256sums.txt'
+  cd "${skiainstalldir}"
+  sha256r 'skia-aseprite-m81-sha256sums.txt'
   
   echo ''
   echo '======== Cleaning up'
   rm -R "${builddir}" "${srcdir}" "${tempbindir}"
+  if [ "$1" = 'keep_sources' ]; then
+    echo '==== Keeping source repos'
+  else
+    rm -R "${srcdir}"
+  fi
 }
 
 
