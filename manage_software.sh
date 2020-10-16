@@ -8,6 +8,9 @@
 # 4 = where to create installation directory
 # 5 = 'keep_sources' will keep source repos after building, all other values ignored
 
+# make bash stricter about errors
+set -e -o pipefail
+
 is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
 }
@@ -26,7 +29,7 @@ sha256r() {
 }
 
 # if 1 = 'keep_sources' then keep source repos after building
-create_aseprite_dirs() {
+get_aseprite() {
   echo ''
   echo '======== Creating directories'
   parentdir="${PWD}/aseprite"
@@ -119,9 +122,9 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   echo ''
   echo '======== Copying built skia into aseprite/skia-build'
+  cp --no-target-directory "${skiabuilddir}"/*.a "${skiainstalldir}/lib"
   cd "${skiasrcdir}"
   cp -R --parents \
-    "${skiabuilddir}"/*.a \
     include \
     modules/particles/include/*.h \
     modules/skottie/include/*.h \
@@ -160,7 +163,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   echo '======== Moving final builds'
   mv --no-target-directory "${asebuilddir}/bin" "${aseinstalldir}/bin"
   mv --no-target-directory "${asebuilddir}/lib" "${aseinstalldir}/lib"
-  cp --no-target-directory "${skiabuilddir}" "${aseinstalldir}/lib/skia"
+  cp --no-target-directory "${skiainstalldir}" "${aseinstalldir}/lib/skia"
   
   echo ''
   echo '======== Generating hashsums'
@@ -171,7 +174,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   echo ''
   echo '======== Cleaning up'
-  rm -R "${builddir}" "${srcdir}" "${tempbindir}"
+  rm -R "${builddir}" "${tempbindir}"
   if [ "$1" = 'keep_sources' ]; then
     echo '==== Keeping source repos'
   else
