@@ -93,12 +93,12 @@ batch_optimize_files() {
     
     case "$filetype" in
       'jpg' | 'jpeg')
-        temp="$(mkstemp "$in_file.XXXXXX")"
+        temp="$(mktemp "$in_file.XXXXXX")"
         ${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
       ;;
       'video')
         # TODO: use actual file extension instead of assuming mp4
-        temp="$(mkstemp "$in_file.XXXXXX.mp4")"
+        temp="$(mktemp "$in_file.XXXXXX.mp4")"
         ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -c:v copy -c:a copy \
                -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
                -map 0:v:0 -map 0:a:0 "$temp"
