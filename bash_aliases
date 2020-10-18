@@ -31,7 +31,7 @@ md5r() {
   if [ -n "$1" ]; then
     output="$(md5r)"
     if [ -e "$1" ]; then
-      printf '%s\n' 'Error: Output file already exists'
+      printf 'Error: Output file already exists\n'
       exit 1
     fi
     printf '%s' "$output" > "$1"
@@ -44,7 +44,7 @@ sha256r() {
   if [ -n "$1" ]; then
     output="$(sha256r)"
     if [ -e "$1" ]; then
-      printf '%s\n' 'Error: Output file already exists'
+      printf 'Error: Output file already exists\n'
       exit 1
     fi
     printf '%s' "$output" > "$1"
@@ -83,9 +83,9 @@ function tumblrbackuppost() {
 function stripvideo() {
   for in_file in "$@"
   do
-    printf '\n%s\n' "** Processing: $in_file"
+    printf '\n** Processing: %s\n' "$in_file"
     in_size="$(stat -c %s "$in_file")"
-    printf '%s\n\n' "Input file size = ${in_size} bytes"
+    printf 'Input file size = %s bytes\n\n' "$in_size"
     
     temp="$(mkstemp "$in_file.XXXXXX.mp4")"
     ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -map 0:v:0 -map 0:a:0 "$temp"
@@ -94,7 +94,7 @@ function stripvideo() {
     printf '\n'
     if [ "$ret" -ne 0 ]; then
       rm "$temp"
-      printf '\n%s\n\n' "Error. Skipping ${in_file}"
+      printf 'Error, Skipping %s\n\n' "$in_file"
       continue
     fi
     
@@ -103,17 +103,17 @@ function stripvideo() {
     out_size="$(stat -c %s "$in_file")"
     
     size_diff="$(($in_size - $out_size))"
-    percent_diff="$(printf '%s' "100 * $size_diff / $in_size" | bc -l)"
-    printf '\n%s\n\n' "Output file size = ${out_size} bytes (${size_diff} bytes = ${percent_diff}% decrease)"
+    percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
+    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' "$out_size" "$size_diff" "$percent_diff"
   done
 }
 
 function jpgoptim() {
   for in_file in "$@"
   do
-    printf '\n%s\n' "** Processing: $in_file"
+    printf '\n** Processing: %s\n' "$in_file"
     in_size="$(stat -c %s "$in_file")"
-    printf '%s\n\n' "Input file size = $in_size bytes"
+    printf 'Input file size = %s bytes\n\n' "$in_size"
     
     temp="$(mkstemp "$in_file.XXXXXX")"
     ${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
@@ -122,7 +122,7 @@ function jpgoptim() {
     printf '\n'
     if [ "$ret" -ne 0 ]; then
       rm "$temp"
-      printf '\n%s\n\n' "Error. Skipping ${in_file}"
+      printf 'Error, Skipping %s\n\n' "$in_file"
       continue
     fi
     
@@ -131,8 +131,8 @@ function jpgoptim() {
     out_size="$(stat -c %s "$in_file")"
     
     size_diff="$(($in_size - $out_size))"
-    percent_diff="$(printf '%s' "100 * $size_diff / $in_size" | bc -l)"
-    printf '\n%s\n\n' "Output file size = ${out_size} bytes (${size_diff} bytes = ${percent_diff}% decrease)"
+    percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
+    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' "$out_size" "$size_diff" "$percent_diff"
   done
 }
 
