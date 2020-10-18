@@ -55,40 +55,63 @@ sha256r() {
 
 # TODO: functions below have been edited but need testing
 
-function cmpimg() {
+cmpimg() {
   compare -metric AE "$1" "$2" "${3:-/dev/null}"
   printf '\n'
 }
 
-function stripmp3() {
+stripmp3() {
   ffmpeg -i "$1" -id3v2_version 3 -c copy -map 0:a:0 "$2"
 }
 
-function sha256audio() {
+sha256audio() {
   ffmpeg -loglevel error -i "$1" -map 0:a -f hash -
 }
 
-function sha256video() {
+sha256video() {
   ffmpeg -loglevel error -i "$1" -map 0:v -f hash -
 }
 
-function tumblrbackuptag() {
+tumblrbackuptag() {
   wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/$2/page" "https://$1.tumblr.com/tagged/$2"
 }
 
-function tumblrbackuppost() {
+tumblrbackuppost() {
   wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post/$2" "https://$1.tumblr.com/post/$2"
 }
 
-function stripvideo() {
+# arguments: 1 = [ jpeg | video | audio ]
+#            2... = files to process
+batch_optimize_files() {
+  filetype="$1"
+  shift
   for in_file in "$@"
   do
     printf '\n** Processing: %s\n' "$in_file"
     in_size="$(stat -c %s "$in_file")"
     printf 'Input file size = %s bytes\n\n' "$in_size"
     
-    temp="$(mkstemp "$in_file.XXXXXX.mp4")"
-    ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -map 0:v:0 -map 0:a:0 "$temp"
+    case "$filetype" in
+      'jpg' | 'jpeg')
+        temp="$(mkstemp "$in_file.XXXXXX")"
+        ${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
+      ;;
+      'video')
+        # TODO: use actual file extension instead of assuming mp4
+        temp="$(mkstemp "$in_file.XXXXXX.mp4")"
+        ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -c:v copy -c:a copy \
+               -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
+               -map 0:v:0 -map 0:a:0 "$temp"
+      ;;
+      'audio')
+        printf 'Error: Not implemented\n'
+        exit 1
+      ;;
+      *)
+        printf 'Error: Must specify [ jpeg | video | audio ] as first argument\n'
+        exit 1
+      ;;
+    esac
     
     ret="$?"
     printf '\n'
@@ -108,53 +131,33 @@ function stripvideo() {
   done
 }
 
-function jpgoptim() {
-  for in_file in "$@"
-  do
-    printf '\n** Processing: %s\n' "$in_file"
-    in_size="$(stat -c %s "$in_file")"
-    printf 'Input file size = %s bytes\n\n' "$in_size"
-    
-    temp="$(mkstemp "$in_file.XXXXXX")"
-    ${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
-    
-    ret="$?"
-    printf '\n'
-    if [ "$ret" -ne 0 ]; then
-      rm "$temp"
-      printf 'Error, Skipping %s\n\n' "$in_file"
-      continue
-    fi
-    
-    rm "$in_file"
-    mv "$temp" "$in_file"
-    out_size="$(stat -c %s "$in_file")"
-    
-    size_diff="$(($in_size - $out_size))"
-    percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
-    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' "$out_size" "$size_diff" "$percent_diff"
-  done
+jpgoptim() {
+  batch_optimize_files 'jpeg' "$@"
 }
 
-function kppextract() {
+stripvideo() {
+  batch_optimize_files 'video' "$@"
+}
+
+kppextract() {
   line="$(identify -verbose "$1" | grep "preset:")"
   l1="${line#*preset: }"
   printf '%s\n' "$l1"
 }
 
-function kpptotxt() {
+kpptotxt() {
   preset="$(kppextract "$1")"
   formatted="${preset//> <param />$'\n'<param }"
   printf '%s\n' "$formatted" > "$1.txt"
 }
 
-function kppdiff() {
+kppdiff() {
   preset1="$(kppextract "$1" | xmllint --c14n - | xmllint --format -)"
   preset2="$(kppextract "$2" | xmllint --c14n - | xmllint --format -)"
   diff <(printf '%s' "$preset1") <(printf '%s' "$preset2")
 }
 
-function kppwrite() {
+kppwrite() {
   text="$(<"$2")"
   unformatted="${text//>$'\n'<param /> <param }"
   convert "$1" -set 'preset' "$unformatted" out.png
