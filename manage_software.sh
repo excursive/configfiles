@@ -62,6 +62,7 @@ clean_and_update_repo() {
 # 2 = version (default or a commit sha1 hash)
 # 3 = parent directory, i.e. where to create (or find) 'aseprite' directory
 # 4 = 'keep_sources' to keep source code after installation
+#     (if action = 'update', then source code is always kept)
 manage_aseprite() {
   if [ "$2" = 'default' ]; then
     aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
@@ -278,10 +279,10 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   printf '\n======== Cleaning up\n'
   rm -R "${build_dir}" "${temp_bin_dir}"
-  if [ "$4" = 'keep_sources' ]; then
-    printf '\n==== Keeping source repos\n'
-  else
+  if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
     rm -R "${src_dir}"
+  else
+    printf '\n==== Keeping source repos\n'
   fi
   
   
@@ -298,9 +299,13 @@ Terminal=false
 Category=Graphics;"
   
   if [ -e "${launcher_path}" ]; then
-    # TODO: If launcher exists, should check if valid and if so then update install path
-    # edit: actually that might be difficult because filenames can have newlines...
-    printf '\n==== Launcher not created, file already exists\n'
+    if [ -f "${launcher_path}" ] \
+    && [ "$(head --lines=1 "${launcher_path}")" = '[Desktop Entry]' ]; then
+      printf '\n==== Overwriting old launcher\n'
+      printf '%s\n' "$launcher_text" > "${launcher_path}"
+    else
+      printf '\n==== Launcher not created, unknown file with that name already exists\n'
+    fi
   else
     printf '%s\n' "$launcher_text" > "${launcher_path}"
   fi
@@ -316,7 +321,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '  2 = [ install | update ]\n'
   printf '  3 = software version [ default | (a git commit sha1) ]\n'
   printf '  4 = where to create (or find existing) installation directory\n'
-  printf '  5 = "keep_sources" will keep source repos after building, all other values ignored\n'
+  printf '  5 = "keep_sources" will keep source repos after install, all other values ignored\n'
   exit 0
 fi
 
@@ -358,7 +363,7 @@ case "$2" in
     action='update'
   ;;
   *)
-    printf '\nError: 2nd argument must be install or update\n'
+    printf '\nError: Invalid action specified (valid actions are install and update)\n'
     exit 1
   ;;
 esac
