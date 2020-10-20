@@ -74,48 +74,48 @@ manage_aseprite() {
   fi
   
   printf '\n======== Creating directories\n'
-  asepritedir="${3}/aseprite"
+  aseprite_dir="${3}/aseprite"
   
-  aseinstalldir="${asepritedir}/aseprite-${aseprite_version}"
-  skiainstalldir="${asepritedir}/skia-aseprite-m81"
+  ase_install_dir="${aseprite_dir}/aseprite-${aseprite_version}"
+  skia_install_dir="${aseprite_dir}/skia-aseprite-m81"
   
-  builddir="${asepritedir}/build"
-  asebuilddir="${builddir}/aseprite"
-  skiabuilddir="${builddir}/skia"
+  build_dir="${aseprite_dir}/build"
+  ase_build_dir="${build_dir}/aseprite"
+  skia_build_dir="${build_dir}/skia"
   
-  srcdir="${asepritedir}/src"
-  asesrcdir="${srcdir}/aseprite"
-  skiasrcdir="${srcdir}/skia"
-  #depottoolsdir="${srcdir}/depot_tools"
+  src_dir="${aseprite_dir}/src"
+  ase_src_dir="${src_dir}/aseprite"
+  skia_src_dir="${src_dir}/skia"
+  #depot_tools_dir="${src_dir}/depot_tools"
   
-  tempbindir="${asepritedir}/tempbin"
+  temp_bin_dir="${aseprite_dir}/tempbin"
   
   if [ "$1" = 'update' ]; then
-    if [ ! -d "${asepritedir}" ] \
-       || [ ! -d "${skiainstalldir}" ] \
-       || [ ! -d "${srcdir}" ] \
-       || [ ! -f "${asepritedir}/skia-aseprite-m81-sha256sums.txt" ]; then
+    if [ ! -d "${aseprite_dir}" ] \
+       || [ ! -d "${skia_install_dir}" ] \
+       || [ ! -d "${src_dir}" ] \
+       || [ ! -f "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt" ]; then
       printf '\n==== Error: Missing files from original installation\n'
       exit 1
     fi
-    if [ -e "${aseinstalldir}" ]; then
+    if [ -e "${ase_install_dir}" ]; then
       printf '\n==== Error: Aseprite install directory already exists\n'
       printf '==== To reinstall, first delete the previous installation directory:\n'
-      printf '%s\n' "${aseinstalldir}"
+      printf '%s\n' "${ase_install_dir}"
       exit 1
     fi
-    if ! mkdir "${aseinstalldir}" \
-               "${builddir}" "${asebuilddir}" "${skiabuilddir}" \
-               "${tempbindir}"; then
+    if ! mkdir "${ase_install_dir}" \
+               "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
+               "${temp_bin_dir}"; then
       printf '\n==== Error: Could not create build directories\n'
       exit 1
     fi
   else if [ "$1" = 'install' ]; then
-    if [ -e "${asepritedir}" ] \
-       || ! mkdir "${asepritedir}" "${aseinstalldir}" "${skiainstalldir}" \
-                                   "${builddir}" "${asebuilddir}" "${skiabuilddir}" \
-                                   "${srcdir}" \
-                                   "${tempbindir}"; then
+    if [ -e "${aseprite_dir}" ] \
+       || ! mkdir "${aseprite_dir}" "${ase_install_dir}" "${skia_install_dir}" \
+                                   "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
+                                   "${src_dir}" \
+                                   "${temp_bin_dir}"; then
       printf '\n==== Error: Directories could not be created\n'
       exit 1
     fi
@@ -126,22 +126,23 @@ manage_aseprite() {
   
   # in case python doesn't point to python2 binary,
   # set up a temp folder with a link to temporarily add to path
-  ln -s '/usr/bin/python2' "${tempbindir}/python"
+  ln -s '/usr/bin/python2' "${temp_bin_dir}/python"
   
   if [ "$1" = 'install' ]; then
     printf '\n======== Checking out git repositories\n'
-    cd "${srcdir}"
+    cd "${src_dir}"
     #git clone --no-checkout 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
     git clone --no-checkout 'https://skia.googlesource.com/skia.git'
     git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
   fi
   
   printf '\n======== Checking out aseprite commit\n======== %s\n' "$aseprite_version"
-  cd "${asesrcdir}"
+  cd "${ase_src_dir}"
   if ! check_repo_urls 'https://github.com/aseprite/aseprite.git'; then
     printf '\n==== Error: aseprite git repository url does not match\n'
     exit 1
   fi
+  
   if [ "$1" = 'update' ]; then
     clean_and_update_repo "$aseprite_version" 'fetch_updates'
   else
@@ -154,11 +155,12 @@ manage_aseprite() {
   
   if [ "$1" = 'install' ]; then
     # just check out a random depot_tools commit that is known to work
-    #cd "${depottoolsdir}"
+    #cd "${depot_tools_dir}"
     #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
     #  printf '\n==== Error: depot_tools git repository url does not match\n'
     #  exit 1
     #fi
+    #
     #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c'
     #if [ "$?" != 0 ]; then
     #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
@@ -166,18 +168,19 @@ manage_aseprite() {
     #fi
     
     printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
-    cd "${skiasrcdir}"
+    cd "${skia_src_dir}"
     if ! check_repo_urls 'https://skia.googlesource.com/skia.git'; then
       printf '\n==== Error: skia git repository url does not match\n'
       exit 1
     fi
+    
     clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9'
     if [ "$?" != 0 ]; then
       printf '\n==== Error: An error occurred when managing skia repo\n'
       exit 1
     fi
     
-    PATH="${PATH}:${tempbindir}" python tools/git-sync-deps
+    PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
     
     printf '\n==== Modifying files to match aseprite-m81 skia\n'
     sed -i -e '1878i\
@@ -206,16 +209,16 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     printf '\n==== Done modifying skia files\n'
     
     printf '\n======== Building skia\n'
-    cd "${skiasrcdir}"
-    PATH="${PATH}:${tempbindir}" bin/gn gen "${skiabuilddir}" \
+    cd "${skia_src_dir}"
+    PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
       --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
-    cd "${skiabuilddir}"
-    ninja -C "${skiabuilddir}" skia modules
+    cd "${skia_build_dir}"
+    ninja -C "${skia_build_dir}" skia modules
     
     printf '\n======== Moving built skia into skia install directory\n'
-    mkdir "${skiainstalldir}/lib"
-    mv "${skiabuilddir}"/*.a "${skiainstalldir}/lib"
-    cd "${skiasrcdir}"
+    mkdir "${skia_install_dir}/lib"
+    mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib"
+    cd "${skia_src_dir}"
     cp -R --parents \
       include \
       modules/particles/include/*.h \
@@ -223,30 +226,30 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
       modules/skresources/include/*.h \
       modules/sksg/include/*.h \
       modules/skshaper/include/*.h \
-      "${skiainstalldir}"
+      "${skia_install_dir}"
     
     printf '\n======== Generating skia-aseprite-m81 checksums\n'
-    cd "${skiainstalldir}"
-    sha256r "${asepritedir}/skia-aseprite-m81-sha256sums.txt"
+    cd "${skia_install_dir}"
+    sha256r "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt"
     
   else if [ "$1" = 'update' ]; then
     # TODO: need a better way to check if skia installation matches checksums
-    if ! cd "${skiainstalldir}" \
-       || ! sha256sum -c --quiet "${asepritedir}/skia-aseprite-m81-sha256sums.txt"; then
+    if ! cd "${skia_install_dir}" \
+       || ! sha256sum -c --quiet "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt"; then
       printf '\n==== Error: Skia installation does not match checksums\n'
       exit 1
     fi
   fi
   
   printf '\n======== Building aseprite\n'
-  cd "${asebuilddir}"
+  cd "${ase_build_dir}"
   # enable shared libraries not in universe repo
   # disable network stuff (news and updates)
   cmake -DCMAKE_BUILD_TYPE=Release \
         -DLAF_BACKEND=skia \
-        -DSKIA_DIR="${skiainstalldir}" \
-        -DSKIA_LIBRARY_DIR="${skiainstalldir}/lib" \
-        -DSKIA_LIBRARY="${skiainstalldir}/lib/libskia.a" \
+        -DSKIA_DIR="${skia_install_dir}" \
+        -DSKIA_LIBRARY_DIR="${skia_install_dir}/lib" \
+        -DSKIA_LIBRARY="${skia_install_dir}/lib/libskia.a" \
         -DUSE_SHARED_CMARK='OFF' \
         -DUSE_SHARED_CURL='ON' \
         -DUSE_SHARED_FREETYPE='ON' \
@@ -260,25 +263,25 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         -DENABLE_NEWS='OFF' \
         -DENABLE_UPDATER='OFF' \
         -G Ninja \
-        "${asesrcdir}"
+        "${ase_src_dir}"
   ninja aseprite
   
   printf '\n======== Moving built aseprite into aseprite install directory\n'
-  mv --no-target-directory "${asebuilddir}/bin" "${aseinstalldir}/bin"
-  mv --no-target-directory "${asebuilddir}/lib" "${aseinstalldir}/lib"
-  cp --no-target-directory "${skiainstalldir}/lib" "${aseinstalldir}/lib/skia"
+  mv --no-target-directory "${ase_build_dir}/bin" "${ase_install_dir}/bin"
+  mv --no-target-directory "${ase_build_dir}/lib" "${ase_install_dir}/lib"
+  cp --no-target-directory "${skia_install_dir}/lib" "${ase_install_dir}/lib/skia"
   
   printf '\n======== Generating aseprite checksums\n'
-  cd "${aseinstalldir}"
-  sha256r "${asepritedir}/aseprite-${aseprite_version}-sha256sums.txt"
+  cd "${ase_install_dir}"
+  sha256r "${aseprite_dir}/aseprite-${aseprite_version}-sha256sums.txt"
   
   
   printf '\n======== Cleaning up\n'
-  rm -R "${builddir}" "${tempbindir}"
+  rm -R "${build_dir}" "${temp_bin_dir}"
   if [ "$4" = 'keep_sources' ]; then
     printf '\n==== Keeping source repos\n'
   else
-    rm -R "${srcdir}"
+    rm -R "${src_dir}"
   fi
   
   
@@ -288,9 +291,9 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
 Type=Application
 Name=Aseprite
 Comment=Animated Sprite Editor & Pixel Art Tool
-Icon=${aseinstalldir}/bin/data/icons/ase256.png
-Exec=${aseinstalldir}/bin/aseprite
-Path=${aseinstalldir}
+Icon=${ase_install_dir}/bin/data/icons/ase256.png
+Exec=${ase_install_dir}/bin/aseprite
+Path=${ase_install_dir}
 Terminal=false
 Category=Graphics;"
   
@@ -319,7 +322,7 @@ fi
 
 action=''
 version=''
-install_parent_directory=''
+install_parent_dir=''
 keep_sources=''
 
 if [ "$5" = 'keep_sources' ]; then
@@ -327,7 +330,7 @@ if [ "$5" = 'keep_sources' ]; then
 fi
 
 if [ -d "$4" ]; then
-  install_parent_directory="$4"
+  install_parent_dir="$4"
 else
   printf '\nError: Invalid install parent directory\n'
   exit 1
@@ -362,7 +365,7 @@ esac
 
 case "$1" in
   'aseprite')
-    manage_aseprite "$action" "$version" "$install_parent_directory" "$keep_sources"
+    manage_aseprite "$action" "$version" "$install_parent_dir" "$keep_sources"
   ;;
   '')
     printf '\nError: No arguments supplied, see -h or --help\n'
