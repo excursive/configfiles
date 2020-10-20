@@ -142,25 +142,29 @@ manage_aseprite() {
     printf '\n==== Error: aseprite git repository url does not match\n'
     exit 1
   fi
-  clean_and_update_repo "$aseprite_version"
+  if [ "$1" = 'update' ]; then
+    clean_and_update_repo "$aseprite_version" 'fetch_updates'
+  else
+    clean_and_update_repo "$aseprite_version"
+  fi
   if [ "$?" != 0 ]; then
     printf '\n==== Error: An error occurred when managing aseprite repo\n'
     exit 1
   fi
   
-  # just check out a random depot_tools commit that is known to work
-  #cd "${depottoolsdir}"
-  #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
-  #  printf '\nError: depot_tools git repository url does not match\n'
-  #  exit 1
-  #fi
-  #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c'
-  #if [ "$?" != 0 ]; then
-  #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
-  #  exit 1
-  #fi
-  
   if [ "$1" = 'install' ]; then
+    # just check out a random depot_tools commit that is known to work
+    #cd "${depottoolsdir}"
+    #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
+    #  printf '\n==== Error: depot_tools git repository url does not match\n'
+    #  exit 1
+    #fi
+    #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c'
+    #if [ "$?" != 0 ]; then
+    #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
+    #  exit 1
+    #fi
+    
     printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
     cd "${skiasrcdir}"
     if ! check_repo_urls 'https://skia.googlesource.com/skia.git'; then
@@ -292,6 +296,7 @@ Category=Graphics;"
   
   if [ -e "${launcher_path}" ]; then
     # TODO: If launcher exists, should check if valid and if so then update install path
+    # edit: actually that might be difficult because filenames can have newlines...
     printf '\n==== Launcher not created, file already exists\n'
   else
     printf '%s\n' "$launcher_text" > "${launcher_path}"
