@@ -20,11 +20,16 @@ sha256r() {
   fi
 }
 
+check_repo_urls() {
+  [ "$(git config --get remote.origin.url)" = "$1" ] \
+  && [ "$(git remote get-url --all origin)" = "$1" ] \
+   && [ "$(git ls-remote --get-url origin)" = "$1" ]
+}
+
 # arguments:
 # 1 = sha1 hash of git repo to checkout
-# 2 = if 2 = 'fetch_updates' then fetch remote changes, otherwise ignored
+# 2 = 'fetch_updates' to fetch remote changes, otherwise ignored
 clean_and_update_repo() {
-  printf '\n======== Cleaning git repo and checking out specified commit\n'
   if ! is_valid_sha1 "$1"; then
     printf '\n==== Error: commit is not a valid sha1 hash\n'
     exit 1
@@ -52,11 +57,26 @@ clean_and_update_repo() {
   fi
 }
 
+# manage_aseprite arguments:
+# 1 = action (install or update)
+# 2 = version (default or a commit sha1 hash)
+# 3 = parent directory, i.e. where to create (or find) 'aseprite' directory
+# 4 = 'keep_sources' to keep source code after installation
 manage_aseprite() {
-  printf '\n======== Creating directories\n'
-  asepritedir="${2}/aseprite"
+  if [ "$2" = 'default' ]; then
+    aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
+    printf '\n======== Defaulting to aseprite version 1.2.25\n'
+  else if is_valid_sha1 "$2"; then
+    aseprite_version="$2"
+  else
+    printf '\n======== Error: aseprite version is not default or a valid sha1 hash\n'
+    exit 1
+  fi
   
-  aseinstalldir="${asepritedir}/aseprite-1_2_25"
+  printf '\n======== Creating directories\n'
+  asepritedir="${3}/aseprite"
+  
+  aseinstalldir="${asepritedir}/aseprite-${aseprite_version}"
   skiainstalldir="${asepritedir}/skia-aseprite-m81"
   
   builddir="${asepritedir}/build"
@@ -71,36 +91,37 @@ manage_aseprite() {
   tempbindir="${asepritedir}/tempbin"
   
   if [ "$1" = 'update' ]; then
-    printf '\nError: Implementation of update is unfinished...\n'
-    exit 1
     if [ ! -d "${asepritedir}" ] \
        || [ ! -d "${skiainstalldir}" ] \
        || [ ! -d "${srcdir}" ] \
        || [ ! -f "${asepritedir}/skia-aseprite-m81-sha256sums.txt" ]; then
-      printf '\nError: Missing files from original installation\n'
+      printf '\n==== Error: Missing files from original installation\n'
       exit 1
     fi
-    # TODO: need a better way to check if skia installation matches checksums
-    if ! cd "${skiainstalldir}" \
-       || ! sha256sum -c --quiet "${asepritedir}/skia-aseprite-m81-sha256sums.txt"; then
-      printf '\nError: Skia installation does not match checksums\n'
+    if [ -e "${aseinstalldir}" ]; then
+      printf '\n==== Error: Aseprite install directory already exists\n'
+      printf '==== To reinstall, first delete the previous installation directory:\n'
+      printf '%s\n' "${aseinstalldir}"
       exit 1
     fi
     if ! mkdir "${aseinstalldir}" \
                "${builddir}" "${asebuilddir}" "${skiabuilddir}" \
                "${tempbindir}"; then
-      printf '\nError: Could not create build directories\n'
+      printf '\n==== Error: Could not create build directories\n'
       exit 1
     fi
-  else
+  else if [ "$1" = 'install' ]; then
     if [ -e "${asepritedir}" ] \
        || ! mkdir "${asepritedir}" "${aseinstalldir}" "${skiainstalldir}" \
                                    "${builddir}" "${asebuilddir}" "${skiabuilddir}" \
                                    "${srcdir}" \
                                    "${tempbindir}"; then
-      printf '\nError: Directories could not be created\n'
+      printf '\n==== Error: Directories could not be created\n'
       exit 1
     fi
+  else
+    printf '\n======== Error: Invalid specified action, must be install or update\n'
+    exit 1
   fi
   
   # in case python doesn't point to python2 binary,
@@ -115,84 +136,103 @@ manage_aseprite() {
     git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
   fi
   
-  printf '\n======== Checking out aseprite version 1.2.25\n'
+  printf '\n======== Checking out aseprite commit\n======== %s\n' "$aseprite_version"
   cd "${asesrcdir}"
-  if [ "$(git config --get remote.origin.url)" != 'https://github.com/aseprite/aseprite.git' ] \
-     || [ "$(git remote get-url --all origin)" != 'https://github.com/aseprite/aseprite.git' ] \
-      || [ "$(git ls-remote --get-url origin)" != 'https://github.com/aseprite/aseprite.git' ]; then
-    printf '\nError: aseprite git repository url does not match\n'
+  if ! check_repo_urls 'https://github.com/aseprite/aseprite.git'; then
+    printf '\n==== Error: aseprite git repository url does not match\n'
     exit 1
   fi
-  clean_and_update_repo 'f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
+  clean_and_update_repo "$aseprite_version"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: An error occurred when managing aseprite repo\n'
+    exit 1
+  fi
   
   # just check out a random depot_tools commit that is known to work
   #cd "${depottoolsdir}"
-  #if [ "$(git config --get remote.origin.url)" != 'https://chromium.googlesource.com/chromium/tools/depot_tools.git' ] \
-  #   || [ "$(git remote get-url --all origin)" != 'https://chromium.googlesource.com/chromium/tools/depot_tools.git' ] \
-  #    || [ "$(git ls-remote --get-url origin)" != 'https://chromium.googlesource.com/chromium/tools/depot_tools.git' ]; then
+  #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
   #  printf '\nError: depot_tools git repository url does not match\n'
   #  exit 1
   #fi
   #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c'
+  #if [ "$?" != 0 ]; then
+  #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
+  #  exit 1
+  #fi
   
-  printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
-  cd "${skiasrcdir}"
-  if [ "$(git config --get remote.origin.url)" != 'https://skia.googlesource.com/skia.git' ] \
-     || [ "$(git remote get-url --all origin)" != 'https://skia.googlesource.com/skia.git' ] \
-      || [ "$(git ls-remote --get-url origin)" != 'https://skia.googlesource.com/skia.git' ]; then
-    printf '\nError: skia git repository url does not match\n'
-    exit 1
-  fi
-  clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9'
-  PATH="${PATH}:${tempbindir}" python tools/git-sync-deps
-  
-  printf '\n==== Modifying files to match aseprite-m81 skia\n'
-  sed -i -e '1878i\
+  if [ "$1" = 'install' ]; then
+    printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
+    cd "${skiasrcdir}"
+    if ! check_repo_urls 'https://skia.googlesource.com/skia.git'; then
+      printf '\n==== Error: skia git repository url does not match\n'
+      exit 1
+    fi
+    clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9'
+    if [ "$?" != 0 ]; then
+      printf '\n==== Error: An error occurred when managing skia repo\n'
+      exit 1
+    fi
+    
+    PATH="${PATH}:${tempbindir}" python tools/git-sync-deps
+    
+    printf '\n==== Modifying files to match aseprite-m81 skia\n'
+    sed -i -e '1878i\
             return;' \
-               'src/gpu/GrRenderTargetContext.cpp'
-  sed -i -e '249c\
+                 'src/gpu/GrRenderTargetContext.cpp'
+    sed -i -e '249c\
 static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(double n, double d) {' \
-               'include/private/SkFloatingPoint.h'
-  sed -i -e '66c\
+                 'include/private/SkFloatingPoint.h'
+    sed -i -e '66c\
     # Setup the env before\
     #env_setup = "cmd /c $win_sdk\\\\bin\\\\SetEnv.cmd /x86 \&\& "' \
-               'gn/toolchain/BUILD.gn'
-  sed -i -e '25i\
+                 'gn/toolchain/BUILD.gn'
+    sed -i -e '25i\
     include_dirs = [ "../externals/freetype/include" ]' \
-         -e '30i\
+           -e '30i\
       "HAVE_FREETYPE",' \
-               'third_party/harfbuzz/BUILD.gn'
-  sed -i -e '49c\
+                 'third_party/harfbuzz/BUILD.gn'
+    sed -i -e '49c\
             return std::make_tuple(p, ct, at);' \
-               'src/gpu/GrProcessorUnitTest.cpp'
-  sed -i -e '833c\
+                 'src/gpu/GrProcessorUnitTest.cpp'
+    sed -i -e '833c\
     return std::make_tuple(code != GrDrawOpAtlas::ErrorCode::kError, glyphsPlacedInAtlas);' \
-         -e '856c\
+           -e '856c\
         return std::make_tuple(true, end - begin);' \
-               'src/gpu/text/GrTextBlob.cpp'
-  printf '\n==== Done modifying skia files\n'
-  
-  
-  printf '\n======== Building skia\n'
-  cd "${skiasrcdir}"
-  PATH="${PATH}:${tempbindir}" bin/gn gen "${skiabuilddir}" \
-    --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
-  cd "${skiabuilddir}"
-  ninja -C "${skiabuilddir}" skia modules
-  
-  printf '\n======== Copying built skia into aseprite/skia-build\n'
-  mkdir "${skiainstalldir}/lib"
-  mv "${skiabuilddir}"/*.a "${skiainstalldir}/lib"
-  cd "${skiasrcdir}"
-  cp -R --parents \
-    include \
-    modules/particles/include/*.h \
-    modules/skottie/include/*.h \
-    modules/skresources/include/*.h \
-    modules/sksg/include/*.h \
-    modules/skshaper/include/*.h \
-    "${skiainstalldir}"
-  
+                 'src/gpu/text/GrTextBlob.cpp'
+    printf '\n==== Done modifying skia files\n'
+    
+    printf '\n======== Building skia\n'
+    cd "${skiasrcdir}"
+    PATH="${PATH}:${tempbindir}" bin/gn gen "${skiabuilddir}" \
+      --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
+    cd "${skiabuilddir}"
+    ninja -C "${skiabuilddir}" skia modules
+    
+    printf '\n======== Moving built skia into skia install directory\n'
+    mkdir "${skiainstalldir}/lib"
+    mv "${skiabuilddir}"/*.a "${skiainstalldir}/lib"
+    cd "${skiasrcdir}"
+    cp -R --parents \
+      include \
+      modules/particles/include/*.h \
+      modules/skottie/include/*.h \
+      modules/skresources/include/*.h \
+      modules/sksg/include/*.h \
+      modules/skshaper/include/*.h \
+      "${skiainstalldir}"
+    
+    printf '\n======== Generating skia-aseprite-m81 checksums\n'
+    cd "${skiainstalldir}"
+    sha256r "${asepritedir}/skia-aseprite-m81-sha256sums.txt"
+    
+  else if [ "$1" = 'update' ]; then
+    # TODO: need a better way to check if skia installation matches checksums
+    if ! cd "${skiainstalldir}" \
+       || ! sha256sum -c --quiet "${asepritedir}/skia-aseprite-m81-sha256sums.txt"; then
+      printf '\n==== Error: Skia installation does not match checksums\n'
+      exit 1
+    fi
+  fi
   
   printf '\n======== Building aseprite\n'
   cd "${asebuilddir}"
@@ -219,17 +259,14 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         "${asesrcdir}"
   ninja aseprite
   
-  printf '\n======== Moving final builds\n'
+  printf '\n======== Moving built aseprite into aseprite install directory\n'
   mv --no-target-directory "${asebuilddir}/bin" "${aseinstalldir}/bin"
   mv --no-target-directory "${asebuilddir}/lib" "${aseinstalldir}/lib"
   cp --no-target-directory "${skiainstalldir}/lib" "${aseinstalldir}/lib/skia"
   
-  
-  printf '\n======== Generating checksums\n'
+  printf '\n======== Generating aseprite checksums\n'
   cd "${aseinstalldir}"
-  sha256r "${asepritedir}/aseprite-1_2_25-sha256sums.txt"
-  cd "${skiainstalldir}"
-  sha256r "${asepritedir}/skia-aseprite-m81-sha256sums.txt"
+  sha256r "${asepritedir}/aseprite-${aseprite_version}-sha256sums.txt"
   
   
   printf '\n======== Cleaning up\n'
@@ -254,6 +291,7 @@ Terminal=false
 Category=Graphics;"
   
   if [ -e "${launcher_path}" ]; then
+    # TODO: If launcher exists, should check if valid and if so then update install path
     printf '\n==== Launcher not created, file already exists\n'
   else
     printf '%s\n' "$launcher_text" > "${launcher_path}"
@@ -269,7 +307,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '  1 = software name [ aseprite ]\n'
   printf '  2 = [ install | update ]\n'
   printf '  3 = software version [ default | (a git commit sha1) ]\n'
-  printf '  4 = where to create installation directory\n'
+  printf '  4 = where to create (or find existing) installation directory\n'
   printf '  5 = "keep_sources" will keep source repos after building, all other values ignored\n'
   exit 0
 fi
@@ -312,7 +350,7 @@ case "$2" in
     action='update'
   ;;
   *)
-    printf '\nError: 2nd parameter must be install or update\n'
+    printf '\nError: 2nd argument must be install or update\n'
     exit 1
   ;;
 esac
