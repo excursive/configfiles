@@ -222,8 +222,9 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     ninja -C "${skia_build_dir}" skia modules
     
     printf '\n======== Moving built skia into skia install directory\n'
-    mkdir "${skia_install_dir}/lib"
-    mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib"
+    # TODO: make library directory dynamic to handle other architectures
+    mkdir "${skia_install_dir}/lib" "${skia_install_dir}/lib/x86_64-linux-gnu"
+    mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib/x86_64-linux-gnu"
     cd "${skia_src_dir}"
     cp -R --parents \
       include \
@@ -254,8 +255,8 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   cmake -DCMAKE_BUILD_TYPE=Release \
         -DLAF_BACKEND=skia \
         -DSKIA_DIR="${skia_install_dir}" \
-        -DSKIA_LIBRARY_DIR="${skia_install_dir}/lib" \
-        -DSKIA_LIBRARY="${skia_install_dir}/lib/libskia.a" \
+        -DSKIA_LIBRARY_DIR="${skia_install_dir}/lib/x86_64-linux-gnu" \
+        -DSKIA_LIBRARY="${skia_install_dir}/lib/x86_64-linux-gnu/libskia.a" \
         -DUSE_SHARED_CMARK='OFF' \
         -DUSE_SHARED_CURL='ON' \
         -DUSE_SHARED_FREETYPE='ON' \
@@ -275,7 +276,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   printf '\n======== Moving built aseprite into aseprite install directory\n'
   mv --no-target-directory "${ase_build_dir}/bin" "${ase_install_dir}/bin"
   mv --no-target-directory "${ase_build_dir}/lib" "${ase_install_dir}/lib"
-  cp --no-target-directory "${skia_install_dir}/lib" "${ase_install_dir}/lib/skia"
+  cp "${skia_install_dir}"/lib/x86_64-linux-gnu/*.a "${ase_install_dir}/lib"
   
   printf '\n======== Generating aseprite checksums\n'
   cd "${ase_install_dir}"
