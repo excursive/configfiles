@@ -67,15 +67,20 @@ manage_aseprite() {
   if [ "$2" = 'default' ]; then
     aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
     printf '\n======== Defaulting to aseprite version 1.2.25\n'
-  else if is_valid_sha1 "$2"; then
+  elif is_valid_sha1 "$2"; then
     aseprite_version="$2"
   else
     printf '\n======== Error: aseprite version is not default or a valid sha1 hash\n'
     exit 1
   fi
   
+  if ! cd "${3}"; then
+    printf '\n======== Error: Could not access specified directory\n'
+    exit 1
+  fi
+  
   printf '\n======== Creating directories\n'
-  aseprite_dir="${3}/aseprite"
+  aseprite_dir="${PWD}/aseprite"
   
   ase_install_dir="${aseprite_dir}/aseprite-${aseprite_version}"
   skia_install_dir="${aseprite_dir}/skia-aseprite-m81"
@@ -93,8 +98,8 @@ manage_aseprite() {
   
   if [ "$1" = 'update' ]; then
     if [ ! -d "${aseprite_dir}" ] \
+       || [ ! -d "${ase_src_dir}" ] \
        || [ ! -d "${skia_install_dir}" ] \
-       || [ ! -d "${src_dir}" ] \
        || [ ! -f "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt" ]; then
       printf '\n==== Error: Missing files from original installation\n'
       exit 1
@@ -111,7 +116,7 @@ manage_aseprite() {
       printf '\n==== Error: Could not create build directories\n'
       exit 1
     fi
-  else if [ "$1" = 'install' ]; then
+  elif [ "$1" = 'install' ]; then
     if [ -e "${aseprite_dir}" ] \
        || ! mkdir "${aseprite_dir}" "${ase_install_dir}" "${skia_install_dir}" \
                                    "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
@@ -233,7 +238,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     cd "${skia_install_dir}"
     sha256r "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt"
     
-  else if [ "$1" = 'update' ]; then
+  elif [ "$1" = 'update' ]; then
     # TODO: need a better way to check if skia installation matches checksums
     if ! cd "${skia_install_dir}" \
        || ! sha256sum -c --quiet "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt"; then
