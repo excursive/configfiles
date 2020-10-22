@@ -57,6 +57,251 @@ clean_and_update_repo() {
   fi
 }
 
+
+
+# manage_mozjpeg arguments:
+# 1 = action (install or update)
+# 2 = version (default or a commit sha1 hash)
+# 3 = parent directory, i.e. where to create (or find) 'mozjpeg' directory
+# 4 = 'keep_sources' to keep source code after installation
+#     (if action = 'update', then source code is always kept)
+manage_mozjpeg() {
+  if [ "$2" = 'default' ]; then
+    # TODO: update this with latest release
+    exit 1
+    mozjpeg_version=''
+    printf '\n======== Defaulting to mozjpeg version\n'
+  elif is_valid_sha1 "$2"; then
+    mozjpeg_version="$2"
+  else
+    printf '\n======== Error: mozjpeg version is not default or a valid sha1 hash\n'
+    exit 1
+  fi
+  
+  if ! cd "${3}"; then
+    printf '\n======== Error: Could not access specified directory\n'
+    exit 1
+  fi
+  
+  printf '\n======== Creating directories\n'
+  mozjpeg_dir="${PWD}/mozjpeg"
+  
+  install_dir="${mozjpeg_dir}/mozjpeg-${mozjpeg_version}"
+  build_dir="${mozjpeg_dir}/build"
+  src_dir="${mozjpeg_dir}/src"
+  
+  mozjpeg_src_dir="${src_dir}/mozjpeg"
+  
+  if [ "$1" = 'update' ]; then
+    if [ ! -d "${mozjpeg_dir}" ] \
+       || [ ! -d "${mozjpeg_src_dir}" ]; then
+      printf '\n==== Error: Missing files from original installation\n'
+      exit 1
+    fi
+    if [ -e "${install_dir}" ]; then
+      printf '\n==== Error: Mozjpeg install directory already exists\n'
+      printf '==== To reinstall, first delete the previous installation directory:\n'
+      printf '%s\n' "${install_dir}"
+      exit 1
+    fi
+    if ! mkdir "${install_dir}" "${build_dir}"; then
+      printf '\n==== Error: Could not create build directories\n'
+      exit 1
+    fi
+  elif [ "$1" = 'install' ]; then
+    if [ -e "${mozjpeg_dir}" ] \
+       || ! mkdir "${mozjpeg_dir}" "${install_dir}" "${build_dir}" "${src_dir}"; then
+      printf '\n==== Error: Directories could not be created\n'
+      exit 1
+    fi
+  else
+    printf '\n======== Error: Invalid specified action, must be install or update\n'
+    exit 1
+  fi
+  
+  if [ "$1" = 'install' ]; then
+    printf '\n======== Checking out git repositories\n'
+    cd "${src_dir}"
+    git clone --no-checkout 'https://github.com/mozilla/mozjpeg.git'
+  fi
+  
+  printf '\n======== Checking out mozjpeg commit\n======== %s\n' "$mozjpeg_version"
+  cd "${mozjpeg_src_dir}"
+  if ! check_repo_urls 'https://github.com/mozilla/mozjpeg.git'; then
+    printf '\n==== Error: mozjpeg git repository url does not match\n'
+    exit 1
+  fi
+  
+  if [ "$1" = 'update' ]; then
+    clean_and_update_repo "$mozjpeg_version" 'fetch_updates'
+  else
+    clean_and_update_repo "$mozjpeg_version"
+  fi
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: An error occurred when managing mozjpeg repo\n'
+    exit 1
+  fi
+  
+  printf '\n======== Building mozjpeg\n'
+  cd "${build_dir}"
+  cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE='Release' "${mozjpeg_src_dir}"
+  make
+  
+  # TODO: copy final build into install directory and generate checksums
+  #       (or install with the cmake variable? see mozjpeg readme)
+  
+  #printf '\n======== Moving mozjpeg build into install directory\n'
+  
+  #printf '\n======== Generating mozjpeg checksums\n'
+  #cd "${install_dir}"
+  #sha256r "${mozjpeg_dir}/mozjpeg-${mozjpeg_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  # TODO: uncomment when figured out installation
+  #rm -R "${build_dir}"
+  if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
+    rm -R "${src_dir}"
+  else
+    printf '\n==== Keeping source repos\n'
+  fi
+}
+
+
+
+# manage_godot arguments:
+# 1 = action (install or update)
+# 2 = version (default or a commit sha1 hash)
+# 3 = parent directory, i.e. where to create (or find) 'godot' directory
+# 4 = 'keep_sources' to keep source code after installation
+#     (if action = 'update', then source code is always kept)
+manage_godot() {
+  if [ "$2" = 'default' ]; then
+    godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
+    printf '\n======== Defaulting to godot version 3.2.3\n'
+  elif is_valid_sha1 "$2"; then
+    godot_version="$2"
+  else
+    printf '\n======== Error: godot version is not default or a valid sha1 hash\n'
+    exit 1
+  fi
+  
+  if ! cd "${3}"; then
+    printf '\n======== Error: Could not access specified directory\n'
+    exit 1
+  fi
+  
+  printf '\n======== Creating directories\n'
+  godot_dir="${PWD}/godot"
+  
+  install_dir="${godot_dir}/godot-${godot_version}"
+  build_dir="${godot_dir}/build"
+  src_dir="${godot_dir}/src"
+  
+  godot_src_dir="${src_dir}/godot"
+  
+  if [ "$1" = 'update' ]; then
+    if [ ! -d "${godot_dir}" ] \
+       || [ ! -d "${godot_src_dir}" ]; then
+      printf '\n==== Error: Missing files from original installation\n'
+      exit 1
+    fi
+    if [ -e "${install_dir}" ]; then
+      printf '\n==== Error: Godot install directory already exists\n'
+      printf '==== To reinstall, first delete the previous installation directory:\n'
+      printf '%s\n' "${install_dir}"
+      exit 1
+    fi
+    if ! mkdir "${install_dir}" "${build_dir}"; then
+      printf '\n==== Error: Could not create build directories\n'
+      exit 1
+    fi
+  elif [ "$1" = 'install' ]; then
+    if [ -e "${godot_dir}" ] \
+       || ! mkdir "${godot_dir}" "${install_dir}" "${build_dir}" "${src_dir}"; then
+      printf '\n==== Error: Directories could not be created\n'
+      exit 1
+    fi
+  else
+    printf '\n======== Error: Invalid specified action, must be install or update\n'
+    exit 1
+  fi
+  
+  if [ "$1" = 'install' ]; then
+    printf '\n======== Checking out git repositories\n'
+    cd "${src_dir}"
+    git clone --no-checkout 'https://github.com/godotengine/godot.git'
+  fi
+  
+  printf '\n======== Checking out godot commit\n======== %s\n' "$godot_version"
+  cd "${godot_src_dir}"
+  if ! check_repo_urls 'https://github.com/godotengine/godot.git'; then
+    printf '\n==== Error: godot git repository url does not match\n'
+    exit 1
+  fi
+  
+  if [ "$1" = 'update' ]; then
+    clean_and_update_repo "$godot_version" 'fetch_updates'
+  else
+    clean_and_update_repo "$godot_version"
+  fi
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: An error occurred when managing godot repo\n'
+    exit 1
+  fi
+  
+  printf '\n======== Building godot\n'
+  cd "${build_dir}"
+  scons --srcdir="${godot_src_dir}" platform=x11
+  # TODO: switch to this for godot 4:
+  #scons -j 2 --srcdir="${godot_src_dir}" platform=linuxbsd
+  
+  # TODO: copy final build to install directory and generate checksums
+  
+  #printf '\n======== Moving godot build into install directory\n'
+  
+  #printf '\n======== Generating godot checksums\n'
+  #cd "${install_dir}"
+  #sha256r "${godot_dir}/godot-${godot_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  # TODO: uncomment when figured out installation
+  #rm -R "${build_dir}"
+  if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
+    rm -R "${src_dir}"
+  else
+    printf '\n==== Keeping source repo\n'
+  fi
+  
+  # TODO: figure out icon and exec paths
+  printf '\n======== Creating application launcher\n'
+  launcher_path="${HOME}/.local/share/applications/org.godotengine.desktop"
+  launcher_text="[Desktop Entry]
+Type=Application
+Name=Godot Engine
+Comment=2D and 3D cross-platform game engine
+Icon=${install_dir}/bin/data/icons/ase256.png
+Exec=${install_dir}/bin/aseprite
+Path=${install_dir}
+Terminal=false
+Category=Development;Game;Graphics;"
+  
+  if [ -e "${launcher_path}" ]; then
+    if [ -f "${launcher_path}" ] \
+    && [ "$(head --lines=1 "${launcher_path}")" = '[Desktop Entry]' ]; then
+      printf '\n==== Overwriting old launcher\n'
+      printf '%s\n' "$launcher_text" > "${launcher_path}"
+    else
+      printf '\n==== Launcher not created, unknown file with that name already exists\n'
+    fi
+  else
+    printf '%s\n' "$launcher_text" > "${launcher_path}"
+  fi
+}
+
+
+
 # manage_aseprite arguments:
 # 1 = action (install or update)
 # 2 = version (default or a commit sha1 hash)
@@ -221,7 +466,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     cd "${skia_build_dir}"
     ninja -C "${skia_build_dir}" skia modules
     
-    printf '\n======== Moving built skia into skia install directory\n'
+    printf '\n======== Moving skia build into skia install directory\n'
     # TODO: make library directory dynamic to handle other architectures
     mkdir "${skia_install_dir}/lib" "${skia_install_dir}/lib/x86_64-linux-gnu"
     mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib/x86_64-linux-gnu"
@@ -273,7 +518,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         "${ase_src_dir}"
   ninja aseprite
   
-  printf '\n======== Moving built aseprite into aseprite install directory\n'
+  printf '\n======== Moving aseprite build into aseprite install directory\n'
   mv --no-target-directory "${ase_build_dir}/bin" "${ase_install_dir}/bin"
   mv --no-target-directory "${ase_build_dir}/lib" "${ase_install_dir}/lib"
   cp "${skia_install_dir}"/lib/x86_64-linux-gnu/*.a "${ase_install_dir}/lib"
