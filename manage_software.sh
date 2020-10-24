@@ -21,39 +21,59 @@ sha256r() {
 }
 
 check_repo_urls() {
-  [ "$(git config --get remote.origin.url)" = "$1" ] \
-  && [ "$(git remote get-url --all origin)" = "$1" ] \
-   && [ "$(git ls-remote --get-url origin)" = "$1" ]
+  repo_dir="${PWD}/.git"
+  [ "$(git --git-dir="${repo_dir}" config --get remote.origin.url)" = "$1" ] \
+  && [ "$(git --git-dir="${repo_dir}" remote get-url --all origin)" = "$1" ] \
+   && [ "$(git --git-dir="${repo_dir}" ls-remote --get-url origin)" = "$1" ]
 }
 
 # arguments:
 # 1 = sha1 hash of git repo to checkout
-# 2 = 'fetch_updates' to fetch remote changes, otherwise ignored
+# 2 = 'update' to fetch remote changes, otherwise ignored
+# must be run in top level of working tree
 clean_and_update_repo() {
+  repo_dir="${PWD}/.git"
   if ! is_valid_sha1 "$1"; then
     printf '\n==== Error: commit is not a valid sha1 hash\n'
     exit 1
   fi
-  git clean -d -f -f -x
-  if [ "$2" = 'fetch_updates' ]; then
-    git fetch --recurse-submodules=on-demand
+  git --git-dir="${repo_dir}" clean --quiet -d -f -f -x
+  if [ "$2" = 'update' ]; then
+    git --git-dir="${repo_dir}" fetch --recurse-submodules=on-demand
     if [ "$?" != 0 ]; then
       printf '\n==== Warning: Could not fetch updates\n'
     fi
   fi
-  git checkout --recurse-submodules "$1"
+  git --git-dir="${repo_dir}" checkout --force --recurse-submodules "$1"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not checkout specified commit\n'
     exit 1
   fi
-  git submodule deinit --force --all
-  git reset --hard --recurse-submodules "$1"
-  git clean -d -f -f -x
-  git checkout --recurse-submodules "$1"
-  git submodule update --init --force --checkout --recursive --
+  git --git-dir="${repo_dir}" submodule deinit --force --all
+  git --git-dir="${repo_dir}" reset --hard --recurse-submodules "$1"
+  git --git-dir="${repo_dir}" clean -d -f -f -x
+  git --git-dir="${repo_dir}" checkout --force --recurse-submodules "$1"
+  git --git-dir="${repo_dir}" submodule update --init --force --checkout --recursive --
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not checkout submodules\n'
     exit 1
+  fi
+}
+
+# arguments:
+# 1 = output file path
+# 2 = output text
+save_launcher() {
+  if [ -e "${1}" ]; then
+    if [ -f "${1}" ] \
+    && [ "$(head --lines=1 "${1}")" = '[Desktop Entry]' ]; then
+      printf '\n==== Overwriting old launcher\n'
+      printf '%s\n' "$2" > "${1}"
+    else
+      printf '\n==== Launcher not created, unknown file with that name already exists\n'
+    fi
+  else
+    printf '%s\n' "$2" > "${1}"
   fi
 }
 
@@ -66,17 +86,25 @@ clean_and_update_repo() {
 # 4 = 'keep_sources' to keep source code after installation
 #     (if action = 'update', then source code is always kept)
 manage_mozjpeg() {
-  if [ "$2" = 'default' ]; then
-    # TODO: update this with latest release
-    exit 1
-    mozjpeg_version=''
-    printf '\n======== Defaulting to mozjpeg version\n'
-  elif is_valid_sha1 "$2"; then
-    mozjpeg_version="$2"
-  else
-    printf '\n======== Error: mozjpeg version is not default or a valid sha1 hash\n'
-    exit 1
-  fi
+  printf 'mozjpeg stuff is unfinished/untested\n'
+  exit 1
+  
+  case "$2" in
+    'default')
+      # TODO: update this with latest release
+      exit 1
+      printf '\n======== Defaulting to mozjpeg version\n'
+      mozjpeg_version=''
+    ;;
+    *)
+      if is_valid_sha1 "$2"; then
+        mozjpeg_version="$2"
+      else
+        printf '\n======== Error: mozjpeg version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
   
   if ! cd "${3}"; then
     printf '\n======== Error: Could not access specified directory\n'
@@ -92,32 +120,36 @@ manage_mozjpeg() {
   
   mozjpeg_src_dir="${src_dir}/mozjpeg"
   
-  if [ "$1" = 'update' ]; then
-    if [ ! -d "${mozjpeg_dir}" ] \
-       || [ ! -d "${mozjpeg_src_dir}" ]; then
-      printf '\n==== Error: Missing files from original installation\n'
+  case "$1" in
+    'update')
+      if [ ! -d "${mozjpeg_dir}" ] \
+         || [ ! -d "${mozjpeg_src_dir}" ]; then
+        printf '\n==== Error: Missing files from original installation\n'
+        exit 1
+      fi
+      if [ -e "${install_dir}" ]; then
+        printf '\n==== Error: Mozjpeg install directory already exists\n'
+        printf '==== To reinstall, first delete the previous installation directory:\n'
+        printf '%s\n' "${install_dir}"
+        exit 1
+      fi
+      if ! mkdir "${install_dir}" "${build_dir}"; then
+        printf '\n==== Error: Could not create build directories\n'
+        exit 1
+      fi
+    ;;
+    'install')
+      if [ -e "${mozjpeg_dir}" ] \
+         || ! mkdir "${mozjpeg_dir}" "${install_dir}" "${build_dir}" "${src_dir}"; then
+        printf '\n==== Error: Directories could not be created\n'
+        exit 1
+      fi
+    ;;
+    *)
+      printf '\n======== Error: Invalid specified action, must be install or update\n'
       exit 1
-    fi
-    if [ -e "${install_dir}" ]; then
-      printf '\n==== Error: Mozjpeg install directory already exists\n'
-      printf '==== To reinstall, first delete the previous installation directory:\n'
-      printf '%s\n' "${install_dir}"
-      exit 1
-    fi
-    if ! mkdir "${install_dir}" "${build_dir}"; then
-      printf '\n==== Error: Could not create build directories\n'
-      exit 1
-    fi
-  elif [ "$1" = 'install' ]; then
-    if [ -e "${mozjpeg_dir}" ] \
-       || ! mkdir "${mozjpeg_dir}" "${install_dir}" "${build_dir}" "${src_dir}"; then
-      printf '\n==== Error: Directories could not be created\n'
-      exit 1
-    fi
-  else
-    printf '\n======== Error: Invalid specified action, must be install or update\n'
-    exit 1
-  fi
+    ;;
+  esac
   
   if [ "$1" = 'install' ]; then
     printf '\n======== Checking out git repositories\n'
@@ -128,15 +160,10 @@ manage_mozjpeg() {
   printf '\n======== Checking out mozjpeg commit\n======== %s\n' "$mozjpeg_version"
   cd "${mozjpeg_src_dir}"
   if ! check_repo_urls 'https://github.com/mozilla/mozjpeg.git'; then
-    printf '\n==== Error: mozjpeg git repository url does not match\n'
+    printf '\n==== Error: Repo url does not match mozjpeg url\n'
     exit 1
   fi
-  
-  if [ "$1" = 'update' ]; then
-    clean_and_update_repo "$mozjpeg_version" 'fetch_updates'
-  else
-    clean_and_update_repo "$mozjpeg_version"
-  fi
+  clean_and_update_repo "$mozjpeg_version" "$1"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: An error occurred when managing mozjpeg repo\n'
     exit 1
@@ -150,9 +177,9 @@ manage_mozjpeg() {
   # TODO: copy final build into install directory and generate checksums
   #       (or install with the cmake variable? see mozjpeg readme)
   
-  #printf '\n======== Moving mozjpeg build into install directory\n'
+  #printf '\n======== Moving mozjpeg build to install directory\n'
   
-  #printf '\n======== Generating mozjpeg checksums\n'
+  #printf '\n======== Generating checksums\n'
   #cd "${install_dir}"
   #sha256r "${mozjpeg_dir}/mozjpeg-${mozjpeg_version}-sha256sums.txt"
   
@@ -176,15 +203,20 @@ manage_mozjpeg() {
 # 4 = 'keep_sources' to keep source code after installation
 #     (if action = 'update', then source code is always kept)
 manage_godot() {
-  if [ "$2" = 'default' ]; then
-    godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
-    printf '\n======== Defaulting to godot version 3.2.3\n'
-  elif is_valid_sha1 "$2"; then
-    godot_version="$2"
-  else
-    printf '\n======== Error: godot version is not default or a valid sha1 hash\n'
-    exit 1
-  fi
+  case "$2" in
+    'default')
+      printf '\n======== Defaulting to godot version 3.2.3\n'
+      godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
+    ;;
+    *)
+      if is_valid_sha1 "$2"; then
+        godot_version="$2"
+      else
+        printf '\n======== Error: godot version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
   
   if ! cd "${3}"; then
     printf '\n======== Error: Could not access specified directory\n'
@@ -195,37 +227,40 @@ manage_godot() {
   godot_dir="${PWD}/godot"
   
   install_dir="${godot_dir}/godot-${godot_version}"
-  build_dir="${godot_dir}/build"
   src_dir="${godot_dir}/src"
   
   godot_src_dir="${src_dir}/godot"
   
-  if [ "$1" = 'update' ]; then
-    if [ ! -d "${godot_dir}" ] \
-       || [ ! -d "${godot_src_dir}" ]; then
-      printf '\n==== Error: Missing files from original installation\n'
+  case "$1" in
+    'update')
+      if [ ! -d "${godot_dir}" ] \
+         || [ ! -d "${godot_src_dir}" ]; then
+        printf '\n==== Error: Missing files from original installation\n'
+        exit 1
+      fi
+      if [ -e "${install_dir}" ]; then
+        printf '\n==== Error: godot install directory already exists\n'
+        printf '==== To reinstall, first delete the previous installation directory:\n'
+        printf '%s\n' "${install_dir}"
+        exit 1
+      fi
+      if ! mkdir "${install_dir}"; then
+        printf '\n==== Error: Could not create install directory\n'
+        exit 1
+      fi
+    ;;
+    'install')
+      if [ -e "${godot_dir}" ] \
+         || ! mkdir "${godot_dir}" "${install_dir}" "${src_dir}"; then
+        printf '\n==== Error: Directories could not be created\n'
+        exit 1
+      fi
+    ;;
+    *)
+      printf '\n======== Error: Invalid specified action, must be install or update\n'
       exit 1
-    fi
-    if [ -e "${install_dir}" ]; then
-      printf '\n==== Error: Godot install directory already exists\n'
-      printf '==== To reinstall, first delete the previous installation directory:\n'
-      printf '%s\n' "${install_dir}"
-      exit 1
-    fi
-    if ! mkdir "${install_dir}" "${build_dir}"; then
-      printf '\n==== Error: Could not create build directories\n'
-      exit 1
-    fi
-  elif [ "$1" = 'install' ]; then
-    if [ -e "${godot_dir}" ] \
-       || ! mkdir "${godot_dir}" "${install_dir}" "${build_dir}" "${src_dir}"; then
-      printf '\n==== Error: Directories could not be created\n'
-      exit 1
-    fi
-  else
-    printf '\n======== Error: Invalid specified action, must be install or update\n'
-    exit 1
-  fi
+    ;;
+  esac
   
   if [ "$1" = 'install' ]; then
     printf '\n======== Checking out git repositories\n'
@@ -236,68 +271,71 @@ manage_godot() {
   printf '\n======== Checking out godot commit\n======== %s\n' "$godot_version"
   cd "${godot_src_dir}"
   if ! check_repo_urls 'https://github.com/godotengine/godot.git'; then
-    printf '\n==== Error: godot git repository url does not match\n'
+    printf '\n==== Error: Repo url does not match godot url\n'
     exit 1
   fi
-  
-  if [ "$1" = 'update' ]; then
-    clean_and_update_repo "$godot_version" 'fetch_updates'
-  else
-    clean_and_update_repo "$godot_version"
-  fi
+  clean_and_update_repo "$godot_version" "$1"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: An error occurred when managing godot repo\n'
     exit 1
   fi
   
   printf '\n======== Building godot\n'
-  cd "${build_dir}"
-  scons --srcdir="${godot_src_dir}" platform=x11
+  cd "${godot_src_dir}"
   # TODO: switch to this for godot 4:
-  #scons -j 2 --srcdir="${godot_src_dir}" platform=linuxbsd
+  #platform=linuxbsd
+  scons -j 3 platform=x11 target=release_debug tools=yes debug_symbols=no use_lto=yes
+  #      builtin_certs=no \
+  #      builtin_freetype=no \
+  #      builtin_libogg=no \
+  #      builtin_libpng=no \
+  #      builtin_libtheora=no \
+  #      builtin_libvorbis=no \
+  #      builtin_libvpx=no \
+  #      builtin_libwebp=no \
+  #      builtin_miniupnpc=no \
+  #      builtin_opus=no \
+  #      builtin_pcre2=no \
+  #      builtin_pcre2_with_jit=no \
+  #      builtin_zlib=no \
+  #      builtin_zstd=no
   
-  # TODO: copy final build to install directory and generate checksums
   
-  #printf '\n======== Moving godot build into install directory\n'
+  printf '\n======== Stripping debug symbols\n'
+  strip --strip-all "${godot_src_dir}/bin/godot.x11.opt.tools.64"
   
-  #printf '\n======== Generating godot checksums\n'
-  #cd "${install_dir}"
-  #sha256r "${godot_dir}/godot-${godot_version}-sha256sums.txt"
+  printf '\n======== Moving godot build to install directory\n'
+  mv "${godot_src_dir}/bin/godot.x11.opt.tools.64" "${install_dir}"
+  cp "${godot_src_dir}/main/app_icon.png" "${install_dir}"
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "${godot_dir}/godot-${godot_version}-sha256sums.txt"
   
   
   printf '\n======== Cleaning up\n'
-  # TODO: uncomment when figured out installation
-  #rm -R "${build_dir}"
   if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
     rm -R "${src_dir}"
   else
     printf '\n==== Keeping source repo\n'
+    cd "${godot_src_dir}"
+    clean_and_update_repo "$godot_version"
   fi
   
-  # TODO: figure out icon and exec paths
+  
   printf '\n======== Creating application launcher\n'
   launcher_path="${HOME}/.local/share/applications/org.godotengine.desktop"
   launcher_text="[Desktop Entry]
 Type=Application
 Name=Godot Engine
 Comment=2D and 3D cross-platform game engine
-Icon=${install_dir}/bin/data/icons/ase256.png
-Exec=${install_dir}/bin/aseprite
+Icon=${install_dir}/app_icon.png
+Exec=${install_dir}/godot.x11.opt.tools.64
 Path=${install_dir}
 Terminal=false
 Category=Development;Game;Graphics;"
   
-  if [ -e "${launcher_path}" ]; then
-    if [ -f "${launcher_path}" ] \
-    && [ "$(head --lines=1 "${launcher_path}")" = '[Desktop Entry]' ]; then
-      printf '\n==== Overwriting old launcher\n'
-      printf '%s\n' "$launcher_text" > "${launcher_path}"
-    else
-      printf '\n==== Launcher not created, unknown file with that name already exists\n'
-    fi
-  else
-    printf '%s\n' "$launcher_text" > "${launcher_path}"
-  fi
+  save_launcher "${launcher_path}" "$launcher_text"
 }
 
 
@@ -309,15 +347,20 @@ Category=Development;Game;Graphics;"
 # 4 = 'keep_sources' to keep source code after installation
 #     (if action = 'update', then source code is always kept)
 manage_aseprite() {
-  if [ "$2" = 'default' ]; then
-    aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
-    printf '\n======== Defaulting to aseprite version 1.2.25\n'
-  elif is_valid_sha1 "$2"; then
-    aseprite_version="$2"
-  else
-    printf '\n======== Error: aseprite version is not default or a valid sha1 hash\n'
-    exit 1
-  fi
+  case "$2" in
+    'default')
+      printf '\n======== Defaulting to aseprite version 1.2.25\n'
+      aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
+    ;;
+    *)
+      if is_valid_sha1 "$2"; then
+        aseprite_version="$2"
+      else
+        printf '\n======== Error: aseprite version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
   
   if ! cd "${3}"; then
     printf '\n======== Error: Could not access specified directory\n'
@@ -341,39 +384,43 @@ manage_aseprite() {
   
   temp_bin_dir="${aseprite_dir}/tempbin"
   
-  if [ "$1" = 'update' ]; then
-    if [ ! -d "${aseprite_dir}" ] \
-       || [ ! -d "${ase_src_dir}" ] \
-       || [ ! -d "${skia_install_dir}" ] \
-       || [ ! -f "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt" ]; then
-      printf '\n==== Error: Missing files from original installation\n'
+  case "$1" in
+    'update')
+      if [ ! -d "${aseprite_dir}" ] \
+         || [ ! -d "${ase_src_dir}" ] \
+         || [ ! -d "${skia_install_dir}" ] \
+         || [ ! -f "${aseprite_dir}/skia-aseprite-m81-sha256sums.txt" ]; then
+        printf '\n==== Error: Missing files from original installation\n'
+        exit 1
+      fi
+      if [ -e "${ase_install_dir}" ]; then
+        printf '\n==== Error: aseprite install directory already exists\n'
+        printf '==== To reinstall, first delete the previous installation directory:\n'
+        printf '%s\n' "${ase_install_dir}"
+        exit 1
+      fi
+      if ! mkdir "${ase_install_dir}" \
+                 "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
+                 "${temp_bin_dir}"; then
+        printf '\n==== Error: Could not create build directories\n'
+        exit 1
+      fi
+    ;;
+    'install')
+      if [ -e "${aseprite_dir}" ] \
+         || ! mkdir "${aseprite_dir}" "${ase_install_dir}" "${skia_install_dir}" \
+                                     "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
+                                     "${src_dir}" \
+                                     "${temp_bin_dir}"; then
+        printf '\n==== Error: Directories could not be created\n'
+        exit 1
+      fi
+    ;;
+    *)
+      printf '\n======== Error: Invalid specified action, must be install or update\n'
       exit 1
-    fi
-    if [ -e "${ase_install_dir}" ]; then
-      printf '\n==== Error: Aseprite install directory already exists\n'
-      printf '==== To reinstall, first delete the previous installation directory:\n'
-      printf '%s\n' "${ase_install_dir}"
-      exit 1
-    fi
-    if ! mkdir "${ase_install_dir}" \
-               "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
-               "${temp_bin_dir}"; then
-      printf '\n==== Error: Could not create build directories\n'
-      exit 1
-    fi
-  elif [ "$1" = 'install' ]; then
-    if [ -e "${aseprite_dir}" ] \
-       || ! mkdir "${aseprite_dir}" "${ase_install_dir}" "${skia_install_dir}" \
-                                   "${build_dir}" "${ase_build_dir}" "${skia_build_dir}" \
-                                   "${src_dir}" \
-                                   "${temp_bin_dir}"; then
-      printf '\n==== Error: Directories could not be created\n'
-      exit 1
-    fi
-  else
-    printf '\n======== Error: Invalid specified action, must be install or update\n'
-    exit 1
-  fi
+    ;;
+  esac
   
   # in case python doesn't point to python2 binary,
   # set up a temp folder with a link to temporarily add to path
@@ -390,15 +437,10 @@ manage_aseprite() {
   printf '\n======== Checking out aseprite commit\n======== %s\n' "$aseprite_version"
   cd "${ase_src_dir}"
   if ! check_repo_urls 'https://github.com/aseprite/aseprite.git'; then
-    printf '\n==== Error: aseprite git repository url does not match\n'
+    printf '\n==== Error: Repo url does not match aseprite url\n'
     exit 1
   fi
-  
-  if [ "$1" = 'update' ]; then
-    clean_and_update_repo "$aseprite_version" 'fetch_updates'
-  else
-    clean_and_update_repo "$aseprite_version"
-  fi
+  clean_and_update_repo "$aseprite_version" "$1"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: An error occurred when managing aseprite repo\n'
     exit 1
@@ -408,10 +450,9 @@ manage_aseprite() {
     # just check out a random depot_tools commit that is known to work
     #cd "${depot_tools_dir}"
     #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
-    #  printf '\n==== Error: depot_tools git repository url does not match\n'
+    #  printf '\n==== Error: Repo url does not match depot_tools url\n'
     #  exit 1
     #fi
-    #
     #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c'
     #if [ "$?" != 0 ]; then
     #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
@@ -421,16 +462,16 @@ manage_aseprite() {
     printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
     cd "${skia_src_dir}"
     if ! check_repo_urls 'https://skia.googlesource.com/skia.git'; then
-      printf '\n==== Error: skia git repository url does not match\n'
+      printf '\n==== Error: Repo url does not match skia url\n'
       exit 1
     fi
-    
     clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9'
     if [ "$?" != 0 ]; then
       printf '\n==== Error: An error occurred when managing skia repo\n'
       exit 1
     fi
     
+    printf '\n==== Syncing skia dependencies\n'
     PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
     
     printf '\n==== Modifying files to match aseprite-m81 skia\n'
@@ -459,6 +500,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
                  'src/gpu/text/GrTextBlob.cpp'
     printf '\n==== Done modifying skia files\n'
     
+    
     printf '\n======== Building skia\n'
     cd "${skia_src_dir}"
     PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
@@ -466,7 +508,8 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     cd "${skia_build_dir}"
     ninja -C "${skia_build_dir}" skia modules
     
-    printf '\n======== Moving skia build into skia install directory\n'
+    
+    printf '\n======== Moving skia build to skia install directory\n'
     # TODO: make library directory dynamic to handle other architectures
     mkdir "${skia_install_dir}/lib" "${skia_install_dir}/lib/x86_64-linux-gnu"
     mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib/x86_64-linux-gnu"
@@ -518,7 +561,8 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         "${ase_src_dir}"
   ninja aseprite
   
-  printf '\n======== Moving aseprite build into aseprite install directory\n'
+  
+  printf '\n======== Moving aseprite build to aseprite install directory\n'
   mv --no-target-directory "${ase_build_dir}/bin" "${ase_install_dir}/bin"
   mv --no-target-directory "${ase_build_dir}/lib" "${ase_install_dir}/lib"
   cp "${skia_install_dir}"/lib/x86_64-linux-gnu/*.a "${ase_install_dir}/lib"
@@ -549,17 +593,7 @@ Path=${ase_install_dir}
 Terminal=false
 Category=Graphics;"
   
-  if [ -e "${launcher_path}" ]; then
-    if [ -f "${launcher_path}" ] \
-    && [ "$(head --lines=1 "${launcher_path}")" = '[Desktop Entry]' ]; then
-      printf '\n==== Overwriting old launcher\n'
-      printf '%s\n' "$launcher_text" > "${launcher_path}"
-    else
-      printf '\n==== Launcher not created, unknown file with that name already exists\n'
-    fi
-  else
-    printf '%s\n' "$launcher_text" > "${launcher_path}"
-  fi
+  save_launcher "${launcher_path}" "$launcher_text"
 }
 
 
@@ -622,6 +656,12 @@ esac
 case "$1" in
   'aseprite')
     manage_aseprite "$action" "$version" "$install_parent_dir" "$keep_sources"
+  ;;
+  'godot')
+    manage_godot "$action" "$version" "$install_parent_dir" "$keep_sources"
+  ;;
+  'mozjpeg')
+    manage_mozjpeg "$action" "$version" "$install_parent_dir" "$keep_sources"
   ;;
   '')
     printf '\nError: No arguments supplied, see -h or --help\n'
