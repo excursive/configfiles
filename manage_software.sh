@@ -186,9 +186,9 @@ manage_mozjpeg() {
   
   printf '\n======== Cleaning up\n'
   # TODO: uncomment when figured out installation
-  #rm -R "${build_dir}"
+  #rm -R -f -- "${build_dir}"
   if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
-    rm -R "${src_dir}"
+    rm -R -f -- "${src_dir}"
   else
     printf '\n==== Keeping source repos\n'
   fi
@@ -315,7 +315,7 @@ manage_godot() {
   
   printf '\n======== Cleaning up\n'
   if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
-    rm -R "${src_dir}"
+    rm -R -f -- "${src_dir}"
   else
     printf '\n==== Keeping source repo\n'
     cd "${godot_src_dir}"
@@ -573,9 +573,9 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   
   printf '\n======== Cleaning up\n'
-  rm -R "${build_dir}" "${temp_bin_dir}"
+  rm -R -f -- "${build_dir}" "${temp_bin_dir}"
   if [ "$4" != 'keep_sources' ] && [ "$1" = 'install' ]; then
-    rm -R "${src_dir}"
+    rm -R -f -- "${src_dir}"
   else
     printf '\n==== Keeping source repos\n'
   fi
