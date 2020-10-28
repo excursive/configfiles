@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # make bash stricter about errors
-set -e -o pipefail
+#set -e -o pipefail
 
 is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
@@ -75,6 +75,90 @@ save_launcher() {
   else
     printf '%s\n' "$2" > "${1}"
   fi
+}
+
+
+
+# manage_blender arguments:
+# 1 = TODO: unnecessary argument
+# 2 = version (blender version number)
+# 3 = parent directory, i.e. where to create (or find) 'blender' directory
+manage_blender() {
+  case "$2" in
+    'default')
+      printf '\n======== Defaulting to Blender version 2.90.1\n'
+      blender_version='2.90.1'
+      blender_sha256='054668c46a3e56921f283709f51a35f7860786183001cf2ea9be3249d13ac667'
+      blender_dl_url='Blender2.90/blender-2.90.1-linux64.tar.xz'
+    ;;
+    *)
+      printf '\n======== Error: Unknown Blender version number\n'
+      exit 1
+    ;;
+  esac
+  
+  if ! cd "${3}"; then
+    printf '\n======== Error: Could not access specified directory\n'
+    exit 1
+  fi
+  
+  printf '\n======== Creating directories\n'
+  blender_dir="${PWD}/blender"
+  
+  install_dir="${blender_dir}/blender-${blender_version}-linux64"
+  
+  if [ ! -d "${blender_dir}" ] && ! mkdir "${blender_dir}"; then
+    printf '\n==== Error: Could not create blender directory\n'
+    exit 1
+  fi
+  
+  printf '\n======== Downloading Blender\n'
+  cd "${blender_dir}"
+  wget --execute robots=off --output-document='dl-temp.tar.xz' \
+       --no-clobber --no-use-server-timestamps --https-only \
+       "https://download.blender.org/release/${blender_dl_url}"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download Blender\n'
+    exit 1
+  fi
+  
+  printf '\n======== Verifying download matches Blender %s sha256 checksum:\n' "$blender_version"
+  printf '==== %s\n' "$blender_sha256"
+  printf '\n======== Downloaded file checksum is:\n'
+  cd "${blender_dir}"
+  sha256sum 'dl-temp.tar.xz'
+  printf '%s  dl-temp.tar.xz' "$blender_sha256" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n======== Error: Download does not match checksum\n'
+    rm -f -- 'dl-temp.tar.xz'
+    exit 1
+  fi
+  
+  tar --extract --keep-old-files --one-top-level="blender-${blender_version}-linux64" --restrict \
+      --file='dl-temp.tar.xz'
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "${blender_dir}/blender-${blender_version}-linux64-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  rm -f -- 'dl-temp.tar.xz'
+  
+  
+  printf '\n======== Creating application launcher\n'
+  launcher_path="${HOME}/.local/share/applications/org.blender.desktop"
+  launcher_text="[Desktop Entry]
+Type=Application
+Name=Blender
+Comment=Free and open source 3D creation suite
+Icon=${install_dir}/blender.svg
+Exec=${install_dir}/blender
+Path=${install_dir}
+Terminal=false
+Category=Video;Development;Graphics;"
+  
+  save_launcher "${launcher_path}" "$launcher_text"
 }
 
 
@@ -626,19 +710,7 @@ else
   exit 1
 fi
 
-case "$3" in
-  'default')
-    version='default'
-  ;;
-  *)
-    if is_valid_sha1 "$3"; then
-      version="$3"
-    else
-      printf '\nError: Version is not default or a valid sha1 hash\n'
-      exit 1
-    fi
-  ;;
-esac
+version="$3"
 
 case "$2" in
   'install')
@@ -662,6 +734,9 @@ case "$1" in
   ;;
   'mozjpeg')
     manage_mozjpeg "$action" "$version" "$install_parent_dir" "$keep_sources"
+  ;;
+  'blender')
+    manage_blender "$action" "$version" "$install_parent_dir" "$keep_sources"
   ;;
   '')
     printf '\nError: No arguments supplied, see -h or --help\n'
