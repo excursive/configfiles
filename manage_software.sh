@@ -163,6 +163,115 @@ Category=Video;Development;Graphics;"
 
 
 
+# manage_lmms arguments:
+# 1 = version (default or lmms version number)
+manage_lmms() {
+  case "$1" in
+    'default' | '1.2.2')
+      printf '\n======== Defaulting to LMMS version 1.2.2\n'
+      lmms_version='1.2.2'
+      lmms_commit_sha1='94363be152f526edba4e884264d891f1361cf54b'
+      lmms_sha256='6cdc45a0699b8cd85295c49bcac03fcce6f3d8ffd7da23d646d0cb4258869b76'
+      lmms_dl_url='v1.2.2/lmms-1.2.2-linux-x86_64.AppImage'
+    ;;
+    *)
+      printf '\n======== Error: Unknown LMMS version number\n'
+      exit 1
+    ;;
+  esac
+  lmms_icon_sha256='e0d9507eabd86a79546bd948683ed83ec0eb5c569fee52cbad64bf957f362f20'
+  lmms_icon_url='data/themes/default/icon.png'
+  
+  printf '\n======== Checking directories\n'
+  lmms_dir="${PWD}/lmms"
+  install_dir="${lmms_dir}/lmms-${lmms_version}-linux-x86_64"
+  
+  if [ ! -d "${lmms_dir}" ] && ! mkdir "${lmms_dir}"; then
+    printf '\n==== Error: Could not create lmms directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  
+  printf '\n======== Downloading LMMS\n'
+  cd "${lmms_dir}"
+  wget --execute robots=off --output-document='dl-temp' \
+       --no-clobber --no-use-server-timestamps --https-only \
+       "https://github.com/LMMS/lmms/releases/download/${lmms_dl_url}"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download LMMS\n'
+    exit 1
+  fi
+  
+  printf '\n======== Verifying download matches LMMS %s sha256 checksum:\n' "$lmms_version"
+  printf '==== %s\n' "$lmms_sha256"
+  printf '\n======== Downloaded file checksum is:\n'
+  cd "${lmms_dir}"
+  sha256sum 'dl-temp'
+  
+  printf '%s  dl-temp\n' "$lmms_sha256" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n======== Error: Download does not match checksum\n'
+    rm -f -- "${lmms_dir}/dl-temp"
+    exit 1
+  fi
+  
+  
+  printf '\n======== Downloading icon\n'
+  cd "${lmms_dir}"
+  wget --execute robots=off --output-document='icon.png' \
+       --no-clobber --no-use-server-timestamps --https-only \
+       "https://raw.githubusercontent.com/LMMS/lmms/${lmms_commit_sha1}/${lmms_icon_url}"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download icon\n'
+    exit 1
+  fi
+  
+  printf '\n======== Verifying download matches icon sha256 checksum:\n'
+  printf '==== %s\n' "$lmms_icon_sha256"
+  printf '\n======== Downloaded file checksum is:\n'
+  cd "${lmms_dir}"
+  sha256sum 'icon.png'
+  
+  printf '%s  icon.png\n' "$lmms_icon_sha256" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n======== Error: Download does not match checksum\n'
+    rm -f -- "${lmms_dir}/icon.png"
+    exit 1
+  fi
+  
+  
+  printf '\n======== Installing LMMS:\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mv --no-target-directory "${lmms_dir}/dl-temp" "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
+  mv --no-target-directory "${lmms_dir}/icon.png" "${install_dir}/icon.png"
+  chmod +x "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
+  
+  
+  printf '\n======== Creating application launcher\n'
+  launcher_path="${HOME}/.local/share/applications/io.lmms.desktop"
+  launcher_text="[Desktop Entry]
+Type=Application
+Name=LMMS
+Comment=Free, open source, multiplatform digital audio workstation
+Icon=${install_dir}/icon.png
+Exec=${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage
+Path=${install_dir}
+Terminal=false
+Category=Audio;"
+  
+  save_launcher "${launcher_path}" "$launcher_text"
+}
+
+
+
 # manage_mozjpeg arguments:
 # 1 = version (default or a commit sha1 hash)
 # 2 = 'keep_sources' to keep source code after installation
@@ -710,10 +819,10 @@ Category=Graphics;"
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Usage:\n'
   printf 'manage_software.sh 1 2 3 4 (5)\n'
-  printf '  1 = software name [ aseprite ]\n'
+  printf '  1 = software name [ aseprite | godot | mozjpeg | lmms | blender ]\n'
   printf '  2 = software version [ default | (a git commit sha1) | (a version number) ]\n'
   printf '  3 = where to create (or find existing) installation directory\n'
-  printf '  4 = "keep_sources" will keep source repos after install, all other values ignored\n'
+  printf '  4 = "keep_sources" will keep source repos after install, otherwise ignored\n'
   exit 0
 fi
 
@@ -739,6 +848,9 @@ case "$1" in
   ;;
   'mozjpeg')
     manage_mozjpeg "$version" "$keep_sources"
+  ;;
+  'lmms')
+    manage_lmms "$version" "$keep_sources"
   ;;
   'blender')
     manage_blender "$version" "$keep_sources"
