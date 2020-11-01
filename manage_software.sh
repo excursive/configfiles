@@ -79,6 +79,7 @@ save_launcher() {
 
 
 
+
 # manage_blender arguments:
 # 1 = version (default or blender version number)
 manage_blender() {
@@ -95,6 +96,7 @@ manage_blender() {
     ;;
   esac
   
+  
   printf '\n======== Checking directories\n'
   blender_dir="${PWD}/blender"
   install_dir="${blender_dir}/blender-${blender_version}-linux64"
@@ -109,6 +111,7 @@ manage_blender() {
     printf '%s\n' "${install_dir}"
     exit 1
   fi
+  
   
   printf '\n======== Downloading Blender\n'
   cd "${blender_dir}"
@@ -133,6 +136,7 @@ manage_blender() {
     exit 1
   fi
   
+  
   printf '\n======== Extracting Blender:\n'
   tar --extract --keep-old-files --one-top-level="blender-${blender_version}-linux64" --restrict \
       --file='dl-temp.tar.xz'
@@ -156,10 +160,11 @@ Icon=${install_dir}/blender.svg
 Exec=${install_dir}/blender
 Path=${install_dir}
 Terminal=false
-Category=Video;Development;Graphics;"
+Category=Video;Graphics;"
   
   save_launcher "${launcher_path}" "$launcher_text"
 }
+
 
 
 
@@ -182,6 +187,7 @@ manage_lmms() {
   lmms_icon_sha256='e0d9507eabd86a79546bd948683ed83ec0eb5c569fee52cbad64bf957f362f20'
   lmms_icon_url='data/themes/default/icon.png'
   
+  
   printf '\n======== Checking directories\n'
   lmms_dir="${PWD}/lmms"
   install_dir="${lmms_dir}/lmms-${lmms_version}-linux-x86_64"
@@ -196,6 +202,7 @@ manage_lmms() {
     printf '%s\n' "${install_dir}"
     exit 1
   fi
+  
   
   printf '\n======== Downloading LMMS\n'
   cd "${lmms_dir}"
@@ -269,6 +276,118 @@ Category=Audio;"
   
   save_launcher "${launcher_path}" "$launcher_text"
 }
+
+
+
+
+# manage_krita arguments:
+# 1 = version (default or krita version number)
+manage_krita() {
+  case "$1" in
+    'default' | '4.4.1')
+      printf '\n======== Defaulting to krita version 4.4.1\n'
+      krita_version='4.4.1'
+      krita_commit_sha1='fe63f49aea3cfbc3f04717883a67731f41531eae'
+      krita_sha256='c995f6a15499cfd4e5b3dc84bae44625f14a4c287da50003d6bb7f8b57feff08'
+      krita_dl_url='stable/krita/4.4.1/krita-4.4.1-x86_64.appimage'
+    ;;
+    *)
+      printf '\n======== Error: Unknown krita version number\n'
+      exit 1
+    ;;
+  esac
+  krita_icon_sha256='86ba89aadd20e9bf076c0721f0700c7fb4eaf6acc26e602c363277368c2373b4'
+  krita_icon_url='krita/pics/app/256-apps-krita.png'
+  
+  printf '\n======== Checking directories\n'
+  krita_dir="${PWD}/krita"
+  install_dir="${krita_dir}/krita-${krita_version}-x86_64"
+  
+  if [ ! -d "${krita_dir}" ] && ! mkdir "${krita_dir}"; then
+    printf '\n==== Error: Could not create krita directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  
+  
+  printf '\n======== Downloading krita\n'
+  cd "${krita_dir}"
+  wget --execute robots=off --output-document='dl-temp' \
+       --no-clobber --no-use-server-timestamps --https-only \
+       "https://download.kde.org/${krita_dl_url}"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download krita\n'
+    exit 1
+  fi
+  
+  printf '\n======== Verifying download matches krita %s sha256 checksum:\n' "$krita_version"
+  printf '==== %s\n' "$krita_sha256"
+  printf '\n======== Downloaded file checksum is:\n'
+  cd "${krita_dir}"
+  sha256sum 'dl-temp'
+  
+  printf '%s  dl-temp\n' "$krita_sha256" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n======== Error: Download does not match checksum\n'
+    rm -f -- "${krita_dir}/dl-temp"
+    exit 1
+  fi
+  
+  
+  printf '\n======== Downloading icon\n'
+  cd "${krita_dir}"
+  wget --execute robots=off --output-document='icon.png' \
+       --no-clobber --no-use-server-timestamps --https-only \
+       "https://invent.kde.org/graphics/krita/-/raw/${krita_commit_sha1}/${krita_icon_url}"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download icon\n'
+    exit 1
+  fi
+  
+  printf '\n======== Verifying download matches icon sha256 checksum:\n'
+  printf '==== %s\n' "$krita_icon_sha256"
+  printf '\n======== Downloaded file checksum is:\n'
+  cd "${krita_dir}"
+  sha256sum 'icon.png'
+  
+  printf '%s  icon.png\n' "$krita_icon_sha256" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n======== Error: Download does not match checksum\n'
+    rm -f -- "${krita_dir}/icon.png"
+    exit 1
+  fi
+  
+  
+  printf '\n======== Installing krita:\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mv --no-target-directory "${krita_dir}/dl-temp" "${install_dir}/krita-${krita_version}-x86_64.appimage"
+  mv --no-target-directory "${krita_dir}/icon.png" "${install_dir}/icon.png"
+  chmod +x "${install_dir}/krita-${krita_version}-x86_64.appimage"
+  
+  
+  printf '\n======== Creating application launcher\n'
+  launcher_path="${HOME}/.local/share/applications/org.krita.desktop"
+  launcher_text="[Desktop Entry]
+Type=Application
+Name=Krita
+Comment=Free and open source painting and drawing program
+Icon=${install_dir}/icon.png
+Exec=${install_dir}/krita-${krita_version}-x86_64.appimage
+Path=${install_dir}
+Terminal=false
+Category=Graphics;"
+  
+  save_launcher "${launcher_path}" "$launcher_text"
+}
+
 
 
 
@@ -386,6 +505,7 @@ manage_mozjpeg() {
     printf '\n==== Keeping source repos\n'
   fi
 }
+
 
 
 
@@ -519,6 +639,7 @@ Category=Development;Game;Graphics;"
   
   save_launcher "${launcher_path}" "$launcher_text"
 }
+
 
 
 
@@ -815,11 +936,12 @@ Category=Graphics;"
 
 
 
+
 # Process input
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Usage:\n'
   printf 'manage_software.sh 1 2 3 4 (5)\n'
-  printf '  1 = software name [ aseprite | godot | mozjpeg | lmms | blender ]\n'
+  printf '  1 = software name [ aseprite | godot | mozjpeg | krita | lmms | blender ]\n'
   printf '  2 = software version [ default | (a git commit sha1) | (a version number) ]\n'
   printf '  3 = where to create (or find existing) installation directory\n'
   printf '  4 = "keep_sources" will keep source repos after install, otherwise ignored\n'
@@ -849,11 +971,14 @@ case "$1" in
   'mozjpeg')
     manage_mozjpeg "$version" "$keep_sources"
   ;;
+  'krita')
+    manage_krita "$version"
+  ;;
   'lmms')
-    manage_lmms "$version" "$keep_sources"
+    manage_lmms "$version"
   ;;
   'blender')
-    manage_blender "$version" "$keep_sources"
+    manage_blender "$version"
   ;;
   '')
     printf '\nError: No arguments supplied, see -h or --help\n'
