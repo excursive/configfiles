@@ -7,6 +7,14 @@ is_valid_sha1() {
   [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
 }
 
+is_valid_sha256() {
+  [[ "$1" =~ ^[0-9A-Fa-f]{64}$ ]]
+}
+
+contains_nl_or_bs() {
+  [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
+}
+
 sha256r() {
   if [ -n "$1" ]; then
     output="$(sha256r)"
@@ -61,6 +69,40 @@ clean_and_update_repo() {
 }
 
 # arguments:
+# 1 = sha256 hash
+# 2 = filename to save to
+# 3 = download url
+dl_and_verify_file() {
+  if ! is_valid_sha256 "$1"; then
+    printf '\n==== Error: Not a valid sha256 hash\n'
+    exit 1
+  fi
+  if contains_nl_or_bs "${2}"; then
+    printf '\n==== Error: Filename cannot contain newlines or backslashes\n'
+    exit 1
+  fi
+  
+  wget --execute robots=off --output-document="${2}" \
+       --no-clobber --no-use-server-timestamps --https-only "$3"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download %s\n' "${2}"
+    exit 1
+  fi
+  
+  printf '\n==== Verifying download matches specified sha256 checksum:\n'
+  printf '%s\n' "$1"
+  printf '\n==== Downloaded file checksum is:\n'
+  sha256sum "${2}"
+  
+  printf '%s  %s\n' "$1" "${2}" | sha256sum --check
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Download does not match checksum\n'
+    rm -f -- "${2}"
+    exit 1
+  fi
+}
+
+# arguments:
 # 1 = output file path
 # 2 = output text
 save_launcher() {
@@ -96,7 +138,6 @@ manage_blender() {
     ;;
   esac
   
-  
   printf '\n======== Checking directories\n'
   blender_dir="${PWD}/blender"
   install_dir="${blender_dir}/blender-${blender_version}-linux64"
@@ -112,43 +153,25 @@ manage_blender() {
     exit 1
   fi
   
-  
   printf '\n======== Downloading Blender\n'
   cd "${blender_dir}"
-  wget --execute robots=off --output-document='dl-temp.tar.xz' \
-       --no-clobber --no-use-server-timestamps --https-only \
-       "https://download.blender.org/release/${blender_dl_url}"
+  dl_and_verify_file "$blender_sha256" "blender-${blender_version}-linux64.tar.xz" \
+                     "https://download.blender.org/release/${blender_dl_url}"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not download Blender\n'
     exit 1
   fi
   
-  printf '\n======== Verifying download matches Blender %s sha256 checksum:\n' "$blender_version"
-  printf '==== %s\n' "$blender_sha256"
-  printf '\n======== Downloaded file checksum is:\n'
-  cd "${blender_dir}"
-  sha256sum 'dl-temp.tar.xz'
-  
-  printf '%s  dl-temp.tar.xz\n' "$blender_sha256" | sha256sum --check
-  if [ "$?" != 0 ]; then
-    printf '\n======== Error: Download does not match checksum\n'
-    rm -f -- "${blender_dir}/dl-temp.tar.xz"
-    exit 1
-  fi
-  
-  
   printf '\n======== Extracting Blender:\n'
   tar --extract --keep-old-files --one-top-level="blender-${blender_version}-linux64" --restrict \
-      --file='dl-temp.tar.xz'
+      --file="blender-${blender_version}-linux64.tar.xz"
   
   printf '\n======== Generating checksums\n'
   cd "${install_dir}"
   sha256r "blender-${blender_version}-linux64-sha256sums.txt"
   
-  
   printf '\n======== Cleaning up\n'
-  rm -f -- "${blender_dir}/dl-temp.tar.xz"
-  
+  rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
   
   printf '\n======== Creating application launcher\n'
   launcher_path="${HOME}/.local/share/applications/org.blender.desktop"
@@ -187,7 +210,6 @@ manage_lmms() {
   lmms_icon_sha256='e0d9507eabd86a79546bd948683ed83ec0eb5c569fee52cbad64bf957f362f20'
   lmms_icon_url='data/themes/default/icon.png'
   
-  
   printf '\n======== Checking directories\n'
   lmms_dir="${PWD}/lmms"
   install_dir="${lmms_dir}/lmms-${lmms_version}-linux-x86_64"
@@ -203,61 +225,31 @@ manage_lmms() {
     exit 1
   fi
   
-  
   printf '\n======== Downloading LMMS\n'
   cd "${lmms_dir}"
-  wget --execute robots=off --output-document='dl-temp' \
-       --no-clobber --no-use-server-timestamps --https-only \
-       "https://github.com/LMMS/lmms/releases/download/${lmms_dl_url}"
+  dl_and_verify_file "$lmms_sha256" "lmms-${lmms_version}-linux-x86_64.AppImage" \
+                     "https://github.com/LMMS/lmms/releases/download/${lmms_dl_url}"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not download LMMS\n'
     exit 1
   fi
   
-  printf '\n======== Verifying download matches LMMS %s sha256 checksum:\n' "$lmms_version"
-  printf '==== %s\n' "$lmms_sha256"
-  printf '\n======== Downloaded file checksum is:\n'
-  cd "${lmms_dir}"
-  sha256sum 'dl-temp'
-  
-  printf '%s  dl-temp\n' "$lmms_sha256" | sha256sum --check
-  if [ "$?" != 0 ]; then
-    printf '\n======== Error: Download does not match checksum\n'
-    rm -f -- "${lmms_dir}/dl-temp"
-    exit 1
-  fi
-  
-  
   printf '\n======== Downloading icon\n'
   cd "${lmms_dir}"
-  wget --execute robots=off --output-document='icon.png' \
-       --no-clobber --no-use-server-timestamps --https-only \
-       "https://raw.githubusercontent.com/LMMS/lmms/${lmms_commit_sha1}/${lmms_icon_url}"
+  dl_and_verify_file "$lmms_icon_sha256" 'icon.png' \
+                     "https://raw.githubusercontent.com/LMMS/lmms/${lmms_commit_sha1}/${lmms_icon_url}"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not download icon\n'
     exit 1
   fi
-  
-  printf '\n======== Verifying download matches icon sha256 checksum:\n'
-  printf '==== %s\n' "$lmms_icon_sha256"
-  printf '\n======== Downloaded file checksum is:\n'
-  cd "${lmms_dir}"
-  sha256sum 'icon.png'
-  
-  printf '%s  icon.png\n' "$lmms_icon_sha256" | sha256sum --check
-  if [ "$?" != 0 ]; then
-    printf '\n======== Error: Download does not match checksum\n'
-    rm -f -- "${lmms_dir}/icon.png"
-    exit 1
-  fi
-  
   
   printf '\n======== Installing LMMS:\n'
   if ! mkdir "${install_dir}"; then
     printf '\n==== Error: Could not create install directory\n'
     exit 1
   fi
-  mv --no-target-directory "${lmms_dir}/dl-temp" "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
+  mv --no-target-directory "${lmms_dir}/lmms-${lmms_version}-linux-x86_64.AppImage" \
+                           "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
   mv --no-target-directory "${lmms_dir}/icon.png" "${install_dir}/icon.png"
   chmod +x "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
   
@@ -314,61 +306,31 @@ manage_krita() {
     exit 1
   fi
   
-  
   printf '\n======== Downloading krita\n'
   cd "${krita_dir}"
-  wget --execute robots=off --output-document='dl-temp' \
-       --no-clobber --no-use-server-timestamps --https-only \
-       "https://download.kde.org/${krita_dl_url}"
+  dl_and_verify_file "$krita_sha256" "krita-${krita_version}-x86_64.appimage" \
+                     "https://download.kde.org/${krita_dl_url}"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not download krita\n'
     exit 1
   fi
   
-  printf '\n======== Verifying download matches krita %s sha256 checksum:\n' "$krita_version"
-  printf '==== %s\n' "$krita_sha256"
-  printf '\n======== Downloaded file checksum is:\n'
-  cd "${krita_dir}"
-  sha256sum 'dl-temp'
-  
-  printf '%s  dl-temp\n' "$krita_sha256" | sha256sum --check
-  if [ "$?" != 0 ]; then
-    printf '\n======== Error: Download does not match checksum\n'
-    rm -f -- "${krita_dir}/dl-temp"
-    exit 1
-  fi
-  
-  
   printf '\n======== Downloading icon\n'
   cd "${krita_dir}"
-  wget --execute robots=off --output-document='icon.png' \
-       --no-clobber --no-use-server-timestamps --https-only \
-       "https://invent.kde.org/graphics/krita/-/raw/${krita_commit_sha1}/${krita_icon_url}"
+  dl_and_verify_file "$krita_icon_sha256" 'icon.png' \
+                     "https://invent.kde.org/graphics/krita/-/raw/${krita_commit_sha1}/${krita_icon_url}"
   if [ "$?" != 0 ]; then
     printf '\n==== Error: Could not download icon\n'
     exit 1
   fi
-  
-  printf '\n======== Verifying download matches icon sha256 checksum:\n'
-  printf '==== %s\n' "$krita_icon_sha256"
-  printf '\n======== Downloaded file checksum is:\n'
-  cd "${krita_dir}"
-  sha256sum 'icon.png'
-  
-  printf '%s  icon.png\n' "$krita_icon_sha256" | sha256sum --check
-  if [ "$?" != 0 ]; then
-    printf '\n======== Error: Download does not match checksum\n'
-    rm -f -- "${krita_dir}/icon.png"
-    exit 1
-  fi
-  
   
   printf '\n======== Installing krita:\n'
   if ! mkdir "${install_dir}"; then
     printf '\n==== Error: Could not create install directory\n'
     exit 1
   fi
-  mv --no-target-directory "${krita_dir}/dl-temp" "${install_dir}/krita-${krita_version}-x86_64.appimage"
+  mv --no-target-directory "${krita_dir}/krita-${krita_version}-x86_64.appimage" \
+                           "${install_dir}/krita-${krita_version}-x86_64.appimage"
   mv --no-target-directory "${krita_dir}/icon.png" "${install_dir}/icon.png"
   chmod +x "${install_dir}/krita-${krita_version}-x86_64.appimage"
   
