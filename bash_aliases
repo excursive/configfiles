@@ -61,26 +61,40 @@ cmpimg() {
 }
 
 cmpgif() {
+  if [ -z "${3}" ]; then
+    output_file='null:'
+  elif [ -e "${3}" ]; then
+    printf 'Error: Output file already exists\n'
+    return 1
+  else
+    output_file="${3}"
+  fi
+  
   convert \( "${1}" -coalesce -append \) \
           \( "${2}" -coalesce -append \) +depth miff:- | \
-  compare -metric AE - "${3:-/dev/null}"
+  compare -metric AE - "${output_file}"
+  
   printf '\n'
 }
 
-# gnome image viewer does not dispose first frame of gif if set to dispose previous,
-# so first frame is visible below following frames if they contain transparency
-# also first frame is not trimmed because that might also have compatibility issues?
+# gnome image viewer seems to have a bug where the first frame is not cleared
+# if set to dispose previous, making the first frame visible below all following
+# frames if they contain transparency
+# also first frame is not trimmed because of potential compatibility issues?
 
-optigif() {
-  convert \( "${1}"'[0]' -strip \) \
+optitransparentgif() {
+  convert -respect-parenthesis -background none -transparent-color '#00000000' \
+          \( "${1}"'[0]' -strip \) \
           \( "${1}"'[1--1]' +fuzz -bordercolor none -border 1x1 -trim \
              -set page '%[fx:page.width-2]x%[fx:page.height-2]+%[fx:page.x-1]+%[fx:page.y-1]' \
              -strip \) \
-          -loop 0 -strip gif:"${2}"
+          \( -clone 0--1 -background none +append \
+             -quantize transparent -colors 255 -unique-colors \
+             -write mpr:cmap +delete \) \
+          -set background none -loop 0 -map mpr:cmap -strip gif:"${2}"
 }
 
-
-creategif() {
+createtransparentgif() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Usage:\n'
     printf 'creategif output_file frame_duration frame_1 frame_2 [ frame_3.. ]\n'
@@ -102,13 +116,16 @@ creategif() {
   first_frame="${3}"
   shift 3
   
-  
-  convert \( "${first_frame}" -strip \) \
+  convert -respect-parenthesis -background none -transparent-color '#00000000' \
+          \( "${first_frame}" -strip \) \
           \( "$@" +fuzz -bordercolor none -border 1x1 -trim \
              -set page '%[fx:page.width-2]x%[fx:page.height-2]+%[fx:page.x-1]+%[fx:page.y-1]' \
              -strip \) \
-          -background none -set dispose Background -set delay "$frame_duration" \
-          -loop 0 -strip gif:"${output_file}"
+          \( -clone 0--1 -background none +append \
+             -quantize transparent -colors 255 -unique-colors \
+             -write mpr:cmap +delete \) \
+          -set background none -set dispose Background -set delay "$frame_duration" \
+          -loop 0 -map mpr:cmap -strip gif:"${output_file}"
 }
 
 stripmp3() {
