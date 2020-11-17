@@ -3,6 +3,8 @@ alias srm="rm -I"
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
 
+alias grep-non-ascii="grep --colors='auto' -n --perl-regexp '[^\x00-\x7F]'"
+
 alias pngoptim="optipng -strip all -o7"
 
 alias mozjpegoptim="${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect"
@@ -29,7 +31,7 @@ alias enc24fpsanim="ffmpeg -i recording.mkv -ss -to -vf "decimate=cycle=5,setpts
 
 md5r() {
   if [ -n "$1" ]; then
-    output="$(md5r)"
+    local output="$(md5r)"
     if [ -e "$1" ]; then
       printf 'Error: Output file already exists\n'
       exit 1
@@ -42,7 +44,7 @@ md5r() {
 
 sha256r() {
   if [ -n "$1" ]; then
-    output="$(sha256r)"
+    local output="$(sha256r)"
     if [ -e "$1" ]; then
       printf 'Error: Output file already exists\n'
       exit 1
@@ -56,11 +58,23 @@ sha256r() {
 # TODO: functions below have been edited but need testing
 
 cmpimg() {
-  compare -metric AE "${1}" "${2}" "${3:-/dev/null}"
+  local output_file=''
+  if [ -z "${3}" ]; then
+    output_file='null:'
+  elif [ -e "${3}" ]; then
+    printf 'Error: Output file already exists\n'
+    return 1
+  else
+    output_file="${3}"
+  fi
+  
+  compare -metric AE "${1}" "${2}" "${output_file}"
+  
   printf '\n'
 }
 
 cmpgif() {
+  local output_file=''
   if [ -z "${3}" ]; then
     output_file='null:'
   elif [ -e "${3}" ]; then
@@ -75,57 +89,6 @@ cmpgif() {
   compare -metric AE - "${output_file}"
   
   printf '\n'
-}
-
-# gnome image viewer seems to have a bug where the first frame is not cleared
-# if set to dispose previous, making the first frame visible below all following
-# frames if they contain transparency
-# also first frame is not trimmed because of potential compatibility issues?
-
-optitransparentgif() {
-  convert -respect-parenthesis -background none -transparent-color '#00000000' \
-          \( "${1}"'[0]' -strip \) \
-          \( "${1}"'[1--1]' +fuzz -bordercolor none -border 1x1 -trim \
-             -set page '%[fx:page.width-2]x%[fx:page.height-2]+%[fx:page.x-1]+%[fx:page.y-1]' \
-             -strip \) \
-          \( -clone 0--1 -background none +append \
-             -quantize transparent -colors 255 -unique-colors \
-             -write mpr:cmap +delete \) \
-          -set background none -loop 0 -map mpr:cmap -strip gif:"${2}"
-}
-
-createtransparentgif() {
-  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf 'Usage:\n'
-    printf 'creategif output_file frame_duration frame_1 frame_2 [ frame_3.. ]\n'
-    printf '  (frame_duration is in 1/100ths of a second)\n'
-    return 0
-  fi
-  
-  if [ "$#" -lt 4 ]; then
-    printf 'Error: Please specify an output file, frame duration\n'
-    printf '       (in 1/100ths of a second), and 2 or more frame images\n'
-    return 1
-  fi
-  if [ -e "${1}" ]; then
-    printf 'Error: Output file already exists\n'
-    return 1
-  fi
-  output_file="${1}"
-  frame_duration="$2"
-  first_frame="${3}"
-  shift 3
-  
-  convert -respect-parenthesis -background none -transparent-color '#00000000' \
-          \( "${first_frame}" -strip \) \
-          \( "$@" +fuzz -bordercolor none -border 1x1 -trim \
-             -set page '%[fx:page.width-2]x%[fx:page.height-2]+%[fx:page.x-1]+%[fx:page.y-1]' \
-             -strip \) \
-          \( -clone 0--1 -background none +append \
-             -quantize transparent -colors 255 -unique-colors \
-             -write mpr:cmap +delete \) \
-          -set background none -set dispose Background -set delay "$frame_duration" \
-          -loop 0 -map mpr:cmap -strip gif:"${output_file}"
 }
 
 stripmp3() {
@@ -148,25 +111,25 @@ tumblrbackuppost() {
   wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post/$2" "https://$1.tumblr.com/post/$2"
 }
 
-# arguments: 1 = [ jpeg | video | audio ]
-#            2... = files to process
+# arguments:
+# 1 = [ jpeg | video | audio ]
+# 2... = files to process
 batch_optimize_files() {
-  filetype="$1"
+  local filetype="$1"
   shift
-  for in_file in "$@"
-  do
+  for in_file in "$@"; do
     printf '\n** Processing: %s\n' "$in_file"
-    in_size="$(stat -c %s "$in_file")"
+    local in_size="$(stat -c %s "$in_file")"
     printf 'Input file size = %s bytes\n\n' "$in_size"
     
     case "$filetype" in
       'jpg' | 'jpeg')
-        temp="$(mktemp "$in_file.XXXXXX")"
+        local temp="$(mktemp "$in_file.XXXXXX")"
         ${HOME}/binaries/mozjpeg/jpegtran -copy none -optimize -perfect "$in_file" > "$temp"
       ;;
       'video')
         # TODO: use actual file extension instead of assuming mp4
-        temp="$(mktemp "$in_file.XXXXXX.mp4")"
+        local temp="$(mktemp "$in_file.XXXXXX.mp4")"
         ffmpeg -y -i "$in_file" -map_metadata -1 -c copy -c:v copy -c:a copy \
                -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
                -map 0:v:0 -map 0:a:0 "$temp"
@@ -181,21 +144,22 @@ batch_optimize_files() {
       ;;
     esac
     
-    ret="$?"
+    local ret="$?"
     printf '\n'
     if [ "$ret" -ne 0 ]; then
-      rm "$temp"
+      rm -f -- "$temp"
       printf 'Error, Skipping %s\n\n' "$in_file"
       continue
     fi
     
     rm "$in_file"
     mv "$temp" "$in_file"
-    out_size="$(stat -c %s "$in_file")"
+    local out_size="$(stat -c %s "$in_file")"
     
-    size_diff="$(($in_size - $out_size))"
-    percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
-    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' "$out_size" "$size_diff" "$percent_diff"
+    local size_diff="$(($in_size - $out_size))"
+    local percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
+    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' \
+           "$out_size" "$size_diff" "$percent_diff"
   done
 }
 
@@ -208,26 +172,26 @@ stripvideo() {
 }
 
 kppextract() {
-  line="$(identify -verbose "$1" | grep "preset:")"
-  l1="${line#*preset: }"
+  local line="$(identify -verbose "$1" | grep "preset:")"
+  local l1="${line#*preset: }"
   printf '%s\n' "$l1"
 }
 
 kpptotxt() {
-  preset="$(kppextract "$1")"
-  formatted="${preset//> <param />$'\n'<param }"
+  local preset="$(kppextract "$1")"
+  local formatted="${preset//> <param />$'\n'<param }"
   printf '%s\n' "$formatted" > "$1.txt"
 }
 
 kppdiff() {
-  preset1="$(kppextract "$1" | xmllint --c14n - | xmllint --format -)"
-  preset2="$(kppextract "$2" | xmllint --c14n - | xmllint --format -)"
+  local preset1="$(kppextract "$1" | xmllint --c14n - | xmllint --format -)"
+  local preset2="$(kppextract "$2" | xmllint --c14n - | xmllint --format -)"
   diff <(printf '%s' "$preset1") <(printf '%s' "$preset2")
 }
 
 kppwrite() {
-  text="$(<"$2")"
-  unformatted="${text//>$'\n'<param /> <param }"
+  local text="$(<"$2")"
+  local unformatted="${text//>$'\n'<param /> <param }"
   convert "$1" -set 'preset' "$unformatted" out.png
 }
 
