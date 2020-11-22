@@ -4,11 +4,13 @@
 #set -e -o pipefail
 
 is_valid_sha1() {
-  [[ "$1" =~ ^[0-9A-Fa-f]{40}$ ]]
+  local regex='^[0-9A-Fa-f]{40}$'
+  [[ "$1" =~ $regex ]]
 }
 
 is_valid_sha256() {
-  [[ "$1" =~ ^[0-9A-Fa-f]{64}$ ]]
+  local regex='^[0-9A-Fa-f]{64}$'
+  [[ "$1" =~ $regex ]]
 }
 
 contains_nl_or_bs() {
@@ -16,20 +18,20 @@ contains_nl_or_bs() {
 }
 
 sha256r() {
-  if [ -n "$1" ]; then
-    output="$(sha256r)"
-    if [ -e "$1" ]; then
+  if [ -n "${1}" ]; then
+    local output="$(sha256r)"
+    if [ -e "${1}" ]; then
       printf 'Error: Output file already exists\n'
       exit 1
     fi
-    printf '%s' "$output" > "$1"
+    printf '%s' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
   fi
 }
 
 check_repo_urls() {
-  repo_dir="${PWD}/.git"
+  local repo_dir="${PWD}/.git"
   [ "$(git --git-dir="${repo_dir}" config --get remote.origin.url)" = "$1" ] \
   && [ "$(git --git-dir="${repo_dir}" remote get-url --all origin)" = "$1" ] \
    && [ "$(git --git-dir="${repo_dir}" ls-remote --get-url origin)" = "$1" ]
@@ -40,7 +42,7 @@ check_repo_urls() {
 # 2 = 'skip_update' to skip fetch remote changes, otherwise ignored
 # must be run in top level of working tree
 clean_and_update_repo() {
-  repo_dir="${PWD}/.git"
+  local repo_dir="${PWD}/.git"
   if ! is_valid_sha1 "$1"; then
     printf '\n==== Error: commit is not a valid sha1 hash\n'
     exit 1
@@ -353,6 +355,279 @@ Category=Graphics;"
 
 
 
+# manage_rust arguments:
+manage_rust() {
+  local rust_installer_sha256='8928261388c8fae83bfd79b08d9030dfe21d17a8b59e9dcabda779213f6a3d14'
+  printf '\n======== Downloading rust installer\n'
+  dl_and_verify_file "$rust_installer_sha256" 'rustup-init.sh' \
+                     'https://sh.rustup.rs/'
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: Could not download rust intsaller\n'
+    exit 1
+  fi
+  
+  printf '\n======== Installing rust\n'
+  bash -- 'rustup-init.sh' --no-modify-path
+  
+  rm -f -- 'rustup-init.sh'
+  
+  if [ -d "${HOME}/bin" ]; then
+    printf '\n======== Creating symlinks in bin directory\n'
+    ln -s "--target-directory=${HOME}/bin" \
+          "${HOME}/.cargo/bin/rustc" \
+          "${HOME}/.cargo/bin/cargo" \
+          "${HOME}/.cargo/bin/rustup"
+  fi
+}
+
+
+
+
+# manage_gifski arguments:
+# 1 = version (default or a commit sha1 hash)
+# 2 = 'keep_sources' to keep source code after installation
+manage_gifski() {
+  case "$1" in
+    'default' | '1.2.2')
+      printf '\n======== Defaulting to gifski version 1.2.2\n'
+      gifski_version='08392458acf94abc6ab10b67b63caf30ba30192f'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        gifski_version="$1"
+      else
+        printf '\n======== Error: gifski version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  printf '\n======== Checking directories\n'
+  gifski_dir="${PWD}/gifski"
+  
+  install_dir="${gifski_dir}/gifski-${gifski_version}"
+  build_dir="${gifski_dir}/build"
+  src_dir="${gifski_dir}/src"
+  
+  gifski_src_dir="${src_dir}/gifski"
+  
+  if [ ! -d "${gifski_dir}" ] && ! mkdir "${gifski_dir}"; then
+    printf '\n==== Error: Could not create gifski directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  if [ -e "${build_dir}" ]; then
+    printf '\n==== Error: Build directory already exists:\n'
+    printf '%s\n' "${build_dir}"
+    exit 1
+  fi
+  if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
+    printf '\n==== Error: Could not create src directory\n'
+    exit 1
+  fi
+  
+  
+  if [ ! -e "${gifski_src_dir}" ]; then
+    printf '\n======== Cloning gifski git repository\n'
+    cd "${src_dir}"
+    git clone --no-checkout 'https://github.com/ImageOptim/gifski.git'
+    if [ "$?" != 0 ]; then
+      printf '\n==== Error: Could not clone gifski git repository\n'
+      exit 1
+    fi
+    fetch_updates='skip_update'
+  fi
+  
+  printf '\n======== Checking out gifski commit\n======== %s\n' "$gifski_version"
+  if [ ! -d "${gifski_src_dir}/.git" ] || ! cd "${gifski_src_dir}"; then
+    printf '\n==== Error: gifski repo is missing or invalid\n'
+    exit 1
+  fi
+  if ! check_repo_urls 'https://github.com/ImageOptim/gifski.git'; then
+    printf '\n==== Error: Repo url does not match gifski url\n'
+    exit 1
+  fi
+  clean_and_update_repo "$gifski_version" "$fetch_updates"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: An error occurred when managing gifski repo\n'
+    exit 1
+  fi
+  
+  printf '\n======== Building gifski\n'
+  if ! mkdir "${build_dir}"; then
+    printf '\n==== Error: Could not create build directory\n'
+    exit 1
+  fi
+  cd "${build_dir}"
+  exit 1
+  
+  printf '\n======== Stripping debug symbols\n'
+  #strip --strip-all "${build_dir}/"
+  #strip --strip-all "${build_dir}/"
+  
+  printf '\n======== Moving gifski build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mkdir "${install_dir}/bin"
+  #mv "${build_dir}/" "${install_dir}/bin"
+  #mv "${build_dir}/" "${install_dir}/bin"
+  
+  if [ -d "${HOME}/bin" ]; then
+    printf '\n======== Creating symlinks in bin directory\n'
+    #ln -s "--target-directory=${HOME}/bin" \
+    #      "${install_dir}/bin/"
+  fi
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "gifski-${gifski_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  rm -R -f -- "${build_dir}"
+  if [ "$2" != 'keep_sources' ]; then
+    rm -R -f -- "${src_dir}"
+  else
+    printf '\n==== Keeping source repo\n'
+    cd "${gifski_src_dir}"
+    clean_and_update_repo "$gifski_version" 'skip_update'
+  fi
+}
+
+
+
+
+# manage_gifsicle arguments:
+# 1 = version (default or a commit sha1 hash)
+# 2 = 'keep_sources' to keep source code after installation
+manage_gifsicle() {
+  case "$1" in
+    'default' | '1.92')
+      printf '\n======== Defaulting to gifsicle version 1.92\n'
+      gifsicle_version='1e2ca7401692ba94d7405de6e9dd1d1e73ca880f'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        gifsicle_version="$1"
+      else
+        printf '\n======== Error: gifsicle version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  printf '\n======== Checking directories\n'
+  gifsicle_dir="${PWD}/gifsicle"
+  
+  install_dir="${gifsicle_dir}/gifsicle-${gifsicle_version}"
+  build_dir="${gifsicle_dir}/build"
+  src_dir="${gifsicle_dir}/src"
+  
+  gifsicle_src_dir="${src_dir}/gifsicle"
+  
+  if [ ! -d "${gifsicle_dir}" ] && ! mkdir "${gifsicle_dir}"; then
+    printf '\n==== Error: Could not create gifsicle directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  if [ -e "${build_dir}" ]; then
+    printf '\n==== Error: Build directory already exists:\n'
+    printf '%s\n' "${build_dir}"
+    exit 1
+  fi
+  if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
+    printf '\n==== Error: Could not create src directory\n'
+    exit 1
+  fi
+  
+  
+  if [ ! -e "${gifsicle_src_dir}" ]; then
+    printf '\n======== Cloning gifsicle git repository\n'
+    cd "${src_dir}"
+    git clone --no-checkout 'https://github.com/kohler/gifsicle.git'
+    if [ "$?" != 0 ]; then
+      printf '\n==== Error: Could not clone gifsicle git repository\n'
+      exit 1
+    fi
+    fetch_updates='skip_update'
+  fi
+  
+  printf '\n======== Checking out gifsicle commit\n======== %s\n' "$gifsicle_version"
+  if [ ! -d "${gifsicle_src_dir}/.git" ] || ! cd "${gifsicle_src_dir}"; then
+    printf '\n==== Error: gifsicle repo is missing or invalid\n'
+    exit 1
+  fi
+  if ! check_repo_urls 'https://github.com/kohler/gifsicle.git'; then
+    printf '\n==== Error: Repo url does not match gifsicle url\n'
+    exit 1
+  fi
+  clean_and_update_repo "$gifsicle_version" "$fetch_updates"
+  if [ "$?" != 0 ]; then
+    printf '\n==== Error: An error occurred when managing gifsicle repo\n'
+    exit 1
+  fi
+  
+  printf '\n======== Building gifsicle\n'
+  if ! mkdir "${build_dir}"; then
+    printf '\n==== Error: Could not create build directory\n'
+    exit 1
+  fi
+  cd "${build_dir}"
+  autoreconf -i "${gifsicle_src_dir}"
+  "${gifsicle_src_dir}/configure" --disable-gifview
+  make
+  
+  printf '\n======== Stripping debug symbols\n'
+  strip --strip-all "${build_dir}/src/gifsicle"
+  strip --strip-all "${build_dir}/src/gifdiff"
+  
+  printf '\n======== Moving gifsicle build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mkdir "${install_dir}/bin"
+  mv "${build_dir}/src/gifsicle" "${install_dir}/bin"
+  mv "${build_dir}/src/gifdiff" "${install_dir}/bin"
+  
+  if [ -d "${HOME}/bin" ]; then
+    printf '\n======== Creating symlinks in bin directory\n'
+    ln -s "--target-directory=${HOME}/bin" \
+          "${install_dir}/bin/gifsicle" \
+          "${install_dir}/bin/gifdiff"
+  fi
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "gifsicle-${gifsicle_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  rm -R -f -- "${build_dir}"
+  if [ "$2" != 'keep_sources' ]; then
+    rm -R -f -- "${src_dir}"
+  else
+    printf '\n==== Keeping source repo\n'
+    cd "${gifsicle_src_dir}"
+    clean_and_update_repo "$gifsicle_version" 'skip_update'
+  fi
+}
+
+
+
+
 # manage_mozjpeg arguments:
 # 1 = version (default or a commit sha1 hash)
 # 2 = 'keep_sources' to keep source code after installation
@@ -476,7 +751,7 @@ manage_mozjpeg() {
 # 2 = 'keep_sources' to keep source code after installation
 manage_godot() {
   case "$1" in
-    'default')
+    'default' | '3.2.3')
       printf '\n======== Defaulting to godot version 3.2.3\n'
       godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
     ;;
@@ -583,7 +858,7 @@ manage_godot() {
   else
     printf '\n==== Keeping source repo\n'
     cd "${godot_src_dir}"
-    clean_and_update_repo "$godot_version"
+    clean_and_update_repo "$godot_version" 'skip_update'
   fi
   
   
@@ -610,7 +885,7 @@ Category=Development;Game;Graphics;"
 # 2 = 'keep_sources' to keep source code after installation
 manage_aseprite() {
   case "$1" in
-    'default')
+    'default' | '1.2.25')
       printf '\n======== Defaulting to aseprite version 1.2.25\n'
       aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
     ;;
@@ -901,12 +1176,13 @@ Category=Graphics;"
 
 # Process input
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-  printf 'Usage:\n'
-  printf 'manage_software.sh 1 2 3 4 (5)\n'
-  printf '  1 = software name [ aseprite | godot | mozjpeg | krita | lmms | blender ]\n'
-  printf '  2 = software version [ default | (a git commit sha1) | (a version number) ]\n'
-  printf '  3 = where to create (or find existing) installation directory\n'
-  printf '  4 = "keep_sources" will keep source repos after install, otherwise ignored\n'
+  printf 'Arguments:\n'
+  printf '  software name:\n'
+  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski |\n'
+  printf '      rust | krita | lmms | blender ]\n'
+  printf '  software version [ default | (a git commit sha1) | (a version number) ]\n'
+  printf '  where to create (or find existing) installation directory\n'
+  printf '  "keep_sources" will keep source repos after install, otherwise ignored\n'
   exit 0
 fi
 
@@ -932,6 +1208,15 @@ case "$1" in
   ;;
   'mozjpeg')
     manage_mozjpeg "$version" "$keep_sources"
+  ;;
+  'gifsicle')
+    manage_gifsicle "$version" "$keep_sources"
+  ;;
+  'gifski')
+    manage_gifski "$version" "$keep_sources"
+  ;;
+  'rust')
+    manage_rust
   ;;
   'krita')
     manage_krita "$version"
