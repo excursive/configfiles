@@ -5,8 +5,6 @@ alias srm="rm -I"
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
 
-alias grep-non-ascii="grep --color='auto' -n --perl-regexp '[^\x00-\x7F]'"
-
 alias pngoptim="optipng -strip all -o7"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
@@ -36,7 +34,7 @@ md5r() {
     local output="$(md5r)"
     if [ -e "${1}" ]; then
       printf 'Error: Output file already exists\n'
-      exit 1
+      return 1
     fi
     printf '%s' "$output" > "${1}"
   else
@@ -49,12 +47,23 @@ sha256r() {
     local output="$(sha256r)"
     if [ -e "${1}" ]; then
       printf 'Error: Output file already exists\n'
-      exit 1
+      return 1
     fi
     printf '%s' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
   fi
+}
+
+# TODO: modify to support multiple files
+grep-non-ascii() {
+  local LC_ALL=C
+  export LC_ALL
+  printf 'Lines with non-printable or non-ascii characters:\n'
+  grep --color='auto' -n --perl-regexp '[^\x0A\x20-\x7E]' "${1}" | \
+    cut --fields=1 --delimiter=':'
+  printf 'Total number of lines: '
+  grep --color='auto' -c --perl-regexp '[^\x0A\x20-\x7E]' "${1}"
 }
 
 # TODO: functions below have been edited but need testing
@@ -135,7 +144,7 @@ batch_optimize_files() {
     local extension="${base_name##*.}"
     local suffix=''
     if [ -n "${extension}" ]; then
-      local suffix=".${extension}"
+      suffix=".${extension}"
     fi
     local temp_file="$(mktemp "--suffix=${suffix}" "${in_file}.XXXXXX")"
     
@@ -161,7 +170,7 @@ batch_optimize_files() {
       *)
         printf 'Error: Invalid filetype. Valid filetypes are:\n'
         printf '       [ jpeg | audio | video | video-subtitled ]\n'
-        exit 1
+        return 1
       ;;
     esac
     
@@ -193,7 +202,7 @@ stripvideo() {
 }
 
 # edit a srgb image in the given colorspace using imagemagick
-magick_in_colorspace() {
+edit_in_colorspace() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'
     printf '  input image\n'
@@ -202,7 +211,7 @@ magick_in_colorspace() {
     printf '    (LAB is almost always the best option)\n'
     printf '  ...arguments to pass to imagemagick after converting to the working\n'
     printf '     colorspace, and before converting back to srgb\n'
-    exit 0
+    return 0
   fi
   
   local in_file="${1}"
