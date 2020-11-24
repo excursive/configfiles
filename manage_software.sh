@@ -4,12 +4,12 @@
 #set -e -o pipefail
 
 is_valid_sha1() {
-  local regex='^[0-9A-Fa-f]{40}$'
+  local regex='^[[:xdigit:]]{40}$'
   [[ "$1" =~ $regex ]]
 }
 
 is_valid_sha256() {
-  local regex='^[0-9A-Fa-f]{64}$'
+  local regex='^[[:xdigit:]]{64}$'
   [[ "$1" =~ $regex ]]
 }
 
@@ -50,12 +50,12 @@ clean_and_update_repo() {
   git --git-dir="${repo_dir}" clean --quiet -d -f -f -x
   if [ "$2" != 'skip_update' ]; then
     git --git-dir="${repo_dir}" fetch --recurse-submodules=on-demand
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Warning: Could not fetch updates\n'
     fi
   fi
   git --git-dir="${repo_dir}" checkout --force --recurse-submodules "$1"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not checkout specified commit\n'
     exit 1
   fi
@@ -64,7 +64,7 @@ clean_and_update_repo() {
   git --git-dir="${repo_dir}" clean -d -f -f -x
   git --git-dir="${repo_dir}" checkout --force --recurse-submodules "$1"
   git --git-dir="${repo_dir}" submodule update --init --force --checkout --recursive --
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not checkout submodules\n'
     exit 1
   fi
@@ -86,7 +86,7 @@ dl_and_verify_file() {
   
   wget --execute robots=off --output-document="${2}" \
        --no-clobber --no-use-server-timestamps --https-only "$3"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download %s\n' "${2}"
     exit 1
   fi
@@ -97,7 +97,7 @@ dl_and_verify_file() {
   sha256sum "${2}"
   
   printf '%s  %s\n' "$1" "${2}" | sha256sum --check
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Download does not match checksum\n'
     rm -f -- "${2}"
     exit 1
@@ -159,7 +159,7 @@ manage_blender() {
   cd "${blender_dir}"
   dl_and_verify_file "$blender_sha256" "blender-${blender_version}-linux64.tar.xz" \
                      "https://download.blender.org/release/${blender_dl_url}"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download Blender\n'
     exit 1
   fi
@@ -231,7 +231,7 @@ manage_lmms() {
   cd "${lmms_dir}"
   dl_and_verify_file "$lmms_sha256" "lmms-${lmms_version}-linux-x86_64.AppImage" \
                      "https://github.com/LMMS/lmms/releases/download/${lmms_dl_url}"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download LMMS\n'
     exit 1
   fi
@@ -240,7 +240,7 @@ manage_lmms() {
   cd "${lmms_dir}"
   dl_and_verify_file "$lmms_icon_sha256" 'icon.png' \
                      "https://raw.githubusercontent.com/LMMS/lmms/${lmms_commit_sha1}/${lmms_icon_url}"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download icon\n'
     exit 1
   fi
@@ -312,7 +312,7 @@ manage_krita() {
   cd "${krita_dir}"
   dl_and_verify_file "$krita_sha256" "krita-${krita_version}-x86_64.appimage" \
                      "https://download.kde.org/${krita_dl_url}"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download krita\n'
     exit 1
   fi
@@ -321,7 +321,7 @@ manage_krita() {
   cd "${krita_dir}"
   dl_and_verify_file "$krita_icon_sha256" 'icon.png' \
                      "https://invent.kde.org/graphics/krita/-/raw/${krita_commit_sha1}/${krita_icon_url}"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download icon\n'
     exit 1
   fi
@@ -361,7 +361,7 @@ manage_rust() {
   printf '\n======== Downloading rust installer\n'
   dl_and_verify_file "$rust_installer_sha256" 'rustup-init.sh' \
                      'https://sh.rustup.rs/'
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download rust intsaller\n'
     exit 1
   fi
@@ -436,7 +436,7 @@ manage_gifski() {
     printf '\n======== Cloning gifski git repository\n'
     cd "${src_dir}"
     git clone --no-checkout 'https://github.com/ImageOptim/gifski.git'
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: Could not clone gifski git repository\n'
       exit 1
     fi
@@ -453,7 +453,7 @@ manage_gifski() {
     exit 1
   fi
   clean_and_update_repo "$gifski_version" "$fetch_updates"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: An error occurred when managing gifski repo\n'
     exit 1
   fi
@@ -557,7 +557,7 @@ manage_gifsicle() {
     printf '\n======== Cloning gifsicle git repository\n'
     cd "${src_dir}"
     git clone --no-checkout 'https://github.com/kohler/gifsicle.git'
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: Could not clone gifsicle git repository\n'
       exit 1
     fi
@@ -574,7 +574,7 @@ manage_gifsicle() {
     exit 1
   fi
   clean_and_update_repo "$gifsicle_version" "$fetch_updates"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: An error occurred when managing gifsicle repo\n'
     exit 1
   fi
@@ -687,7 +687,7 @@ manage_mozjpeg() {
     printf '\n======== Cloning mozjpeg git repository\n'
     cd "${src_dir}"
     git clone --no-checkout 'https://github.com/mozilla/mozjpeg.git'
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: Could not clone mozjpeg git repository\n'
       exit 1
     fi
@@ -704,7 +704,7 @@ manage_mozjpeg() {
     exit 1
   fi
   clean_and_update_repo "$mozjpeg_version" "$fetch_updates"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: An error occurred when managing mozjpeg repo\n'
     exit 1
   fi
@@ -793,7 +793,7 @@ manage_godot() {
     printf '\n======== Cloning godot git repository\n'
     cd "${src_dir}"
     git clone --no-checkout 'https://github.com/godotengine/godot.git'
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: Could not clone godot git repository\n'
       exit 1
     fi
@@ -810,7 +810,7 @@ manage_godot() {
     exit 1
   fi
   clean_and_update_repo "$godot_version" "$fetch_updates"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: An error occurred when managing godot repo\n'
     exit 1
   fi
@@ -964,7 +964,7 @@ manage_aseprite() {
     #  printf '\n======== Cloning depot_tools git repository\n'
     #  cd "${src_dir}"
     #  git clone --no-checkout 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
-    #  if [ "$?" != 0 ]; then
+    #  if [ "$?" -ne 0 ]; then
     #    printf '\n==== Error: Could not clone depot_tools git repository\n'
     #    exit 1
     #  fi
@@ -981,7 +981,7 @@ manage_aseprite() {
     #  exit 1
     #fi
     #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c' "$fetch_depot_tools_updates"
-    #if [ "$?" != 0 ]; then
+    #if [ "$?" -ne 0 ]; then
     #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
     #  exit 1
     #fi
@@ -990,7 +990,7 @@ manage_aseprite() {
       printf '\n======== Cloning skia git repository\n'
       cd "${src_dir}"
       git clone --no-checkout 'https://skia.googlesource.com/skia.git'
-      if [ "$?" != 0 ]; then
+      if [ "$?" -ne 0 ]; then
         printf '\n==== Error: Could not clone skia git repository\n'
         exit 1
       fi
@@ -1007,7 +1007,7 @@ manage_aseprite() {
       exit 1
     fi
     clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9' "$fetch_skia_updates"
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: An error occurred when managing skia repo\n'
       exit 1
     fi
@@ -1081,7 +1081,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     printf '\n======== Cloning aseprite git repository\n'
     cd "${src_dir}"
     git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
-    if [ "$?" != 0 ]; then
+    if [ "$?" -ne 0 ]; then
       printf '\n==== Error: Could not clone aseprite git repository\n'
       exit 1
     fi
@@ -1098,7 +1098,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     exit 1
   fi
   clean_and_update_repo "$aseprite_version" "$fetch_aseprite_updates"
-  if [ "$?" != 0 ]; then
+  if [ "$?" -ne 0 ]; then
     printf '\n==== Error: An error occurred when managing aseprite repo\n'
     exit 1
   fi
