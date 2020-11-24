@@ -70,6 +70,47 @@ clean_and_update_repo() {
   fi
 }
 
+# checks out the given git commit, cloning/fetching updates as necessary
+# afterwards, working directory will be the specified directory
+# arguments:
+# 1 = directory to clone into
+# 2 = commit
+# 3 = url
+checkout_commit() {
+  local dir="${1}"
+  local commit="$2"
+  local url="$3"
+  if ! is_valid_sha1 "$commit"; then
+    printf '\n==== Error: commit is not a valid sha1 hash\n'
+    exit 1
+  fi
+  
+  if [ ! -e "${dir}" ]; then
+    printf '\n======== Cloning git repository\n'
+    git clone --no-checkout -- "$url" "${dir}"
+    if [ "$?" -ne 0 ]; then
+      printf '\n==== Error: Could not clone git repository\n'
+      exit 1
+    fi
+    fetch_updates='skip_update'
+  fi
+  
+  printf '\n======== Checking out git commit\n======== %s\n' "$commit"
+  if [ ! -d "${dir}/.git" ] || ! cd "${dir}"; then
+    printf '\n==== Error: git repo is missing or invalid\n'
+    exit 1
+  fi
+  if ! check_repo_urls "$url"; then
+    printf '\n==== Error: Repo url does not match specified url\n'
+    exit 1
+  fi
+  clean_and_update_repo "$commit" "$fetch_updates"
+  if [ "$?" -ne 0 ]; then
+    printf '\n==== Error: Could not checkout specified commit\n'
+    exit 1
+  fi
+}
+
 # arguments:
 # 1 = sha256 hash
 # 2 = filename to save to
@@ -119,6 +160,26 @@ save_launcher() {
   else
     printf '%s\n' "$2" > "${1}"
   fi
+}
+
+create_symlinks() {
+  if ! [ -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
+    printf '\n==== Warning: Could not create user bin directory for symlinks\n'
+    return 1
+  fi
+  for target in "$@"; do
+    if [ -e "${target}" ]; then
+      if [ -h "${target}" ]; then
+        ln -s "--target-directory=${HOME}/bin" "${target}"
+        printf '\n==== Replaced old symlink in ~/bin to %s\n' "${target}"
+      else
+        printf '\n==== Warning: link for %s not created, file with that name already exists\n' "${target}"
+      fi
+    else
+      ln -s "--target-directory=${HOME}/bin" "${target}"
+      printf '\n==== Created symlink in ~/bin to %s\n' "${target}"
+    fi
+  done
 }
 
 
@@ -371,12 +432,9 @@ manage_rust() {
   
   rm -f -- 'rustup-init.sh'
   
-  if [ -d "${HOME}/bin" ]; then
-    printf '\n======== Creating symlinks in bin directory\n'
-    ln -s "--target-directory=${HOME}/bin" \
-          "${HOME}/.cargo/bin/rustc" \
-          "${HOME}/.cargo/bin/cargo" \
-          "${HOME}/.cargo/bin/rustup"
+  create_symlinks "${HOME}/.cargo/bin/rustc" \
+                  "${HOME}/.cargo/bin/cargo" \
+                  "${HOME}/.cargo/bin/rustup"
   fi
 }
 
@@ -432,31 +490,9 @@ manage_gifski() {
   fi
   
   
-  if [ ! -e "${gifski_src_dir}" ]; then
-    printf '\n======== Cloning gifski git repository\n'
-    cd "${src_dir}"
-    git clone --no-checkout 'https://github.com/ImageOptim/gifski.git'
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not clone gifski git repository\n'
-      exit 1
-    fi
-    fetch_updates='skip_update'
-  fi
+  checkout_commit "${gifski_src_dir}" "$gifski_version" \
+                  'https://github.com/ImageOptim/gifski.git'
   
-  printf '\n======== Checking out gifski commit\n======== %s\n' "$gifski_version"
-  if [ ! -d "${gifski_src_dir}/.git" ] || ! cd "${gifski_src_dir}"; then
-    printf '\n==== Error: gifski repo is missing or invalid\n'
-    exit 1
-  fi
-  if ! check_repo_urls 'https://github.com/ImageOptim/gifski.git'; then
-    printf '\n==== Error: Repo url does not match gifski url\n'
-    exit 1
-  fi
-  clean_and_update_repo "$gifski_version" "$fetch_updates"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: An error occurred when managing gifski repo\n'
-    exit 1
-  fi
   
   printf '\n======== Building gifski\n'
   if ! mkdir "${build_dir}"; then
@@ -479,11 +515,8 @@ manage_gifski() {
   #mv "${build_dir}/" "${install_dir}/bin"
   #mv "${build_dir}/" "${install_dir}/bin"
   
-  if [ -d "${HOME}/bin" ]; then
-    printf '\n======== Creating symlinks in bin directory\n'
-    #ln -s "--target-directory=${HOME}/bin" \
-    #      "${install_dir}/bin/"
-  fi
+  printf '\n======== Creating symlinks in bin directory\n'
+  
   
   printf '\n======== Generating checksums\n'
   cd "${install_dir}"
@@ -553,31 +586,9 @@ manage_gifsicle() {
   fi
   
   
-  if [ ! -e "${gifsicle_src_dir}" ]; then
-    printf '\n======== Cloning gifsicle git repository\n'
-    cd "${src_dir}"
-    git clone --no-checkout 'https://github.com/kohler/gifsicle.git'
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not clone gifsicle git repository\n'
-      exit 1
-    fi
-    fetch_updates='skip_update'
-  fi
+  checkout_commit "${gifsicle_src_dir}" "$gifsicle_version" \
+                  'https://github.com/kohler/gifsicle.git'
   
-  printf '\n======== Checking out gifsicle commit\n======== %s\n' "$gifsicle_version"
-  if [ ! -d "${gifsicle_src_dir}/.git" ] || ! cd "${gifsicle_src_dir}"; then
-    printf '\n==== Error: gifsicle repo is missing or invalid\n'
-    exit 1
-  fi
-  if ! check_repo_urls 'https://github.com/kohler/gifsicle.git'; then
-    printf '\n==== Error: Repo url does not match gifsicle url\n'
-    exit 1
-  fi
-  clean_and_update_repo "$gifsicle_version" "$fetch_updates"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: An error occurred when managing gifsicle repo\n'
-    exit 1
-  fi
   
   printf '\n======== Building gifsicle\n'
   if ! mkdir "${build_dir}"; then
@@ -602,16 +613,12 @@ manage_gifsicle() {
   mv "${build_dir}/src/gifsicle" "${install_dir}/bin"
   mv "${build_dir}/src/gifdiff" "${install_dir}/bin"
   
-  if [ -d "${HOME}/bin" ]; then
-    printf '\n======== Creating symlinks in bin directory\n'
-    ln -s "--target-directory=${HOME}/bin" \
-          "${install_dir}/bin/gifsicle" \
-          "${install_dir}/bin/gifdiff"
-  fi
-  
   printf '\n======== Generating checksums\n'
   cd "${install_dir}"
   sha256r "gifsicle-${gifsicle_version}-sha256sums.txt"
+  
+  create_symlinks "${install_dir}/bin/gifsicle" \
+                  "${install_dir}/bin/gifdiff"
   
   
   printf '\n======== Cleaning up\n'
@@ -683,31 +690,8 @@ manage_mozjpeg() {
   fi
   
   
-  if [ ! -e "${mozjpeg_src_dir}" ]; then
-    printf '\n======== Cloning mozjpeg git repository\n'
-    cd "${src_dir}"
-    git clone --no-checkout 'https://github.com/mozilla/mozjpeg.git'
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not clone mozjpeg git repository\n'
-      exit 1
-    fi
-    fetch_updates='skip_update'
-  fi
-  
-  printf '\n======== Checking out mozjpeg commit\n======== %s\n' "$mozjpeg_version"
-  if [ ! -d "${mozjpeg_src_dir}/.git" ] || ! cd "${mozjpeg_src_dir}"; then
-    printf '\n==== Error: mozjpeg repo is missing or invalid\n'
-    exit 1
-  fi
-  if ! check_repo_urls 'https://github.com/mozilla/mozjpeg.git'; then
-    printf '\n==== Error: Repo url does not match mozjpeg url\n'
-    exit 1
-  fi
-  clean_and_update_repo "$mozjpeg_version" "$fetch_updates"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: An error occurred when managing mozjpeg repo\n'
-    exit 1
-  fi
+  checkout_commit "${mozjpeg_src_dir}" "$mozjpeg_version" \
+                  'https://github.com/mozilla/mozjpeg.git'
   
   
   printf '\n======== Building mozjpeg\n'
@@ -731,6 +715,8 @@ manage_mozjpeg() {
   #printf '\n======== Generating checksums\n'
   #cd "${install_dir}"
   #sha256r "mozjpeg-${mozjpeg_version}-sha256sums.txt"
+  
+  #create_symlinks
   
   
   printf '\n======== Cleaning up\n'
@@ -789,31 +775,9 @@ manage_godot() {
   fi
   
   
-  if [ ! -e "${godot_src_dir}" ]; then
-    printf '\n======== Cloning godot git repository\n'
-    cd "${src_dir}"
-    git clone --no-checkout 'https://github.com/godotengine/godot.git'
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not clone godot git repository\n'
-      exit 1
-    fi
-    fetch_updates='skip_update'
-  fi
+  checkout_commit "${godot_src_dir}" "$godot_version" \
+                  'https://github.com/godotengine/godot.git'
   
-  printf '\n======== Checking out godot commit\n======== %s\n' "$godot_version"
-  if [ ! -d "${godot_src_dir}/.git" ] || ! cd "${godot_src_dir}"; then
-    printf '\n==== Error: godot repo is missing or invalid\n'
-    exit 1
-  fi
-  if ! check_repo_urls 'https://github.com/godotengine/godot.git'; then
-    printf '\n==== Error: Repo url does not match godot url\n'
-    exit 1
-  fi
-  clean_and_update_repo "$godot_version" "$fetch_updates"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: An error occurred when managing godot repo\n'
-    exit 1
-  fi
   
   printf '\n======== Building godot\n'
   cd "${godot_src_dir}"
@@ -960,57 +924,14 @@ manage_aseprite() {
       exit 1
     fi
   else
-    #if [ ! -e "${depot_tools_dir}" ]; then
-    #  printf '\n======== Cloning depot_tools git repository\n'
-    #  cd "${src_dir}"
-    #  git clone --no-checkout 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
-    #  if [ "$?" -ne 0 ]; then
-    #    printf '\n==== Error: Could not clone depot_tools git repository\n'
-    #    exit 1
-    #  fi
-    #  fetch_depot_tools_updates='skip_update'
-    #fi
-    #
     # just check out a random depot_tools commit that is known to work
-    #if [ ! -d "${depot_tools_dir}/.git" ] || ! cd "${depot_tools_dir}"; then
-    #  printf '\n==== Error: depot_tools repo is missing or invalid\n'
-    #  exit 1
-    #fi
-    #if ! check_repo_urls 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'; then
-    #  printf '\n==== Error: Repo url does not match depot_tools url\n'
-    #  exit 1
-    #fi
-    #clean_and_update_repo 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c' "$fetch_depot_tools_updates"
-    #if [ "$?" -ne 0 ]; then
-    #  printf '\n==== Error: An error occurred when managing depot_tools repo\n'
-    #  exit 1
-    #fi
+    #checkout_commit "${depot_tools_dir}" 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c' \
+    #                'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
     
-    if [ ! -e "${skia_src_dir}" ]; then
-      printf '\n======== Cloning skia git repository\n'
-      cd "${src_dir}"
-      git clone --no-checkout 'https://skia.googlesource.com/skia.git'
-      if [ "$?" -ne 0 ]; then
-        printf '\n==== Error: Could not clone skia git repository\n'
-        exit 1
-      fi
-      fetch_skia_updates='skip_update'
-    fi
     
     printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
-    if [ ! -d "${skia_src_dir}/.git" ] || ! cd "${skia_src_dir}"; then
-      printf '\n==== Error: skia repo is missing or invalid\n'
-      exit 1
-    fi
-    if ! check_repo_urls 'https://skia.googlesource.com/skia.git'; then
-      printf '\n==== Error: Repo url does not match skia url\n'
-      exit 1
-    fi
-    clean_and_update_repo '3e98c0e1d11516347ecc594959af2c1da4d04fc9' "$fetch_skia_updates"
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: An error occurred when managing skia repo\n'
-      exit 1
-    fi
+    checkout_commit "${skia_src_dir}" '3e98c0e1d11516347ecc594959af2c1da4d04fc9' \
+                    'https://skia.googlesource.com/skia.git'
     
     printf '\n==== Syncing skia dependencies\n'
     PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
@@ -1039,7 +960,6 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
            -e '856c\
         return std::make_tuple(true, end - begin);' \
                  'src/gpu/text/GrTextBlob.cpp'
-    printf '\n==== Done modifying skia files\n'
     
     
     printf '\n======== Building skia\n'
@@ -1077,31 +997,10 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     sha256r 'skia-aseprite-m81-sha256sums.txt'
   fi
   
-  if [ ! -e "${ase_src_dir}" ]; then
-    printf '\n======== Cloning aseprite git repository\n'
-    cd "${src_dir}"
-    git clone --no-checkout 'https://github.com/aseprite/aseprite.git'
-    if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not clone aseprite git repository\n'
-      exit 1
-    fi
-    fetch_aseprite_updates='skip_update'
-  fi
   
-  printf '\n======== Checking out aseprite commit\n======== %s\n' "$aseprite_version"
-  if [ ! -d "${ase_src_dir}/.git" ] || ! cd "${ase_src_dir}"; then
-    printf '\n==== Error: aseprite repo is missing or invalid\n'
-    exit 1
-  fi
-  if ! check_repo_urls 'https://github.com/aseprite/aseprite.git'; then
-    printf '\n==== Error: Repo url does not match aseprite url\n'
-    exit 1
-  fi
-  clean_and_update_repo "$aseprite_version" "$fetch_aseprite_updates"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: An error occurred when managing aseprite repo\n'
-    exit 1
-  fi
+  checkout_commit "${ase_src_dir}" "$aseprite_version" \
+                  'https://github.com/aseprite/aseprite.git'
+  
   
   printf '\n======== Building aseprite\n'
   if ! mkdir "${ase_build_dir}"; then
