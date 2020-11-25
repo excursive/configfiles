@@ -4,11 +4,15 @@
 #set -e -o pipefail
 
 is_valid_sha1() {
+  local LC_ALL=C
+  export LC_ALL
   local regex='^[[:xdigit:]]{40}$'
   [[ "$1" =~ $regex ]]
 }
 
 is_valid_sha256() {
+  local LC_ALL=C
+  export LC_ALL
   local regex='^[[:xdigit:]]{64}$'
   [[ "$1" =~ $regex ]]
 }
@@ -92,7 +96,7 @@ checkout_commit() {
       printf '\n==== Error: Could not clone git repository\n'
       exit 1
     fi
-    fetch_updates='skip_update'
+    local fetch_updates='skip_update'
   fi
   
   printf '\n======== Checking out git commit\n======== %s\n' "$commit"
@@ -162,23 +166,39 @@ save_launcher() {
   fi
 }
 
-create_symlinks() {
-  if ! [ -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
-    printf '\n==== Warning: Could not create user bin directory for symlinks\n'
+# arguments:
+# 1 = link target
+# 2 = link name
+create_symlink() {
+  local target="${1}"
+  local link_name="${2}"
+  local link_path="${HOME}/bin/${link_name}"
+  if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
+    printf '\n==== Warning: Could not create ~/bin directory for symlink %s\n' "${link_name}"
     return 1
   fi
-  for target in "$@"; do
-    if [ -e "${target}" ]; then
-      if [ -h "${target}" ]; then
-        ln -s "--target-directory=${HOME}/bin" "${target}"
-        printf '\n==== Replaced old symlink in ~/bin to %s\n' "${target}"
-      else
-        printf '\n==== Warning: link for %s not created, file with that name already exists\n' "${target}"
-      fi
+  if [ -e "${link_path}" ]; then
+    if [ -h "${link_path}" ]; then
+      rm -f -- "${link_path}"
+      ln -s --no-target-directory "${target}" "${link_path}"
+      printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
     else
-      ln -s "--target-directory=${HOME}/bin" "${target}"
-      printf '\n==== Created symlink in ~/bin to %s\n' "${target}"
+      printf '\n==== Warning: link not created for %s\n' "${link_name}"
+      printf   '====          file with that name already exists\n'
+      return 1
     fi
+  else
+    ln -s --no-target-directory "${target}" "${link_path}"
+    printf '\n==== Created symlink in ~/bin for %s\n' "${link_name}"
+  fi
+}
+
+# arguments:
+# 1.. link targets
+create_symlinks() {
+  for target in "$@"; do
+    local link_name="$(basename -- "${target}")"
+    create_symlink "${target}" "${link_name}"
   done
 }
 
@@ -435,7 +455,6 @@ manage_rust() {
   create_symlinks "${HOME}/.cargo/bin/rustc" \
                   "${HOME}/.cargo/bin/cargo" \
                   "${HOME}/.cargo/bin/rustup"
-  fi
 }
 
 

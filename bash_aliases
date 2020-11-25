@@ -59,11 +59,41 @@ sha256r() {
 grep-non-ascii() {
   local LC_ALL=C
   export LC_ALL
-  printf 'Lines with non-printable or non-ascii characters:\n'
-  grep --color='auto' -n --perl-regexp '[^\x0A\x20-\x7E]' "${1}" | \
-    cut --fields=1 --delimiter=':'
-  printf 'Total number of lines: '
-  grep --color='auto' -c --perl-regexp '[^\x0A\x20-\x7E]' "${1}"
+  
+  local print_line_numbers=''
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '-h' | '--help')
+        printf 'Arguments:\n'
+        printf '  [ -h | --help ]\n'
+        printf '  [ -n | --line-numbers ] print line numbers in a space separated list\n'
+        return 0
+      ;;
+      '-n' | '--line-numbers')
+        print_line_numbers='-n'
+        shift 1
+      ;;
+      *)
+        break
+      ;;
+    esac
+  done
+  
+  for in_file in "$@"; do
+    local total_lines="$(grep --color='auto' -c --perl-regexp '[^\x0A\x20-\x7E]' -- "${in_file}")"
+    
+    if [ "$total_lines" -gt 0 ]; then
+      printf '\e[0;31m%s: %s\e[0m\n' "${in_file}" "$total_lines"
+      
+      if [ "$print_line_numbers" = '-n' ]; then
+        printf '\e[0;36m%s\e[0m\n' \
+          "$(grep --color='auto' -n --perl-regexp '[^\x0A\x20-\x7E]' -- "${in_file}" | \
+               cut --fields=1 --delimiter=':' | tr '\n' ' ')"
+      fi
+    else
+      printf '%s: %s\n' "${in_file}" "$total_lines"
+    fi
+  done
 }
 
 # TODO: functions below have been edited but need testing
@@ -140,7 +170,7 @@ batch_optimize_files() {
     printf 'Input file size = %s bytes\n\n' "$in_size"
     
     # TODO: handle case where extension is missing or doesn't match container format
-    local base_name="${in_file##*/}"
+    local base_name="$(basename ${in_file})"
     local extension="${base_name##*.}"
     local suffix=''
     if [ -n "${extension}" ]; then
