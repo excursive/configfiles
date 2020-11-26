@@ -29,6 +29,48 @@ alias enc24fpsanim="ffmpeg -i recording.mkv -ss -to -vf "decimate=cycle=5,setpts
 
 #wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/tag+name/page" 'https://staff.tumblr.com/tagged/tag+name'
 
+is_positive_integer() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^[[:digit:]]+$'
+  [[ "$1" =~ $regex ]]
+}
+
+is_positive_integer_range() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^[[:digit:]]+\-[[:digit:]]+$'
+  [[ "$1" =~ $regex ]]
+}
+
+is_decimal() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^[+\-]?(([[:digit:]]+[.[[:digit:]]*]?)|(.[[:digit:]]+))$'
+  [[ "$1" =~ $regex ]]
+}
+
+is_color_hex_code() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^#[[:xdigit:]]{6}([[:xdigit:]]{2})?$'
+  [[ "$1" =~ $regex ]]
+}
+
+is_alphanumeric() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^[[:alnum:]]+$'
+  [[ "$1" =~ $regex ]]
+}
+
+is_printable_ascii() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='[^ -~]'
+  ! [[ "$1" =~ $regex ]]
+}
+
 md5r() {
   if [ -n "${1}" ]; then
     local output="$(md5r)"
@@ -55,7 +97,6 @@ sha256r() {
   fi
 }
 
-# TODO: modify to support multiple files
 grep-non-ascii() {
   local LC_ALL=C
   export LC_ALL
@@ -183,17 +224,17 @@ batch_optimize_files() {
         mozjpegtran -copy none -optimize -perfect "${in_file}" > "${temp_file}"
       ;;
       'video-subtitled')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" \
+        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
                         -y -c copy -c:v copy -c:a copy -c:s copy \
                         -map 0:v:0 -map 0:a:0 -map 0:s:0
       ;;
       'video')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" \
+        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
                         -y -c copy -c:v copy -c:a copy \
                         -map 0:v:0 -map 0:a:0
       ;;
       'audio')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" \
+        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
                         -y -c copy -c:a copy \
                         -map 0:a:0
       ;;
@@ -259,6 +300,48 @@ edit_in_colorspace() {
   im_arguments+=( '-strip' )
   
   convert "${in_file}[0]" "${im_arguments[@]}" "${out_file}"
+}
+
+mouse-sensitivity-gnome() {
+  case "$1" in
+    '-h' | '--help')
+      printf 'Arguments:\n'
+      printf '  [ desktop | gaming ]\n'
+      printf '    OR:\n'
+      printf '  mouse speed (-1.0 <= double <= 1.0)\n'
+      printf '  mouse accel-profile [ default | flat | adaptive ]\n'
+      printf '    (adaptive not recommended)\n'
+      printf '\n======== Descriptions of gnome mouse settings:'
+      printf '\n==== gsettings describe org.gnome.desktop.peripherals.mouse speed\n'
+      gsettings describe org.gnome.desktop.peripherals.mouse speed
+      printf '==== gsettings range org.gnome.desktop.peripherals.mouse speed\n'
+      gsettings range org.gnome.desktop.peripherals.mouse speed
+      printf '\n==== gsettings describe org.gnome.desktop.peripherals.mouse accel-profile\n'
+      gsettings describe org.gnome.desktop.peripherals.mouse accel-profile
+      printf '==== gsettings range org.gnome.desktop.peripherals.mouse accel-profile\n'
+      gsettings range org.gnome.desktop.peripherals.mouse accel-profile
+    ;;
+    'desktop')
+      gsettings set org.gnome.desktop.peripherals.mouse speed '-0.25'
+      gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'default'
+    ;;
+    'gaming')
+      gsettings set org.gnome.desktop.peripherals.mouse speed '0'
+      gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat'
+    ;;
+    *)
+      if ! is_decimal "$1"; then
+        printf 'Error: Invalid speed\n'
+        return 1
+      fi
+      if ! [ "$2" = 'default' ] && ! [ "$2" = 'flat' ] && ! [ "$2" = 'adaptive' ]; then
+        printf 'Error: Invalid accel-profile\n'
+        return 1
+      fi
+      gsettings set org.gnome.desktop.peripherals.mouse speed "$1"
+      gsettings set org.gnome.desktop.peripherals.mouse accel-profile "$2"
+    ;;
+  esac
 }
 
 kppextract() {

@@ -1,9 +1,9 @@
 purge: unattended-upgrades evolution-data-server
 
-ubuntu-restricted-extras (excluding cabextract chromium-codecs-ffmpeg-extra flashplugin-installer gstreamer1.0-fluendo-mp3 libzbar0 oxideqt-codecs-extra unrar):
+ubuntu-restricted-extras (excluding chromium-codecs-ffmpeg-extra flashplugin-installer gstreamer1.0-fluendo-mp3 libzbar0 oxideqt-codecs-extra unrar):
 --no-install-recommends
 
-vlc steam build-essential multiarch-support gcc-multilib g++-multilib blender git ffmpeg gimp audacity inkscape optipng cmake brasero gparted g++ valgrind mesa-utils chromium-browser qt5-style-plugins sqlite3 autoconf automake
+vlc steam build-essential multiarch-support gcc-multilib g++-multilib vim blender git ffmpeg gimp audacity inkscape optipng cmake brasero gparted g++ valgrind mesa-utils chromium-browser qt5-style-plugins sqlite3 autoconf automake
 
 wine additional packages (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks):
 --no-install-recommends
@@ -14,22 +14,12 @@ libtool nasm
 godot dependencies (excluding yasm):
 scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
 
+godot optional dependencies in main repo:
+libfreetype-dev libogg-dev libpng-dev libtheora-dev libvorbis-dev libvpx-dev libwebp-dev libminiupnpc-dev libopus-dev libpcre2-dev zlib1g-dev libzstd-dev
+
 aesprite dependencies:
 ninja-build libfontconfig1-dev libpixman-1-dev
 
 skia dependencies (excluding freeglut3-dev):
 build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
 
-mouse speed/acceleration:
-gsettings describe org.gnome.desktop.peripherals.mouse speed
-gsettings describe org.gnome.desktop.peripherals.mouse accel-profile
-gsettings range org.gnome.desktop.peripherals.mouse speed
-gsettings range org.gnome.desktop.peripherals.mouse accel-profile
-
-for desktop use:
-gsettings set org.gnome.desktop.peripherals.mouse speed '-0.25'
-gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'default'
-
-for gaming:
-gsettings set org.gnome.desktop.peripherals.mouse speed '0'
-gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat'

@@ -89,6 +89,7 @@ checkout_commit() {
     exit 1
   fi
   
+  local fetch_updates=''
   if [ ! -e "${dir}" ]; then
     printf '\n======== Cloning git repository\n'
     git clone --no-checkout -- "$url" "${dir}"
@@ -96,7 +97,7 @@ checkout_commit() {
       printf '\n==== Error: Could not clone git repository\n'
       exit 1
     fi
-    local fetch_updates='skip_update'
+    fetch_updates='skip_update'
   fi
   
   printf '\n======== Checking out git commit\n======== %s\n' "$commit"
@@ -178,7 +179,7 @@ create_symlink() {
     return 1
   fi
   if [ -e "${link_path}" ]; then
-    if [ -h "${link_path}" ]; then
+    if [ -L "${link_path}" ]; then
       rm -f -- "${link_path}"
       ln -s --no-target-directory "${target}" "${link_path}"
       printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
@@ -211,9 +212,9 @@ manage_blender() {
   case "$1" in
     'default' | '2.90.1')
       printf '\n======== Defaulting to Blender version 2.90.1\n'
-      blender_version='2.90.1'
-      blender_sha256='054668c46a3e56921f283709f51a35f7860786183001cf2ea9be3249d13ac667'
-      blender_dl_url='Blender2.90/blender-2.90.1-linux64.tar.xz'
+      local blender_version='2.90.1'
+      local blender_sha256='054668c46a3e56921f283709f51a35f7860786183001cf2ea9be3249d13ac667'
+      local blender_dl_url='Blender2.90/blender-2.90.1-linux64.tar.xz'
     ;;
     *)
       printf '\n======== Error: Unknown Blender version number\n'
@@ -222,8 +223,8 @@ manage_blender() {
   esac
   
   printf '\n======== Checking directories\n'
-  blender_dir="${PWD}/blender"
-  install_dir="${blender_dir}/blender-${blender_version}-linux64"
+  local blender_dir="${PWD}/blender"
+  local install_dir="${blender_dir}/blender-${blender_version}-linux64"
   
   if [ ! -d "${blender_dir}" ] && ! mkdir "${blender_dir}"; then
     printf '\n==== Error: Could not create blender directory\n'
@@ -257,8 +258,8 @@ manage_blender() {
   rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
   
   printf '\n======== Creating application launcher\n'
-  launcher_path="${HOME}/.local/share/applications/org.blender.desktop"
-  launcher_text="[Desktop Entry]
+  local launcher_path="${HOME}/.local/share/applications/org.blender.desktop"
+  local launcher_text="[Desktop Entry]
 Type=Application
 Name=Blender
 Comment=Free and open source 3D creation suite
@@ -280,22 +281,22 @@ manage_lmms() {
   case "$1" in
     'default' | '1.2.2')
       printf '\n======== Defaulting to LMMS version 1.2.2\n'
-      lmms_version='1.2.2'
-      lmms_commit_sha1='94363be152f526edba4e884264d891f1361cf54b'
-      lmms_sha256='6cdc45a0699b8cd85295c49bcac03fcce6f3d8ffd7da23d646d0cb4258869b76'
-      lmms_dl_url='v1.2.2/lmms-1.2.2-linux-x86_64.AppImage'
+      local lmms_version='1.2.2'
+      local lmms_commit_sha1='94363be152f526edba4e884264d891f1361cf54b'
+      local lmms_sha256='6cdc45a0699b8cd85295c49bcac03fcce6f3d8ffd7da23d646d0cb4258869b76'
+      local lmms_dl_url='v1.2.2/lmms-1.2.2-linux-x86_64.AppImage'
     ;;
     *)
       printf '\n======== Error: Unknown LMMS version number\n'
       exit 1
     ;;
   esac
-  lmms_icon_sha256='e0d9507eabd86a79546bd948683ed83ec0eb5c569fee52cbad64bf957f362f20'
-  lmms_icon_url='data/themes/default/icon.png'
+  local lmms_icon_sha256='e0d9507eabd86a79546bd948683ed83ec0eb5c569fee52cbad64bf957f362f20'
+  local lmms_icon_url='data/themes/default/icon.png'
   
   printf '\n======== Checking directories\n'
-  lmms_dir="${PWD}/lmms"
-  install_dir="${lmms_dir}/lmms-${lmms_version}-linux-x86_64"
+  local lmms_dir="${PWD}/lmms"
+  local install_dir="${lmms_dir}/lmms-${lmms_version}-linux-x86_64"
   
   if [ ! -d "${lmms_dir}" ] && ! mkdir "${lmms_dir}"; then
     printf '\n==== Error: Could not create lmms directory\n'
@@ -338,8 +339,8 @@ manage_lmms() {
   
   
   printf '\n======== Creating application launcher\n'
-  launcher_path="${HOME}/.local/share/applications/io.lmms.desktop"
-  launcher_text="[Desktop Entry]
+  local launcher_path="${HOME}/.local/share/applications/io.lmms.desktop"
+  local launcher_text="[Desktop Entry]
 Type=Application
 Name=LMMS
 Comment=Free, open source, multiplatform digital audio workstation
@@ -361,22 +362,22 @@ manage_krita() {
   case "$1" in
     'default' | '4.4.1')
       printf '\n======== Defaulting to krita version 4.4.1\n'
-      krita_version='4.4.1'
-      krita_commit_sha1='fe63f49aea3cfbc3f04717883a67731f41531eae'
-      krita_sha256='c995f6a15499cfd4e5b3dc84bae44625f14a4c287da50003d6bb7f8b57feff08'
-      krita_dl_url='stable/krita/4.4.1/krita-4.4.1-x86_64.appimage'
+      local krita_version='4.4.1'
+      local krita_commit_sha1='fe63f49aea3cfbc3f04717883a67731f41531eae'
+      local krita_sha256='c995f6a15499cfd4e5b3dc84bae44625f14a4c287da50003d6bb7f8b57feff08'
+      local krita_dl_url='stable/krita/4.4.1/krita-4.4.1-x86_64.appimage'
     ;;
     *)
       printf '\n======== Error: Unknown krita version number\n'
       exit 1
     ;;
   esac
-  krita_icon_sha256='86ba89aadd20e9bf076c0721f0700c7fb4eaf6acc26e602c363277368c2373b4'
-  krita_icon_url='krita/pics/app/256-apps-krita.png'
+  local krita_icon_sha256='86ba89aadd20e9bf076c0721f0700c7fb4eaf6acc26e602c363277368c2373b4'
+  local krita_icon_url='krita/pics/app/256-apps-krita.png'
   
   printf '\n======== Checking directories\n'
-  krita_dir="${PWD}/krita"
-  install_dir="${krita_dir}/krita-${krita_version}-x86_64"
+  local krita_dir="${PWD}/krita"
+  local install_dir="${krita_dir}/krita-${krita_version}-x86_64"
   
   if [ ! -d "${krita_dir}" ] && ! mkdir "${krita_dir}"; then
     printf '\n==== Error: Could not create krita directory\n'
@@ -419,8 +420,8 @@ manage_krita() {
   
   
   printf '\n======== Creating application launcher\n'
-  launcher_path="${HOME}/.local/share/applications/org.krita.desktop"
-  launcher_text="[Desktop Entry]
+  local launcher_path="${HOME}/.local/share/applications/org.krita.desktop"
+  local launcher_text="[Desktop Entry]
 Type=Application
 Name=Krita
 Comment=Free and open source painting and drawing program
@@ -452,8 +453,17 @@ manage_rust() {
   
   rm -f -- 'rustup-init.sh'
   
-  create_symlinks "${HOME}/.cargo/bin/rustc" \
-                  "${HOME}/.cargo/bin/cargo" \
+  create_symlinks "${HOME}/.cargo/bin/cargo" \
+                  "${HOME}/.cargo/bin/cargo-clippy" \
+                  "${HOME}/.cargo/bin/cargo-fmt" \
+                  "${HOME}/.cargo/bin/cargo-miri" \
+                  "${HOME}/.cargo/bin/clippy-driver" \
+                  "${HOME}/.cargo/bin/rls" \
+                  "${HOME}/.cargo/bin/rustc" \
+                  "${HOME}/.cargo/bin/rustdoc" \
+                  "${HOME}/.cargo/bin/rustfmt" \
+                  "${HOME}/.cargo/bin/rust-gdb" \
+                  "${HOME}/.cargo/bin/rust-lldb" \
                   "${HOME}/.cargo/bin/rustup"
 }
 
@@ -467,11 +477,11 @@ manage_gifski() {
   case "$1" in
     'default' | '1.2.2')
       printf '\n======== Defaulting to gifski version 1.2.2\n'
-      gifski_version='08392458acf94abc6ab10b67b63caf30ba30192f'
+      local gifski_version='08392458acf94abc6ab10b67b63caf30ba30192f'
     ;;
     *)
       if is_valid_sha1 "$1"; then
-        gifski_version="$1"
+        local gifski_version="$1"
       else
         printf '\n======== Error: gifski version is not default or a valid sha1 hash\n'
         exit 1
@@ -480,13 +490,13 @@ manage_gifski() {
   esac
   
   printf '\n======== Checking directories\n'
-  gifski_dir="${PWD}/gifski"
+  local gifski_dir="${PWD}/gifski"
   
-  install_dir="${gifski_dir}/gifski-${gifski_version}"
-  build_dir="${gifski_dir}/build"
-  src_dir="${gifski_dir}/src"
+  local install_dir="${gifski_dir}/gifski-${gifski_version}"
+  local build_dir="${gifski_dir}/build"
+  local src_dir="${gifski_dir}/src"
   
-  gifski_src_dir="${src_dir}/gifski"
+  local gifski_src_dir="${src_dir}/gifski"
   
   if [ ! -d "${gifski_dir}" ] && ! mkdir "${gifski_dir}"; then
     printf '\n==== Error: Could not create gifski directory\n'
@@ -518,24 +528,26 @@ manage_gifski() {
     printf '\n==== Error: Could not create build directory\n'
     exit 1
   fi
-  cd "${build_dir}"
-  exit 1
+  cd "${gifski_src_dir}"
+  CARGO_TARGET_DIR="${build_dir}" cargo build --release --features=openmp
+  
   
   printf '\n======== Stripping debug symbols\n'
-  #strip --strip-all "${build_dir}/"
-  #strip --strip-all "${build_dir}/"
+  strip --strip-all "${build_dir}/release/gifski"
   
   printf '\n======== Moving gifski build to install directory\n'
   if ! mkdir "${install_dir}"; then
     printf '\n==== Error: Could not create install directory\n'
     exit 1
   fi
-  mkdir "${install_dir}/bin"
-  #mv "${build_dir}/" "${install_dir}/bin"
-  #mv "${build_dir}/" "${install_dir}/bin"
+  mv "--target-directory=${install_dir}" \
+       "${build_dir}/release/gifski" \
+       "${gifski_src_dir}/gifski.h" \
+       "${build_dir}/release/libgifski.a" \
+       "${build_dir}/release/libgifski.rlib" \
+       "${build_dir}/release/libgifski.so"
   
-  printf '\n======== Creating symlinks in bin directory\n'
-  
+  create_symlinks "${install_dir}/gifski"
   
   printf '\n======== Generating checksums\n'
   cd "${install_dir}"
@@ -563,11 +575,11 @@ manage_gifsicle() {
   case "$1" in
     'default' | '1.92')
       printf '\n======== Defaulting to gifsicle version 1.92\n'
-      gifsicle_version='1e2ca7401692ba94d7405de6e9dd1d1e73ca880f'
+      local gifsicle_version='1e2ca7401692ba94d7405de6e9dd1d1e73ca880f'
     ;;
     *)
       if is_valid_sha1 "$1"; then
-        gifsicle_version="$1"
+        local gifsicle_version="$1"
       else
         printf '\n======== Error: gifsicle version is not default or a valid sha1 hash\n'
         exit 1
@@ -576,13 +588,13 @@ manage_gifsicle() {
   esac
   
   printf '\n======== Checking directories\n'
-  gifsicle_dir="${PWD}/gifsicle"
+  local gifsicle_dir="${PWD}/gifsicle"
   
-  install_dir="${gifsicle_dir}/gifsicle-${gifsicle_version}"
-  build_dir="${gifsicle_dir}/build"
-  src_dir="${gifsicle_dir}/src"
+  local install_dir="${gifsicle_dir}/gifsicle-${gifsicle_version}"
+  local build_dir="${gifsicle_dir}/build"
+  local src_dir="${gifsicle_dir}/src"
   
-  gifsicle_src_dir="${src_dir}/gifsicle"
+  local gifsicle_src_dir="${src_dir}/gifsicle"
   
   if [ ! -d "${gifsicle_dir}" ] && ! mkdir "${gifsicle_dir}"; then
     printf '\n==== Error: Could not create gifsicle directory\n'
@@ -666,11 +678,11 @@ manage_mozjpeg() {
       # TODO: update this with latest release
       exit 1
       printf '\n======== Defaulting to mozjpeg version\n'
-      mozjpeg_version=''
+      local mozjpeg_version=''
     ;;
     *)
       if is_valid_sha1 "$1"; then
-        mozjpeg_version="$1"
+        local mozjpeg_version="$1"
       else
         printf '\n======== Error: mozjpeg version is not default or a valid sha1 hash\n'
         exit 1
@@ -679,13 +691,13 @@ manage_mozjpeg() {
   esac
   
   printf '\n======== Checking directories\n'
-  mozjpeg_dir="${PWD}/mozjpeg"
+  local mozjpeg_dir="${PWD}/mozjpeg"
   
-  install_dir="${mozjpeg_dir}/mozjpeg-${mozjpeg_version}"
-  build_dir="${mozjpeg_dir}/build"
-  src_dir="${mozjpeg_dir}/src"
+  local install_dir="${mozjpeg_dir}/mozjpeg-${mozjpeg_version}"
+  local build_dir="${mozjpeg_dir}/build"
+  local src_dir="${mozjpeg_dir}/src"
   
-  mozjpeg_src_dir="${src_dir}/mozjpeg"
+  local mozjpeg_src_dir="${src_dir}/mozjpeg"
   
   if [ ! -d "${mozjpeg_dir}" ] && ! mkdir "${mozjpeg_dir}"; then
     printf '\n==== Error: Could not create mozjpeg directory\n'
@@ -735,7 +747,7 @@ manage_mozjpeg() {
   #cd "${install_dir}"
   #sha256r "mozjpeg-${mozjpeg_version}-sha256sums.txt"
   
-  #create_symlinks
+  #create_symlink
   
   
   printf '\n======== Cleaning up\n'
@@ -758,11 +770,11 @@ manage_godot() {
   case "$1" in
     'default' | '3.2.3')
       printf '\n======== Defaulting to godot version 3.2.3\n'
-      godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
+      local godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
     ;;
     *)
       if is_valid_sha1 "$1"; then
-        godot_version="$1"
+        local godot_version="$1"
       else
         printf '\n======== Error: godot version is not default or a valid sha1 hash\n'
         exit 1
@@ -771,12 +783,12 @@ manage_godot() {
   esac
   
   printf '\n======== Checking directories\n'
-  godot_dir="${PWD}/godot"
+  local godot_dir="${PWD}/godot"
   
-  install_dir="${godot_dir}/godot-${godot_version}"
-  src_dir="${godot_dir}/src"
+  local install_dir="${godot_dir}/godot-${godot_version}"
+  local src_dir="${godot_dir}/src"
   
-  godot_src_dir="${src_dir}/godot"
+  local godot_src_dir="${src_dir}/godot"
   
   if [ ! -d "${godot_dir}" ] && ! mkdir "${godot_dir}"; then
     printf '\n==== Error: Could not create godot directory\n'
@@ -846,8 +858,8 @@ manage_godot() {
   
   
   printf '\n======== Creating application launcher\n'
-  launcher_path="${HOME}/.local/share/applications/org.godotengine.desktop"
-  launcher_text="[Desktop Entry]
+  local launcher_path="${HOME}/.local/share/applications/org.godotengine.desktop"
+  local launcher_text="[Desktop Entry]
 Type=Application
 Name=Godot Engine
 Comment=2D and 3D cross-platform game engine
@@ -870,11 +882,11 @@ manage_aseprite() {
   case "$1" in
     'default' | '1.2.25')
       printf '\n======== Defaulting to aseprite version 1.2.25\n'
-      aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
+      local aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
     ;;
     *)
       if is_valid_sha1 "$1"; then
-        aseprite_version="$1"
+        local aseprite_version="$1"
       else
         printf '\n======== Error: aseprite version is not default or a valid sha1 hash\n'
         exit 1
@@ -883,21 +895,21 @@ manage_aseprite() {
   esac
   
   printf '\n======== Checking directories\n'
-  aseprite_dir="${PWD}/aseprite"
+  local aseprite_dir="${PWD}/aseprite"
   
-  ase_install_dir="${aseprite_dir}/aseprite-${aseprite_version}"
-  skia_install_dir="${aseprite_dir}/skia-aseprite-m81"
+  local ase_install_dir="${aseprite_dir}/aseprite-${aseprite_version}"
+  local skia_install_dir="${aseprite_dir}/skia-aseprite-m81"
   
-  build_dir="${aseprite_dir}/build"
-  ase_build_dir="${build_dir}/aseprite"
-  skia_build_dir="${build_dir}/skia"
+  local build_dir="${aseprite_dir}/build"
+  local ase_build_dir="${build_dir}/aseprite"
+  local skia_build_dir="${build_dir}/skia"
   
-  src_dir="${aseprite_dir}/src"
-  ase_src_dir="${src_dir}/aseprite"
-  skia_src_dir="${src_dir}/skia"
-  #depot_tools_dir="${src_dir}/depot_tools"
+  local src_dir="${aseprite_dir}/src"
+  local ase_src_dir="${src_dir}/aseprite"
+  local skia_src_dir="${src_dir}/skia"
+  #local depot_tools_dir="${src_dir}/depot_tools"
   
-  temp_bin_dir="${aseprite_dir}/tempbin"
+  local temp_bin_dir="${aseprite_dir}/tempbin"
   
   if [ ! -d "${aseprite_dir}" ] && ! mkdir "${aseprite_dir}"; then
     printf '\n==== Error: Could not create aseprite directory\n'
@@ -1075,8 +1087,8 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   
   
   printf '\n======== Creating application launcher\n'
-  launcher_path="${HOME}/.local/share/applications/org.aseprite.desktop"
-  launcher_text="[Desktop Entry]
+  local launcher_path="${HOME}/.local/share/applications/org.aseprite.desktop"
+  local launcher_text="[Desktop Entry]
 Type=Application
 Name=Aseprite
 Comment=Animated Sprite Editor & Pixel Art Tool
