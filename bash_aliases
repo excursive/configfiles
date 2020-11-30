@@ -1,3 +1,5 @@
+#!/bin/bash
+
 PATH="${PATH}:${HOME}/bin"
 
 alias srm="rm -I"
@@ -39,14 +41,14 @@ is_positive_integer() {
 is_positive_integer_range() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[[:digit:]]+\-[[:digit:]]+$'
+  local regex='^[[:digit:]]+-[[:digit:]]+$'
   [[ "$1" =~ $regex ]]
 }
 
 is_decimal() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[+\-]?(([[:digit:]]+[.[[:digit:]]*]?)|(.[[:digit:]]+))$'
+  local regex='^[+-]?(([[:digit:]]+(\.[[:digit:]]*)?)|(\.[[:digit:]]+))$'
   [[ "$1" =~ $regex ]]
 }
 
@@ -67,8 +69,8 @@ is_alphanumeric() {
 is_printable_ascii() {
   local LC_ALL=C
   export LC_ALL
-  local regex='[^ -~]'
-  ! [[ "$1" =~ $regex ]]
+  local regex='[ -~]'
+  [[ "$1" =~ $regex ]]
 }
 
 md5r() {
@@ -78,7 +80,7 @@ md5r() {
       printf 'Error: Output file already exists\n'
       return 1
     fi
-    printf '%s' "$output" > "${1}"
+    printf '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty md5sum
   fi
@@ -91,7 +93,7 @@ sha256r() {
       printf 'Error: Output file already exists\n'
       return 1
     fi
-    printf '%s' "$output" > "${1}"
+    printf '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
   fi
@@ -101,14 +103,36 @@ grep-non-ascii() {
   local LC_ALL=C
   export LC_ALL
   
+  local chars_start='[^'
+  local h_tab=''
+  local newline='\x0A'
+  local c_return=''
+  local chars_end='\x20-\x7E]'
+  local not_cr_lf=''
   local print_line_numbers=''
   while [ "$#" -gt 0 ]; do
     case "$1" in
       '-h' | '--help')
         printf 'Arguments:\n'
         printf '  [ -h | --help ]\n'
+        printf '  [ -t | --horizontal-tabs ] allow horizontal tabs\n'
+        printf '  [ -cr | --windows-line-endings ] expect windows line endings\n'
+        printf '    (also match any CR or LF characters not paired in that order)\n'
+        printf '    (lines are numbered according to LF characters even when not preceeded\n'
+        printf '     by a CR character, because of how grep works)\n'
         printf '  [ -n | --line-numbers ] print line numbers in a space separated list\n'
         return 0
+      ;;
+      '-t' | '--horizontal-tabs')
+        h_tab='\x09'
+        shift 1
+      ;;
+      '-cr' | '--windows-line-endings')
+        c_return='\x0D'
+        # would like to handle line endings with \x0A rather than $, but perl's
+        # (?ms) modification doesn't seem to work in grep
+        not_cr_lf='|([\x0D][^\x0A])|([^\x0D]$)|(^$)'
+        shift 1
       ;;
       '-n' | '--line-numbers')
         print_line_numbers='-n'
@@ -119,20 +143,33 @@ grep-non-ascii() {
       ;;
     esac
   done
+  local regex="${chars_start}${h_tab}${newline}${c_return}${chars_end}${not_cr_lf}"
+  printf '  perl-regexp: %s\n' "$regex"
   
   for in_file in "$@"; do
-    local total_lines="$(grep --color='auto' -c --perl-regexp '[^\x0A\x20-\x7E]' -- "${in_file}")"
+    if [ ! -e "${in_file}" ]; then
+      printf '%s: file does not exist\n' "${in_file}"
+      continue
+    fi
+    
+    local total_lines="$(grep --color='auto' -c --binary --perl-regexp "$regex" -- "${in_file}")"
     
     if [ "$total_lines" -gt 0 ]; then
-      printf '\e[0;31m%s: %s\e[0m\n' "${in_file}" "$total_lines"
-      
-      if [ "$print_line_numbers" = '-n' ]; then
-        printf '\e[0;36m%s\e[0m\n' \
-          "$(grep --color='auto' -n --perl-regexp '[^\x0A\x20-\x7E]' -- "${in_file}" | \
-               cut --fields=1 --delimiter=':' | tr '\n' ' ')"
-      fi
+      printf '\e[0;31m%s: %s\e[0m' "${in_file}" "$total_lines"
     else
-      printf '%s: %s\n' "${in_file}" "$total_lines"
+      printf '%s: %s' "${in_file}" "$total_lines"
+    fi
+    
+    if [ -s "${in_file}" ] && [ ! -z "$(tail --bytes=1 "${in_file}")" ]; then
+      printf ' \e[0;31m(missing newline at end of file)\e[0m'
+    fi
+    
+    printf '\n'
+    
+    if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = '-n' ]; then
+      printf '\e[0;36m%s\e[0m\n' \
+        "$(grep --color='auto' -n --binary --perl-regexp "$regex" -- "${in_file}" | \
+             cut --fields=1 --delimiter=':' | tr '\n' ' ')"
     fi
   done
 }
@@ -334,12 +371,36 @@ mouse-sensitivity-gnome() {
         printf 'Error: Invalid speed\n'
         return 1
       fi
-      if ! [ "$2" = 'default' ] && ! [ "$2" = 'flat' ] && ! [ "$2" = 'adaptive' ]; then
+      if [ "$2" != 'default' ] && [ "$2" != 'flat' ] && [ "$2" != 'adaptive' ]; then
         printf 'Error: Invalid accel-profile\n'
         return 1
       fi
       gsettings set org.gnome.desktop.peripherals.mouse speed "$1"
       gsettings set org.gnome.desktop.peripherals.mouse accel-profile "$2"
+    ;;
+  esac
+}
+
+capslock-key-gnome() {
+  case "$1" in
+    '-h' | '--help')
+      printf 'Arguments:\n'
+      printf '  [ capslock | escape | swapescape | reset ]\n'
+    ;;
+    'capslock')
+      gsettings set org.gnome.desktop.input-sources xkb-options "['caps:capslock']"
+    ;;
+    'escape')
+      gsettings set org.gnome.desktop.input-sources xkb-options "['caps:escape']"
+    ;;
+    'swapescape')
+      gsettings set org.gnome.desktop.input-sources xkb-options "['caps:swapescape']"
+    ;;
+    'reset')
+      gsettings reset org.gnome.desktop.input-sources xkb-options
+    ;;
+    *)
+      printf 'Error: Invalid setting, see --help\n'
     ;;
   esac
 }

@@ -28,7 +28,7 @@ sha256r() {
       printf 'Error: Output file already exists\n'
       exit 1
     fi
-    printf '%s' "$output" > "${1}"
+    printf '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
   fi
@@ -153,20 +153,53 @@ dl_and_verify_file() {
 # arguments:
 # 1 = output file path
 # 2 = output text
-save_launcher() {
+save_desktop_entry() {
   if [ -e "${1}" ]; then
     if [ -f "${1}" ] \
     && [ "$(head --lines=1 "${1}")" = '[Desktop Entry]' ]; then
-      printf '\n==== Overwriting old launcher\n'
       printf '%s\n' "$2" > "${1}"
+      printf '\n==== Replaced old launcher %s\n' "${1}"
     else
-      printf '\n==== Launcher not created, unknown file with that name already exists\n'
+      printf '\n==== Warning: launcher not created, unknown file exists with that name:\n'
+      printf '%s\n' "${1}"
+      return 1
     fi
   else
     printf '%s\n' "$2" > "${1}"
   fi
 }
 
+# saves a launcher bash script to ~/bin
+# arguments:
+# 1 = launcher basename
+# 2 = launcher script text
+save_launcher_script() {
+  local name="${1}"
+  local contents="$2"
+  local path="${HOME}/bin/${name}"
+  if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
+    printf '\n==== Warning: Could not create ~/bin directory to save launcher %s\n' "${name}"
+    return 1
+  fi
+  if [ -e "${path}" ]; then
+    if [ -f "${path}" ] \
+    && [ "$(head --lines=1 "${path}")" = '#!/bin/bash' ]; then
+      printf '%s\n' "$contents" > "${path}"
+      chmod +x "${path}"
+      printf '\n==== Replaced old launcher in ~/bin for %s\n' "${name}"
+    else
+      printf '\n==== Warning: launcher not created for %s\n' "${name}"
+      printf   '====          unknown file with that name already exists in ~/bin\n'
+      return 1
+    fi
+  else
+    printf '%s\n' "$contents" > "${path}"
+    chmod +x "${path}"
+    printf '\n==== Created launcher in ~/bin for %s\n' "${name}"
+  fi
+}
+
+# creates a symlink with the given name in ~/bin to target
 # arguments:
 # 1 = link target
 # 2 = link name
@@ -175,7 +208,7 @@ create_symlink() {
   local link_name="${2}"
   local link_path="${HOME}/bin/${link_name}"
   if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
-    printf '\n==== Warning: Could not create ~/bin directory for symlink %s\n' "${link_name}"
+    printf '\n==== Warning: Could not create ~/bin directory to save symlink %s\n' "${link_name}"
     return 1
   fi
   if [ -e "${link_path}" ]; then
@@ -185,7 +218,7 @@ create_symlink() {
       printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
     else
       printf '\n==== Warning: link not created for %s\n' "${link_name}"
-      printf   '====          file with that name already exists\n'
+      printf   '====          unknown file with that name already exists in ~/bin\n'
       return 1
     fi
   else
@@ -194,6 +227,7 @@ create_symlink() {
   fi
 }
 
+# creates symlinks in ~/bin to the given targets
 # arguments:
 # 1.. link targets
 create_symlinks() {
@@ -269,7 +303,7 @@ Path=${install_dir}
 Terminal=false
 Category=Video;Graphics;"
   
-  save_launcher "${launcher_path}" "$launcher_text"
+  save_desktop_entry "${launcher_path}" "$launcher_text"
 }
 
 
@@ -350,7 +384,7 @@ Path=${install_dir}
 Terminal=false
 Category=Audio;"
   
-  save_launcher "${launcher_path}" "$launcher_text"
+  save_desktop_entry "${launcher_path}" "$launcher_text"
 }
 
 
@@ -431,7 +465,7 @@ Path=${install_dir}
 Terminal=false
 Category=Graphics;"
   
-  save_launcher "${launcher_path}" "$launcher_text"
+  save_desktop_entry "${launcher_path}" "$launcher_text"
 }
 
 
@@ -465,6 +499,40 @@ manage_rust() {
                   "${HOME}/.cargo/bin/rust-gdb" \
                   "${HOME}/.cargo/bin/rust-lldb" \
                   "${HOME}/.cargo/bin/rustup"
+}
+
+
+
+
+# manage_youtube_dl arguments:
+# 1 = version (default or a commit sha1 hash)
+# 2 = 'keep_sources' to keep source code after installation
+manage_youtube_dl() {
+  case "$1" in
+    'default' | '2020.11.26')
+      printf '\n======== Defaulting to youtube-dl version 2020.11.26\n'
+      local youtube_dl_version='9fe50837c3e8f6c40b7bed8bf7105a868a7a678f'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local youtube_dl_version="$1"
+      else
+        printf '\n======== Error: youtube-dl version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local youtube_dl_dir="${PWD}/youtube-dl"
+  
+  checkout_commit "${youtube_dl_dir}" "$youtube_dl_version" \
+                  'https://github.com/ytdl-org/youtube-dl.git'
+  
+  local launcher_text='#!/bin/bash
+
+python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
+  
+  save_launcher_script 'youtube-dl' "$launcher_text"
 }
 
 
@@ -670,15 +738,10 @@ manage_gifsicle() {
 # 1 = version (default or a commit sha1 hash)
 # 2 = 'keep_sources' to keep source code after installation
 manage_mozjpeg() {
-  printf 'mozjpeg stuff is unfinished/untested\n'
-  exit 1
-  
   case "$1" in
-    'default')
-      # TODO: update this with latest release
-      exit 1
-      printf '\n======== Defaulting to mozjpeg version\n'
-      local mozjpeg_version=''
+    'default' | '4.0.0')
+      printf '\n======== Defaulting to mozjpeg version 4.0.0\n'
+      local mozjpeg_version='d23e3fc58613bc3f0aa395a8c73a2b1e7dae9e25'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -731,28 +794,79 @@ manage_mozjpeg() {
     exit 1
   fi
   cd "${build_dir}"
-  cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE='Release' "${mozjpeg_src_dir}"
+  cmake -G "Unix Makefiles" \
+        -DCMAKE_BUILD_TYPE='Release' \
+        -DCMAKE_BUILD_RPATH_USE_ORIGIN='TRUE' \
+        "${mozjpeg_src_dir}"
+  #      -DCMAKE_INSTALL_RPATH_USE_LINK_PATH='FALSE' \
+  #      -DCMAKE_BUILD_WITH_INSTALL_RPATH='TRUE' \
   make
   
-  # TODO: copy final build into install directory and generate checksums
-  #       (or install with the cmake variable? see mozjpeg readme)
+  # TODO: use install?
+  printf '\n======== Moving mozjpeg build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create mozjpeg install directory\n'
+    exit 1
+  fi
+  mkdir "${install_dir}/doc" "${install_dir}/man" "${install_dir}/md5"
+  mv "--target-directory=${install_dir}" \
+       "${build_dir}/cjpeg" \
+       "${build_dir}/cjpeg-static" \
+       "${build_dir}/djpeg" \
+       "${build_dir}/djpeg-static" \
+       "${build_dir}/jpegtran" \
+       "${build_dir}/jpegtran-static" \
+       "${build_dir}/libjpeg.a" \
+       "${build_dir}/libjpeg.so" \
+       "${build_dir}/libjpeg.so.62" \
+       "${build_dir}/libjpeg.so.62.3.0" \
+       "${build_dir}/libturbojpeg.a" \
+       "${build_dir}/libturbojpeg.so" \
+       "${build_dir}/libturbojpeg.so.0" \
+       "${build_dir}/libturbojpeg.so.0.2.0" \
+       "${build_dir}/rdjpgcom" \
+       "${build_dir}/wrjpgcom"
+  #     "${build_dir}/jcstest" \
+  #     "${build_dir}/tjbench" \
+  #     "${build_dir}/tjbench-static" \
+  #     "${build_dir}/tjexample" \
+  #     "${build_dir}/tjunittest" \
+  #     "${build_dir}/tjunittest-static" \
+  mv "--target-directory=${install_dir}/md5" \
+       "${build_dir}/md5/md5cmp"
+  cp "--target-directory=${install_dir}" \
+       "${mozjpeg_src_dir}/turbojpeg.h"
+  cp "--target-directory=${install_dir}/doc" \
+       "${mozjpeg_src_dir}/example.txt" \
+       "${mozjpeg_src_dir}/libjpeg.txt" \
+       "${mozjpeg_src_dir}/LICENSE.md" \
+       "${mozjpeg_src_dir}/README-mozilla.txt" \
+       "${mozjpeg_src_dir}/README-turbo.txt" \
+       "${mozjpeg_src_dir}/README.ijg" \
+       "${mozjpeg_src_dir}/README.md" \
+       "${mozjpeg_src_dir}/release/License.rtf" \
+       "${mozjpeg_src_dir}/structure.txt" \
+       "${mozjpeg_src_dir}/usage.txt" \
+       "${mozjpeg_src_dir}/wizard.txt"
+  cp "--target-directory=${install_dir}/man" \
+       "${mozjpeg_src_dir}/cjpeg.1" \
+       "${mozjpeg_src_dir}/djpeg.1" \
+       "${mozjpeg_src_dir}/jpegtran.1" \
+       "${mozjpeg_src_dir}/rdjpgcom.1" \
+       "${mozjpeg_src_dir}/wrjpgcom.1"
   
-  #printf '\n======== Moving mozjpeg build to install directory\n'
-  #if ! mkdir "${install_dir}"; then
-  #  printf '\n==== Error: Could not create mozjpeg install directory\n'
-  #  exit 1
-  #fi
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "mozjpeg-${mozjpeg_version}-sha256sums.txt"
   
-  #printf '\n======== Generating checksums\n'
-  #cd "${install_dir}"
-  #sha256r "mozjpeg-${mozjpeg_version}-sha256sums.txt"
-  
-  #create_symlink
-  
+  create_symlink "${install_dir}/cjpeg"    'mozcjpeg'
+  create_symlink "${install_dir}/djpeg"    'mozdjpeg'
+  create_symlink "${install_dir}/jpegtran" 'mozjpegtran'
+  create_symlink "${install_dir}/rdjpgcom" 'mozrdjpgcom'
+  create_symlink "${install_dir}/wrjpgcom" 'mozwrjpgcom'
   
   printf '\n======== Cleaning up\n'
-  # TODO: uncomment when figured out installation
-  #rm -R -f -- "${build_dir}"
+  rm -R -f -- "${build_dir}"
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
@@ -869,7 +983,7 @@ Path=${install_dir}
 Terminal=false
 Category=Development;Game;Graphics;"
   
-  save_launcher "${launcher_path}" "$launcher_text"
+  save_desktop_entry "${launcher_path}" "$launcher_text"
 }
 
 
@@ -1098,7 +1212,7 @@ Path=${ase_install_dir}
 Terminal=false
 Category=Graphics;"
   
-  save_launcher "${launcher_path}" "$launcher_text"
+  save_desktop_entry "${launcher_path}" "$launcher_text"
 }
 
 
@@ -1108,23 +1222,17 @@ Category=Graphics;"
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  software name:\n'
-  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski |\n'
+  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | youtube-dl |\n'
   printf '      rust | krita | lmms | blender ]\n'
   printf '  software version [ default | (a git commit sha1) | (a version number) ]\n'
-  printf '  where to create (or find existing) installation directory\n'
   printf '  "keep_sources" will keep source repos after install, otherwise ignored\n'
   exit 0
 fi
 
 
 keep_sources=''
-if [ "$4" = 'keep_sources' ]; then
+if [ "$3" = 'keep_sources' ]; then
   keep_sources='keep_sources'
-fi
-
-if [ ! -d "${3}" ] || ! cd "${3}"; then
-  printf '\n======== Error: Specified directory is invalid or inaccessible\n'
-  exit 1
 fi
 
 version="$2"
@@ -1144,6 +1252,9 @@ case "$1" in
   ;;
   'gifski')
     manage_gifski "$version" "$keep_sources"
+  ;;
+  'youtube-dl')
+    manage_youtube_dl "$version"
   ;;
   'rust')
     manage_rust

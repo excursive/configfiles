@@ -10,14 +10,14 @@ is_positive_integer() {
 is_positive_integer_range() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[[:digit:]]+\-[[:digit:]]+$'
+  local regex='^[[:digit:]]+-[[:digit:]]+$'
   [[ "$1" =~ $regex ]]
 }
 
 is_decimal() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[+\-]?(([[:digit:]]+[.[[:digit:]]*]?)|(.[[:digit:]]+))$'
+  local regex='^[+-]?(([[:digit:]]+(\.[[:digit:]]*)?)|(\.[[:digit:]]+))$'
   [[ "$1" =~ $regex ]]
 }
 
@@ -38,8 +38,8 @@ is_alphanumeric() {
 is_printable_ascii() {
   local LC_ALL=C
   export LC_ALL
-  local regex='[^ -~]'
-  ! [[ "$1" =~ $regex ]]
+  local regex='[ -~]'
+  [[ "$1" =~ $regex ]]
 }
 
 
@@ -96,7 +96,7 @@ reduce_colors() {
   local input_file="${1}"
   local output_file="${2}"
   local output_format="${output_file##*.}"
-  if ! [ "$output_format" = 'png' ] && ! [ "$output_format" = 'gif' ]; then
+  if [ "$output_format" != 'png' ] && [ "$output_format" != 'gif' ]; then
     printf 'Error: Invalid output format. Must be png or gif\n'
     exit 1
   fi
@@ -199,7 +199,7 @@ process_frames() {
     exit 0
   fi
   
-  if ! [ -d "${1}" ]; then
+  if [ ! -d "${1}" ]; then
     printf 'Error: Invalid frame directory\n'
     exit 1
   fi
@@ -287,7 +287,7 @@ create_gif_gifski() {
     exit 1
   fi
   
-  if ! [ -d "${2}" ]; then
+  if [ ! -d "${2}" ]; then
     printf 'Error: Invalid frame directory\n'
     exit 1
   fi
@@ -378,6 +378,12 @@ create_gif_gifsicle() {
     printf '  color-method [ default (blend-diversity) | (gifsicle color-method) ]\n'
     printf '  loopcount [ forever | (positive integer) ]\n'
     printf '  dither method [ default (ordered) | (gifsicle dither method) ]\n'
+    printf '  resize-colors [ default (256) | integer <= 256 ]\n'
+    printf '    (when resizing images, add intermediate colors when image has fewer than\n'
+    printf '     the given number of colors)\n'
+    printf '  global color table [ no-gct | integer <= 256 ]\n'
+    printf '    (reduces the total number of colors to the given number to eliminate\n'
+    printf '     any local color tables, reducing filesize)\n'
     printf '  resize-fit  [ none | (maximum widthxheight) ]\n'
     printf '    (does not resize image if it already fits within dimensions)\n'
     printf '    (an underscore on one dimension leaves it unconstrained)\n'
@@ -398,7 +404,7 @@ create_gif_gifsicle() {
     exit 1
   fi
   
-  if ! [ -d "${2}" ]; then
+  if [ ! -d "${2}" ]; then
     printf 'Error: Invalid frame directory\n'
     exit 1
   fi
@@ -464,48 +470,66 @@ create_gif_gifsicle() {
     exit 1
   fi
   
-  args+=( '--resize-fit' )
-  if [ "$8" = 'none' ]; then
-    args+=( '9999999x9999999' )
-  elif is_printable_ascii "$8"; then
+  args+=( '--resize-colors' )
+  if [ "$8" = 'default' ]; then
+    args+=( '256' )
+  elif is_positive_integer "$8" && [ "$8" -le 256 ]; then
     args+=( "$8" )
   else
-    printf 'Error: Invalid maximum width\n'
+    printf 'Error: Invalid resize-colors value\n'
     exit 1
   fi
   
-  if [ "$9" = 'O1' ]; then
+  if [ "$9" = 'no-gct' ]; then
+    args+=()
+  elif is_positive_integer "$9" && [ "$9" -ge 2 ] && [ "$9" -le 256 ]; then
+    args+=( '--colors' "$9" )
+  else
+    printf 'Error: Invalid number of colors for global color table\n'
+    exit 1
+  fi
+  
+  if [ "${10}" = 'none' ]; then
+    args+=()
+  elif is_printable_ascii "${10}"; then
+    args+=( '--resize-fit' "${10}" )
+  else
+    printf 'Error: Invalid maximum dimensions\n'
+    exit 1
+  fi
+  
+  if [ "${11}" = 'O1' ]; then
     args+=( '-O1' )
-  elif [ "$9" = 'O2' ]; then
+  elif [ "${11}" = 'O2' ]; then
     args+=( '-O2' )
-  elif [ "$9" = 'O3' ]; then
+  elif [ "${11}" = 'O3' ]; then
     args+=( '-O3' )
   else
     printf 'Error: Invalid optimization level\n'
     exit 1
   fi
   
-  if [ "${10}" = 'no-lossy' ]; then
+  if [ "${12}" = 'no-lossy' ]; then
     args+=()
-  elif [ "${10}" = 'lossy-default' ]; then
+  elif [ "${12}" = 'lossy-default' ]; then
     args+=( '--lossy' )
-  elif is_positive_integer "${10}"; then
-    args+=( "--lossy=${10}" )
+  elif is_positive_integer "${12}"; then
+    args+=( "--lossy=${12}" )
   else
     printf 'Error: Invalid lossiness\n'
     exit 1
   fi
   
   args+=( '--delay' )
-  if is_positive_integer "${11}"; then
-    args+=( "${11}" )
+  if is_positive_integer "${13}"; then
+    args+=( "${13}" )
   else
     printf 'Error: Invalid frame duration\n'
     exit 1
   fi
   
-  local operation="${12}"
-  shift 12
+  local operation="${14}"
+  shift 14
   args+=( "$@" )
   if [ "$operation" = 'merge' ]; then
     args+=( '--merge' )
