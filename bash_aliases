@@ -339,7 +339,25 @@ edit_in_colorspace() {
   convert "${in_file}[0]" "${im_arguments[@]}" "${out_file}"
 }
 
-mouse-sensitivity-gnome() {
+set_terminal_colors() {
+  local bg_color="'#162a40'"
+  local fg_color="'#abb3ba'"
+  local palette="['#000000', '#ce2c3d', '#0da62f', '#d7c94b', '#3272d1', '#9c5bba', '#4db5d1', '#abb3ba', '#0a0d0f', '#f2182f', '#07db36', '#f2dc18', '#2e81ff', '#c75ef7', '#41cbf0', '#ffffff']"
+  local profiles="$(dconf list '/org/gnome/terminal/legacy/profiles:/')"
+  local regex='^:[[:xdigit:]-]+/$'
+  if [[ ! "$profiles" =~ $regex ]]; then
+    # TODO: allow specifying a profile
+    printf 'Error: Could not get terminal profile, or got multiple profiles\n'
+    return 1
+  fi
+  local profile="$profiles"
+  dconf write "/org/gnome/terminal/legacy/profiles:/${profile}use-theme-colors" "false"
+  dconf write "/org/gnome/terminal/legacy/profiles:/${profile}background-color" "$bg_color"
+  dconf write "/org/gnome/terminal/legacy/profiles:/${profile}foreground-color" "$fg_color"
+  dconf write "/org/gnome/terminal/legacy/profiles:/${profile}palette" "$palette"
+}
+
+mouse_sensitivity_config() {
   case "$1" in
     '-h' | '--help')
       printf 'Arguments:\n'
@@ -381,7 +399,7 @@ mouse-sensitivity-gnome() {
   esac
 }
 
-capslock-key-gnome() {
+capslock_key_config() {
   case "$1" in
     '-h' | '--help')
       printf 'Arguments:\n'

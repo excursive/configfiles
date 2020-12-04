@@ -76,10 +76,6 @@ clean_and_update_repo() {
 
 # checks out the given git commit, cloning/fetching updates as necessary
 # afterwards, working directory will be the specified directory
-# arguments:
-# 1 = directory to clone into
-# 2 = commit
-# 3 = url
 checkout_commit() {
   local dir="${1}"
   local commit="$2"
@@ -116,69 +112,68 @@ checkout_commit() {
   fi
 }
 
-# arguments:
-# 1 = sha256 hash
-# 2 = filename to save to
-# 3 = download url
 dl_and_verify_file() {
-  if ! is_valid_sha256 "$1"; then
+  local checksum="$1"
+  local filename="${2}"
+  local url="$3"
+  if ! is_valid_sha256 "$checksum"; then
     printf '\n==== Error: Not a valid sha256 hash\n'
     exit 1
   fi
-  if contains_nl_or_bs "${2}"; then
+  if contains_nl_or_bs "${filename}"; then
     printf '\n==== Error: Filename cannot contain newlines or backslashes\n'
     exit 1
   fi
   
-  wget --execute robots=off --output-document="${2}" \
-       --no-clobber --no-use-server-timestamps --https-only "$3"
+  wget --execute robots=off --output-document="${filename}" \
+       --no-clobber --no-use-server-timestamps --https-only "$url"
   if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: Could not download %s\n' "${2}"
+    printf '\n==== Error: Could not download %s\n' "${filename}"
     exit 1
   fi
   
   printf '\n==== Verifying download matches specified sha256 checksum:\n'
-  printf '%s\n' "$1"
+  printf '%s\n' "$checksum"
   printf '\n==== Downloaded file checksum is:\n'
-  sha256sum "${2}"
+  sha256sum "${filename}"
   
-  printf '%s  %s\n' "$1" "${2}" | sha256sum --check
+  printf '%s  %s\n' "$checksum" "${filename}" | sha256sum --check
   if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Download does not match checksum\n'
-    rm -f -- "${2}"
+    rm -f -- "${filename}"
     exit 1
   fi
 }
 
-# arguments:
-# 1 = output file path
-# 2 = output text
+# writes a desktop entry with the given contents to ~/.local/share/applications
 save_desktop_entry() {
-  if [ -e "${1}" ]; then
-    if [ -f "${1}" ] \
-    && [ "$(head --lines=1 "${1}")" = '[Desktop Entry]' ]; then
-      printf '%s\n' "$2" > "${1}"
-      printf '\n==== Replaced old launcher %s\n' "${1}"
+  local filename="${1}"
+  local contents="$2"
+  local path="${HOME}/.local/share/applications/${filename}"
+  if [ -e "${path}" ]; then
+    if [ -f "${path}" ] \
+    && [ "$(head --lines=1 "${path}")" = '[Desktop Entry]' ]; then
+      printf '%s\n' "$contents" > "${path}"
+      printf '\n==== Replaced old launcher for %s in applications\n' "${filename}"
     else
-      printf '\n==== Warning: launcher not created, unknown file exists with that name:\n'
-      printf '%s\n' "${1}"
+      printf '\n==== Warning: launcher not created for %s\n' "${filename}"
+      printf   '====   unknown file with that name exists in ~/.local/share/applications\n'
       return 1
     fi
   else
-    printf '%s\n' "$2" > "${1}"
+    printf '%s\n' "$contents" > "${path}"
+    printf '\n==== Created launcher for %s in applications\n' "${filename}"
   fi
 }
 
-# saves a launcher bash script to ~/bin
-# arguments:
-# 1 = launcher basename
-# 2 = launcher script text
+# writes a launcher bash script with the given contents to ~/bin
 save_launcher_script() {
-  local name="${1}"
+  local filename="${1}"
   local contents="$2"
-  local path="${HOME}/bin/${name}"
+  local path="${HOME}/bin/${filename}"
   if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
-    printf '\n==== Warning: Could not create ~/bin directory to save launcher %s\n' "${name}"
+    printf '\n==== Warning: Could not create ~/bin directory;\n'
+    printf   '====   launcher %s not created\n' "${filename}"
     return 1
   fi
   if [ -e "${path}" ]; then
@@ -186,29 +181,27 @@ save_launcher_script() {
     && [ "$(head --lines=1 "${path}")" = '#!/bin/bash' ]; then
       printf '%s\n' "$contents" > "${path}"
       chmod +x "${path}"
-      printf '\n==== Replaced old launcher in ~/bin for %s\n' "${name}"
+      printf '\n==== Replaced old launcher in ~/bin for %s\n' "${filename}"
     else
-      printf '\n==== Warning: launcher not created for %s\n' "${name}"
-      printf   '====          unknown file with that name already exists in ~/bin\n'
+      printf '\n==== Warning: launcher not created for %s\n' "${filename}"
+      printf   '====   unknown file with that name exists in ~/bin\n'
       return 1
     fi
   else
     printf '%s\n' "$contents" > "${path}"
     chmod +x "${path}"
-    printf '\n==== Created launcher in ~/bin for %s\n' "${name}"
+    printf '\n==== Created launcher in ~/bin for %s\n' "${filename}"
   fi
 }
 
 # creates a symlink with the given name in ~/bin to target
-# arguments:
-# 1 = link target
-# 2 = link name
 create_symlink() {
   local target="${1}"
   local link_name="${2}"
   local link_path="${HOME}/bin/${link_name}"
   if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
-    printf '\n==== Warning: Could not create ~/bin directory to save symlink %s\n' "${link_name}"
+    printf '\n==== Warning: Could not create ~/bin directory;\n'
+    printf   '====   symlink %s not created\n' "${link_name}"
     return 1
   fi
   if [ -e "${link_path}" ]; then
@@ -217,8 +210,8 @@ create_symlink() {
       ln -s --no-target-directory "${target}" "${link_path}"
       printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
     else
-      printf '\n==== Warning: link not created for %s\n' "${link_name}"
-      printf   '====          unknown file with that name already exists in ~/bin\n'
+      printf '\n==== Warning: symlink not created for %s\n' "${link_name}"
+      printf   '====   unknown file with that name exists in ~/bin\n'
       return 1
     fi
   else
@@ -228,8 +221,6 @@ create_symlink() {
 }
 
 # creates symlinks in ~/bin to the given targets
-# arguments:
-# 1.. link targets
 create_symlinks() {
   for target in "$@"; do
     local link_name="$(basename -- "${target}")"
@@ -240,8 +231,6 @@ create_symlinks() {
 
 
 
-# manage_blender arguments:
-# 1 = version (default or blender version number)
 manage_blender() {
   case "$1" in
     'default' | '2.90.1')
@@ -291,8 +280,7 @@ manage_blender() {
   printf '\n======== Cleaning up\n'
   rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
   
-  printf '\n======== Creating application launcher\n'
-  local launcher_path="${HOME}/.local/share/applications/org.blender.desktop"
+  
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Blender
@@ -303,14 +291,12 @@ Path=${install_dir}
 Terminal=false
 Category=Video;Graphics;"
   
-  save_desktop_entry "${launcher_path}" "$launcher_text"
+  save_desktop_entry 'org.blender.desktop' "$launcher_text"
 }
 
 
 
 
-# manage_lmms arguments:
-# 1 = version (default or lmms version number)
 manage_lmms() {
   case "$1" in
     'default' | '1.2.2')
@@ -372,8 +358,6 @@ manage_lmms() {
   chmod +x "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
   
   
-  printf '\n======== Creating application launcher\n'
-  local launcher_path="${HOME}/.local/share/applications/io.lmms.desktop"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=LMMS
@@ -384,14 +368,12 @@ Path=${install_dir}
 Terminal=false
 Category=Audio;"
   
-  save_desktop_entry "${launcher_path}" "$launcher_text"
+  save_desktop_entry 'io.lmms.desktop' "$launcher_text"
 }
 
 
 
 
-# manage_krita arguments:
-# 1 = version (default or krita version number)
 manage_krita() {
   case "$1" in
     'default' | '4.4.1')
@@ -453,8 +435,6 @@ manage_krita() {
   chmod +x "${install_dir}/krita-${krita_version}-x86_64.appimage"
   
   
-  printf '\n======== Creating application launcher\n'
-  local launcher_path="${HOME}/.local/share/applications/org.krita.desktop"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Krita
@@ -465,13 +445,12 @@ Path=${install_dir}
 Terminal=false
 Category=Graphics;"
   
-  save_desktop_entry "${launcher_path}" "$launcher_text"
+  save_desktop_entry 'org.krita.desktop' "$launcher_text"
 }
 
 
 
 
-# manage_rust arguments:
 manage_rust() {
   local rust_installer_sha256='8928261388c8fae83bfd79b08d9030dfe21d17a8b59e9dcabda779213f6a3d14'
   printf '\n======== Downloading rust installer\n'
@@ -504,9 +483,58 @@ manage_rust() {
 
 
 
-# manage_youtube_dl arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
+manage_vim_two_firewatch() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to vim-two-firewatch commit on Dec 17, 2016\n'
+      local two_firewatch_version='efa0689e54881f09275e574f8fc19d8422c3bdc8'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local two_firewatch_version="$1"
+      else
+        printf '\n======== Error: vim-two-firewatch version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local two_firewatch_dir="${HOME}/.vim/pack/vim-two-firewatch/start/vim-two-firewatch"
+  mkdir --parents "${HOME}/.vim/pack/vim-two-firewatch/start"
+  
+  checkout_commit "${two_firewatch_dir}" "$two_firewatch_version" \
+                  'https://github.com/rakr/vim-two-firewatch.git'
+}
+
+
+
+
+manage_vim_lightline() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to lightline commit on Nov 21, 2020\n'
+      local lightline_version='709b2d8dc88fa622d6c076f34b05b58fcccf393f'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local lightline_version="$1"
+      else
+        printf '\n======== Error: lightline version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local lightline_dir="${HOME}/.vim/pack/lightline/start/lightline"
+  mkdir --parents "${HOME}/.vim/pack/lightline/start"
+  
+  checkout_commit "${lightline_dir}" "$lightline_version" \
+                  'https://github.com/itchyny/lightline.vim.git'
+}
+
+
+
+
 manage_youtube_dl() {
   case "$1" in
     'default' | '2020.11.26')
@@ -538,9 +566,6 @@ python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
 
 
 
-# manage_gifski arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
 manage_gifski() {
   case "$1" in
     'default' | '1.2.2')
@@ -627,7 +652,7 @@ manage_gifski() {
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
-    printf '\n==== Keeping source repo\n'
+    printf '==== Keeping source repo\n'
     cd "${gifski_src_dir}"
     clean_and_update_repo "$gifski_version" 'skip_update'
   fi
@@ -636,9 +661,6 @@ manage_gifski() {
 
 
 
-# manage_gifsicle arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
 manage_gifsicle() {
   case "$1" in
     'default' | '1.92')
@@ -725,7 +747,7 @@ manage_gifsicle() {
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
-    printf '\n==== Keeping source repo\n'
+    printf '==== Keeping source repo\n'
     cd "${gifsicle_src_dir}"
     clean_and_update_repo "$gifsicle_version" 'skip_update'
   fi
@@ -734,9 +756,6 @@ manage_gifsicle() {
 
 
 
-# manage_mozjpeg arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
 manage_mozjpeg() {
   case "$1" in
     'default' | '4.0.0')
@@ -870,16 +889,13 @@ manage_mozjpeg() {
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
-    printf '\n==== Keeping source repos\n'
+    printf '==== Keeping source repo\n'
   fi
 }
 
 
 
 
-# manage_godot arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
 manage_godot() {
   case "$1" in
     'default' | '3.2.3')
@@ -965,14 +981,12 @@ manage_godot() {
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
-    printf '\n==== Keeping source repo\n'
+    printf '==== Keeping source repo\n'
     cd "${godot_src_dir}"
     clean_and_update_repo "$godot_version" 'skip_update'
   fi
   
   
-  printf '\n======== Creating application launcher\n'
-  local launcher_path="${HOME}/.local/share/applications/org.godotengine.desktop"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Godot Engine
@@ -983,15 +997,12 @@ Path=${install_dir}
 Terminal=false
 Category=Development;Game;Graphics;"
   
-  save_desktop_entry "${launcher_path}" "$launcher_text"
+  save_desktop_entry 'org.godotengine.desktop' "$launcher_text"
 }
 
 
 
 
-# manage_aseprite arguments:
-# 1 = version (default or a commit sha1 hash)
-# 2 = 'keep_sources' to keep source code after installation
 manage_aseprite() {
   case "$1" in
     'default' | '1.2.25')
@@ -1196,12 +1207,10 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
-    printf '\n==== Keeping source repos\n'
+    printf '==== Keeping source repos\n'
   fi
   
   
-  printf '\n======== Creating application launcher\n'
-  local launcher_path="${HOME}/.local/share/applications/org.aseprite.desktop"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Aseprite
@@ -1212,7 +1221,7 @@ Path=${ase_install_dir}
 Terminal=false
 Category=Graphics;"
   
-  save_desktop_entry "${launcher_path}" "$launcher_text"
+  save_desktop_entry 'org.aseprite.desktop' "$launcher_text"
 }
 
 
@@ -1255,6 +1264,12 @@ case "$1" in
   ;;
   'youtube-dl')
     manage_youtube_dl "$version"
+  ;;
+  'vim-lightline')
+    manage_vim_lightline "$version"
+  ;;
+  'vim-two-firewatch')
+    manage_vim_two_firewatch "$version"
   ;;
   'rust')
     manage_rust
