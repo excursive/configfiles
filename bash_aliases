@@ -11,6 +11,9 @@ alias pngoptim="optipng -strip all -o7"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
 
+alias gifinfo='gifsicle --info --color-info --extension-info --size-info'
+alias gifoptim='gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3'
+
 alias aadebug="apparmor_parser -Q --debug"
 
 alias ytdl="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites"
@@ -340,9 +343,44 @@ edit_in_colorspace() {
 }
 
 set_terminal_colors() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Arguments:\n'
+    printf '  [ background color | _ ]\n'
+    printf '  [ foreground color | _ ]\n'
+    printf '  [ palette | _ ]\n'
+    return 0
+  fi
+
+  # default color scheme
   local bg_color="'#162a40'"
   local fg_color="'#abb3ba'"
   local palette="['#000000', '#ce2c3d', '#0da62f', '#d7c94b', '#3272d1', '#9c5bba', '#4db5d1', '#abb3ba', '#0a0d0f', '#f2182f', '#07db36', '#f2dc18', '#2e81ff', '#c75ef7', '#41cbf0', '#ffffff']"
+
+  # sanitize arguments
+  local color_regex='^'\''#[[:xdigit:]]{6}'\''$'
+  local palette_regex='^\[('\''#[[:xdigit:]]{6}'\'', ){15}'\''#[[:xdigit:]]{6}'\''\]$'
+  if [ -n "$1" ] && [ "$1" != _ ]; then
+    if [[ ! "$1" =~ $color_regex ]]; then
+      printf 'Error: Invalid background color\n'
+      return 1
+    fi
+    bg_color="$1"
+  fi
+  if [ -n "$2" ] && [ "$2" != _ ]; then
+    if [[ ! "$2" =~ $color_regex ]]; then
+      printf 'Error: Invalid foreground color\n'
+      return 1
+    fi
+    fg_color="$2"
+  fi
+  if [ -n "$3" ] && [ "$3" != _ ]; then
+    if [[ ! "$3" =~ $palette_regex ]]; then
+      printf 'Error: Invalid palette\n'
+      return 1
+    fi
+    palette="$3"
+  fi
+
   local profiles="$(dconf list '/org/gnome/terminal/legacy/profiles:/')"
   local regex='^:[[:xdigit:]-]+/$'
   if [[ ! "$profiles" =~ $regex ]]; then

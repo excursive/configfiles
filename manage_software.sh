@@ -483,6 +483,32 @@ manage_rust() {
 
 
 
+manage_vim_gruvbox() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to gruvbox commit on Jul 3, 2020\n'
+      local gruvbox_version='bf2885a95efdad7bd5e4794dd0213917770d79b7'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local gruvbox_version="$1"
+      else
+        printf '\n======== Error: gruvbox version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local gruvbox_dir="${HOME}/.vim/pack/gruvbox/start/gruvbox"
+  mkdir --parents "${HOME}/.vim/pack/gruvbox/start"
+  
+  checkout_commit "${gruvbox_dir}" "$gruvbox_version" \
+                  'https://github.com/morhetz/gruvbox.git'
+}
+
+
+
+
 manage_vim_two_firewatch() {
   case "$1" in
     'default')
@@ -538,8 +564,8 @@ manage_vim_lightline() {
 manage_youtube_dl() {
   case "$1" in
     'default' | '2020.11.26')
-      printf '\n======== Defaulting to youtube-dl version 2020.11.26\n'
-      local youtube_dl_version='9fe50837c3e8f6c40b7bed8bf7105a868a7a678f'
+      printf '\n======== Defaulting to youtube-dl version 2020.12.12\n'
+      local youtube_dl_version='3cb1a5dc73f934f1810852d12971f99ab32f6c96'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -569,8 +595,8 @@ python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
 manage_gifski() {
   case "$1" in
     'default' | '1.2.2')
-      printf '\n======== Defaulting to gifski version 1.2.2\n'
-      local gifski_version='08392458acf94abc6ab10b67b63caf30ba30192f'
+      printf '\n======== Defaulting to gifski version 1.2.0\n'
+      local gifski_version='4a6b9411a79436da40c5bee3aa9afa74559a76d5'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1232,6 +1258,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  software name:\n'
   printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | youtube-dl |\n'
+  printf '      vim-lightline | vim-two-firewatch | vim-gruvbox |\n'
   printf '      rust | krita | lmms | blender ]\n'
   printf '  software version [ default | (a git commit sha1) | (a version number) ]\n'
   printf '  "keep_sources" will keep source repos after install, otherwise ignored\n'
@@ -1270,6 +1297,9 @@ case "$1" in
   ;;
   'vim-two-firewatch')
     manage_vim_two_firewatch "$version"
+  ;;
+  'vim-gruvbox')
+    manage_vim_gruvbox "$version"
   ;;
   'rust')
     manage_rust

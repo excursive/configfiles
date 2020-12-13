@@ -1,3 +1,5 @@
+ubuntu 20.04 packages:
+
 purge: unattended-upgrades evolution-data-server
 
 ubuntu-restricted-extras (excluding chromium-codecs-ffmpeg-extra flashplugin-installer gstreamer1.0-fluendo-mp3 libzbar0 oxideqt-codecs-extra unrar):
@@ -8,18 +10,72 @@ vlc steam build-essential multiarch-support gcc-multilib g++-multilib vim blende
 wine additional packages (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks):
 --no-install-recommends
 
+================
+
 mozjpeg dependencies:
-libtool nasm
+main:
+libtool
 
-godot dependencies (excluding yasm):
-scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
 
-godot optional dependencies in main repo:
+universe:
+nasm
+
+================
+
+godot dependencies:
+main:
+pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
+
+also included in godot repo:
 libfreetype-dev libogg-dev libpng-dev libtheora-dev libvorbis-dev libvpx-dev libwebp-dev libminiupnpc-dev libopus-dev libpcre2-dev zlib1g-dev libzstd-dev
 
-aesprite dependencies:
-ninja-build libfontconfig1-dev libpixman-1-dev
 
-skia dependencies (excluding freeglut3-dev):
+universe (excluding yasm):
+scons
+
+================
+
+aesprite dependencies:
+main:
+g++ cmake libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev curl libfreetype6-dev libgif-dev libharfbuzz-dev libjpeg-dev libpng-dev libpixman-1-dev zlib1g-dev
+
+
+universe:
+ninja-build
+
+================
+
+skia dependencies:
+main:
 build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
 
+
+universe (excluding freeglut3-dev):
+
+================
+
+dolphin dependencies:
+main:
+libevdev-dev libudev-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 git cmake make gcc g++
+
+also included in dolphin repo:
+ca-certificates pkg-config libminiupnpc-dev libcurl4-openssl-dev libsystemd-dev libbluetooth-dev libasound2-dev libpulse-dev libbz2-dev libzstd-dev liblzo2-dev libpng-dev libusb-1.0-0-dev gettext
+
+
+universe:
+ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev qt5-default qtbase5-private-dev
+
+also included in dolphin repo:
+libsfml-dev libmbedtls-dev libhidapi-dev libpugixml-dev
+
+================
+
+rpcs3:
+main:
+build-essential libasound2-dev libpulse-dev zlib1g-dev libedit-dev libvulkan-dev libudev-dev libevdev-dev
+
+
+universe:
+libopenal-dev libglew-dev libsdl2-2.0-0 libsdl2-dev
+
+================
