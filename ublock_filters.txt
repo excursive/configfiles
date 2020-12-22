@@ -1,0 +1,37 @@
+twitter.com##div[data-testid="sidebarColumn"] div:has(> div > div > section > div[aria-label="Timeline: Trending now"])
+
+
+netflix.com##.player-view-childrens
+netflix.com##.player-view-childrens-static
+
+!netflix.com##.PlayerControlsNeo__layout
+!netflix.com##.PlayerControlsNeo__layout--inactive
+!netflix.com##.PlayerControlsNeo__layout--dimmed
+
+netflix.com##.skip-credits
+netflix.com##.skip-credits-hidden
+
+netflix.com##.PlayerControlsNeo__gradient-top
+netflix.com##.PlayerControlsNeo__gradient-bottom
+
+netflix.com##.PlayerControlsNeo__all-controls > div:has(.evidence-overlay)
+
+netflix.com##.controls-full-hit-zone
+
+netflix.com##.main-hitzone-element-container
+
+!netflix.com##.PlayerControlsNeo__core-controls
+
+netflix.com##.nfp-control-row
+netflix.com##.top-left-controls
+
+!netflix.com##.PlayerControlsNeo__bottom-controls
+!netflix.com##.PlayerControlsNeo__bottom-controls--faded
+
+!netflix.com##.trickplay
+!netflix.com##.trickplay-visible
+!netflix.com##.trickplay-text-and-image
+
+
+netflix.com##.visually-hidden
+netflix.com##.screenReaderMessage

@@ -7,6 +7,8 @@ alias srm="rm -I"
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
 
+alias chardiff="git diff --no-index --word-diff=color --word-diff-regex=. --"
+
 alias pngoptim="optipng -strip all -o7"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
@@ -74,6 +76,10 @@ is_printable_ascii() {
   export LC_ALL
   local regex='[ -~]'
   [[ "$1" =~ $regex ]]
+}
+
+contains_nl_or_bs() {
+  [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
 
 md5r() {
@@ -229,6 +235,84 @@ ffmpeg_bitexact() {
          "$@" \
          -map_metadata -1 -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
          "${out_file}"
+}
+
+ffmpeg_screenrec() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Arguments:\n'
+    printf '  output_file.mkv\n'
+    printf '  screen offset [ "x,y" ]\n'
+    printf '  recording resolution [ "widthxhegiht" ]\n'
+    printf '  fps [ 24 | 30 | 60 ] (24 will use decimate filter to remove dup frames)\n'
+    printf '  tune [ film | animation | stillimage | etc. ]\n'
+    printf '  crf [ positive integer, 17 is a good choice for nearly lossless ]\n'
+    printf '  preset [ veryfast and slow are good choices ]\n'
+    printf '  aac bitrate [ 320k is a good choice for nearly lossless audio ]\n'
+    printf '  show_region [ 0 | 1 | (defaults to 0 if not specified) ]\n'
+    return 0
+  fi
+  local out_file="${1}"
+  local offset="$2"
+  local resolution="$3"
+  local fps="$4"
+  local tune="$5"
+  local crf="$6"
+  local preset="$7"
+  local aac_bitrate="$8"
+  local region="$9"
+  if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
+    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n'
+    return 1
+  fi
+  local vf='format=yuv420p'
+  if [ "$fps" = '24' ]; then
+    fps='30'
+    vf="decimate=cycle=5,setpts=N/24/TB,${vf}"
+  fi
+  [ -z "$region" ] && region='0'
+  local -a ffmpeg_args=( '-loglevel' 'warning' \
+         '-f' 'x11grab' \
+         '-framerate' "$fps" '-video_size' "$resolution" \
+         '-draw_mouse' '0' '-show_region' "$region" '-thread_queue_size' '1024' \
+         '-i' ":0.0+${offset}" \
+         '-f' 'pulse' '-channels' '2' '-ac' '2' '-thread_queue_size' '1024' \
+         '-i' 'alsa_output.pci-0000_00_1f.3.analog-stereo.monitor' \
+         '-c:v' 'libx264' '-threads' '2' '-filter:v' "$vf" \
+         '-tune' "$tune" '-crf' "$crf" '-preset' "$preset" \
+         '-c:a' 'aac' '-b:a' "$aac_bitrate" \
+         '-map' '0:v:0' '-map' '1:a:0' \
+         '-map_metadata' '-1' \
+         '-flags' 'bitexact' '-flags:v' 'bitexact' '-flags:a' 'bitexact' \
+         '-fflags' 'bitexact' \
+         "${out_file}" )
+  printf 'ffmpeg arguments: %s\n' "${ffmpeg_args[*]}"
+  ffmpeg "${ffmpeg_args[@]}"
+}
+
+ffmpeg_trim() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Trims a video file without reencoding\n'
+    printf 'Arguments:\n'
+    printf '  output_file.mp4\n'
+    printf '  input_file\n'
+    printf '  start time\n'
+    printf '  end time\n'
+    printf '    format options: [-][HH:]MM:SS[.XX]\n'
+    printf '                            [-]SS[.XX][s|ms|us]\n'
+    return 0
+  fi
+  local out_file="${1}"
+  local in_file="${2}"
+  local start_time="$3"
+  local end_time="$4"
+  if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
+    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n'
+    return 1
+  fi
+  ffmpeg_bitexact "${in_file}" "${out_file}" \
+                   -ss "$start_time" -to "$end_time" \
+                   -c copy -c:v copy -c:a copy \
+                   -map 0:v:0 -map 0:a:0
 }
 
 tumblrbackuptag() {
