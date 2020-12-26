@@ -592,6 +592,101 @@ python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
 
 
 
+manage_pngquant() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to pngquant version from December 2020\n'
+      local pngquant_version='2540662cf2c847fbf5d90ce3bf74b8ce506557e3'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local pngquant_version="$1"
+      else
+        printf '\n======== Error: pngquant version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  printf '\n======== Checking directories\n'
+  local pngquant_dir="${PWD}/pngquant"
+  
+  local install_dir="${pngquant_dir}/pngquant-${pngquant_version}"
+  local build_dir="${pngquant_dir}/build"
+  local src_dir="${pngquant_dir}/src"
+  
+  local pngquant_src_dir="${src_dir}/pngquant"
+  
+  if [ ! -d "${pngquant_dir}" ] && ! mkdir "${pngquant_dir}"; then
+    printf '\n==== Error: Could not create pngquant directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  if [ -e "${build_dir}" ]; then
+    printf '\n==== Error: Build directory already exists:\n'
+    printf '%s\n' "${build_dir}"
+    exit 1
+  fi
+  if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
+    printf '\n==== Error: Could not create src directory\n'
+    exit 1
+  fi
+  
+  
+  checkout_commit "${pngquant_src_dir}" "$pngquant_version" \
+                  'https://github.com/kornelski/pngquant.git'
+  
+  
+  printf '\n======== Building pngquant\n'
+  if ! mkdir "${build_dir}"; then
+    printf '\n==== Error: Could not create build directory\n'
+    exit 1
+  fi
+  cd "${pngquant_src_dir}"
+  CARGO_TARGET_DIR="${build_dir}" cargo build --release --features=sse,openmp
+  exit 0
+  
+  printf '\n======== Stripping debug symbols\n'
+  strip --strip-all "${build_dir}/release/gifski"
+  
+  printf '\n======== Moving pngquant build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mv "--target-directory=${install_dir}" \
+       "${build_dir}/release/gifski" \
+       "${gifski_src_dir}/gifski.h" \
+       "${build_dir}/release/libgifski.a" \
+       "${build_dir}/release/libgifski.rlib" \
+       "${build_dir}/release/libgifski.so"
+  
+  create_symlinks "${install_dir}/pngquant"
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "pngquant-${pngquant_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  rm -R -f -- "${build_dir}"
+  if [ "$2" != 'keep_sources' ]; then
+    rm -R -f -- "${src_dir}"
+  else
+    printf '==== Keeping source repo\n'
+    cd "${pngquant_src_dir}"
+    clean_and_update_repo "$pngquant_version" 'skip_update'
+  fi
+}
+
+
+
+
 manage_gifski() {
   case "$1" in
     'default' | '1.2.2')
@@ -1257,7 +1352,8 @@ Category=Graphics;"
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  software name:\n'
-  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | youtube-dl |\n'
+  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | pngquant |\n'
+  printf '      youtube-dl |\n'
   printf '      vim-lightline | vim-two-firewatch | vim-gruvbox |\n'
   printf '      rust | krita | lmms | blender ]\n'
   printf '  software version [ default | (a git commit sha1) | (a version number) ]\n'
@@ -1288,6 +1384,9 @@ case "$1" in
   ;;
   'gifski')
     manage_gifski "$version" "$keep_sources"
+  ;;
+  'pngquant')
+    manage_pngquant "$version" "$keep_sources"
   ;;
   'youtube-dl')
     manage_youtube_dl "$version"
