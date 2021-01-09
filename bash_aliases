@@ -9,6 +9,11 @@ alias sha256c="sha256sum -c --quiet"
 
 alias chardiff="git diff --no-index --word-diff=color --word-diff-regex=. --"
 
+alias pngreduce="pngquant --speed 1 --strip --verbose"
+
+alias png8fs="pngquant --quality 100 --speed 1 --strip --verbose 256 --"
+alias png8nofs="pngquant --quality 100 --speed 1 --nofs --strip --verbose 256 --"
+
 alias pngoptim="optipng -strip all -o7"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"

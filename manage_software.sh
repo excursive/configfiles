@@ -452,7 +452,7 @@ Category=Graphics;"
 
 
 manage_rust() {
-  local rust_installer_sha256='8928261388c8fae83bfd79b08d9030dfe21d17a8b59e9dcabda779213f6a3d14'
+  local rust_installer_sha256='fa50ccf79c30ce9446cc45917e8ea10655674c2a9509221cb12bd865c60ab709'
   printf '\n======== Downloading rust installer\n'
   dl_and_verify_file "$rust_installer_sha256" 'rustup-init.sh' \
                      'https://sh.rustup.rs/'
@@ -627,11 +627,6 @@ manage_pngquant() {
     printf '%s\n' "${install_dir}"
     exit 1
   fi
-  if [ -e "${build_dir}" ]; then
-    printf '\n==== Error: Build directory already exists:\n'
-    printf '%s\n' "${build_dir}"
-    exit 1
-  fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
     printf '\n==== Error: Could not create src directory\n'
     exit 1
@@ -643,30 +638,25 @@ manage_pngquant() {
   
   
   printf '\n======== Building pngquant\n'
-  if ! mkdir "${build_dir}"; then
-    printf '\n==== Error: Could not create build directory\n'
-    exit 1
-  fi
   cd "${pngquant_src_dir}"
-  CARGO_TARGET_DIR="${build_dir}" cargo build --release --features=sse,openmp
-  exit 0
+  "${pngquant_src_dir}/configure" "--prefix=${install_dir}" \
+                                  --enable-sse \
+                                  --with-openmp=static
+  make
   
   printf '\n======== Stripping debug symbols\n'
-  strip --strip-all "${build_dir}/release/gifski"
+  strip --strip-all "${pngquant_src_dir}/pngquant"
   
   printf '\n======== Moving pngquant build to install directory\n'
   if ! mkdir "${install_dir}"; then
     printf '\n==== Error: Could not create install directory\n'
     exit 1
   fi
-  mv "--target-directory=${install_dir}" \
-       "${build_dir}/release/gifski" \
-       "${gifski_src_dir}/gifski.h" \
-       "${build_dir}/release/libgifski.a" \
-       "${build_dir}/release/libgifski.rlib" \
-       "${build_dir}/release/libgifski.so"
+  mkdir --parents "${install_dir}/bin" "${install_dir}/share/man/man1"
+  mv "--target-directory=${install_dir}/bin" "${pngquant_src_dir}/pngquant"
+  mv "--target-directory=${install_dir}/share/man/man1" "${pngquant_src_dir}/pngquant.1"
   
-  create_symlinks "${install_dir}/pngquant"
+  create_symlinks "${install_dir}/bin/pngquant"
   
   printf '\n======== Generating checksums\n'
   cd "${install_dir}"
@@ -674,7 +664,6 @@ manage_pngquant() {
   
   
   printf '\n======== Cleaning up\n'
-  rm -R -f -- "${build_dir}"
   if [ "$2" != 'keep_sources' ]; then
     rm -R -f -- "${src_dir}"
   else
