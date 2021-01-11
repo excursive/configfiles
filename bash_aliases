@@ -14,7 +14,8 @@ alias pngreduce="pngquant --speed 1 --strip --verbose"
 alias png8fs="pngquant --quality 100 --speed 1 --strip --verbose 256 --"
 alias png8nofs="pngquant --quality 100 --speed 1 --nofs --strip --verbose 256 --"
 
-alias pngoptim="optipng -strip all -o7"
+alias pngoptim7="optipng -strip all -o7"
+alias pngoptim8="optipng -strip all -o7 -zm1-9"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
 
