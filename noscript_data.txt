@@ -27,7 +27,6 @@
     },
     "sites": {
       "trusted": [
-        "§:8tracks.com",
         "§:addons.mozilla.org",
         "§:aiv-cdn.net",
         "§:ajax.googleapis.com",
@@ -40,6 +39,7 @@
         "§:bandcamp.com",
         "§:bcbits.com",
         "§:bitbucket.org",
+        "§:cloudflare.com",
         "§:cloudfront.net",
         "§:code.jquery.com",
         "§:dailymotion.com",
@@ -50,6 +50,8 @@
         "§:fanfiction.net",
         "§:github.com",
         "§:githubassets.com",
+        "§:gitlab-static.net",
+        "§:gitlab.com",
         "§:google.com",
         "§:googlevideo.com",
         "§:gstatic.com",
@@ -86,6 +88,7 @@
         "§:tumblr.com",
         "§:twimg.com",
         "§:twitch.tv",
+        "§:twitchcdn.net",
         "§:twitter.com",
         "§:txmblr.com",
         "§:vimeo.com",
@@ -108,7 +111,9 @@
     "debug": false,
     "showCtxMenuItem": false,
     "showCountBadge": true,
-    "showFullAddresses": false
+    "showFullAddresses": false,
+    "amnesticUpdates": false,
+    "storage": "local"
   },
   "sync": {
     "global": false,
