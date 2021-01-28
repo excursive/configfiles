@@ -377,17 +377,17 @@ Category=Audio;"
 manage_krita() {
   case "$1" in
     'default' | '4.4.1')
-      printf '\n======== Defaulting to krita version 4.4.1\n'
-      local krita_version='4.4.1'
-      local krita_commit_sha1='fe63f49aea3cfbc3f04717883a67731f41531eae'
-      local krita_sha256='c995f6a15499cfd4e5b3dc84bae44625f14a4c287da50003d6bb7f8b57feff08'
-      local krita_dl_url='stable/krita/4.4.1/krita-4.4.1-x86_64.appimage'
+      printf '\n======== Defaulting to krita version 4.4.2\n'
+      local krita_version='4.4.2'
+      local krita_sha256='91d92ce5633f62f4b292a3e72084da3042bb959e51eccee89c841ff96fd01f24'
+      local krita_dl_url='stable/krita/4.4.2/krita-4.4.2-x86_64.appimage'
     ;;
     *)
       printf '\n======== Error: Unknown krita version number\n'
       exit 1
     ;;
   esac
+  local krita_commit_sha1='fe63f49aea3cfbc3f04717883a67731f41531eae'
   local krita_icon_sha256='86ba89aadd20e9bf076c0721f0700c7fb4eaf6acc26e602c363277368c2373b4'
   local krita_icon_url='krita/pics/app/256-apps-krita.png'
   
