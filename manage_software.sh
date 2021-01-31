@@ -592,6 +592,85 @@ python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
 
 
 
+manage_zopflipng() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to zopflipng version 1.03 from November 2019\n'
+      local zopflipng_version='bd64b2f0553d4f1ef4e6627647c5d9fc8c71ffc0'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local zopflipng_version="$1"
+      else
+        printf '\n======== Error: zopflipng version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  printf '\n======== Checking directories\n'
+  local zopflipng_dir="${PWD}/zopflipng"
+  
+  local install_dir="${zopflipng_dir}/zopflipng-${zopflipng_version}"
+  local src_dir="${zopflipng_dir}/src"
+  
+  local zopflipng_src_dir="${src_dir}/zopflipng"
+  
+  if [ ! -d "${zopflipng_dir}" ] && ! mkdir "${zopflipng_dir}"; then
+    printf '\n==== Error: Could not create zopflipng directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
+    printf '\n==== Error: Could not create src directory\n'
+    exit 1
+  fi
+  
+  
+  checkout_commit "${zopflipng_src_dir}" "$zopflipng_version" \
+                  'https://github.com/google/zopfli.git'
+  
+  
+  printf '\n======== Building zopflipng\n'
+  cd "${zopflipng_src_dir}"
+  g++ "src/zopfli/"{blocksplitter,cache,deflate,gzip_container,hash,katajainen}.c \
+      "src/zopfli/"{lz77,squeeze,tree,util,zlib_container,zopfli_lib}.c \
+      "src/zopflipng/"{zopflipng_bin,zopflipng_lib}.cc \
+      "src/zopflipng/lodepng/"{lodepng,lodepng_util}.cpp \
+      -O2 -W -Wall -Wextra -Wno-unused-function -ansi -pedantic -fPIC -o zopflipng
+  
+  printf '\n======== Moving zopflipng build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mv "--target-directory=${install_dir}" "${zopflipng_src_dir}/zopflipng"
+  
+  create_symlinks "${install_dir}/zopflipng"
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "zopflipng-${zopflipng_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  if [ "$2" != 'keep_sources' ]; then
+    rm -R -f -- "${src_dir}"
+  else
+    printf '==== Keeping source repo\n'
+    cd "${zopflipng_src_dir}"
+    clean_and_update_repo "$zopflipng_version" 'skip_update'
+  fi
+}
+
+
+
+
 manage_pngquant() {
   case "$1" in
     'default')
@@ -1341,7 +1420,7 @@ Category=Graphics;"
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  software name:\n'
-  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | pngquant |\n'
+  printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | pngquant | zopflipng |\n'
   printf '      youtube-dl |\n'
   printf '      vim-lightline | vim-two-firewatch | vim-gruvbox |\n'
   printf '      rust | krita | lmms | blender ]\n'
@@ -1373,6 +1452,9 @@ case "$1" in
   ;;
   'gifski')
     manage_gifski "$version" "$keep_sources"
+  ;;
+  'zopflipng')
+    manage_zopflipng "$version" "$keep_sources"
   ;;
   'pngquant')
     manage_pngquant "$version" "$keep_sources"

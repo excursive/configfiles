@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<keyboard version="1">
+    <commands>
+        <key command="NewFile" shortcut="Ctrl+N" removed="true" />
+        <key command="OpenFile" shortcut="Ctrl+O" removed="true" />
+        <key command="ReopenClosedFile" shortcut="Ctrl+Shift+T" removed="true" />
+        <key command="SaveFile" shortcut="Ctrl+S" removed="true" />
+        <key command="SaveFile" shortcut="Ctrl+O" />
+        <key command="SaveFileAs" shortcut="Ctrl+Shift+S" removed="true" />
+        <key command="SaveFileAs" shortcut="Ctrl+Shift+O" />
+        <key command="SaveFileCopyAs" shortcut="Ctrl+Alt+Shift+S" removed="true" />
+        <key command="CloseFile" shortcut="Ctrl+W" removed="true" />
+        <key command="CloseAllFiles" shortcut="Ctrl+Shift+W" removed="true" />
+        <key command="ImportSpriteSheet" shortcut="Ctrl+I" removed="true" />
+        <key command="ExportSpriteSheet" shortcut="Ctrl+E" removed="true" />
+        <key command="RepeatLastExport" shortcut="Ctrl+Shift+X" removed="true" />
+        <key command="AdvancedMode" shortcut="Ctrl+F" removed="true" />
+        <key command="Exit" shortcut="Ctrl+Q" removed="true" />
+        <key command="Cancel" shortcut="Esc">
+            <param name="type" value="all" />
+        </key>
+        <key command="Undo" shortcut="Ctrl+Z" removed="true" />
+        <key command="Undo" shortcut="A" />
+        <key command="Redo" shortcut="Ctrl+Y" removed="true" />
+        <key command="Redo" shortcut="Ctrl+R" removed="true" />
+        <key command="Redo" shortcut="Ctrl+Shift+Z" removed="true" />
+        <key command="Redo" shortcut="O" />
+        <key command="Cut" shortcut="Ctrl+X" removed="true" />
+        <key command="Cut" shortcut="Shift+Del" removed="true" />
+        <key command="Cut" shortcut="Ctrl+Q" />
+        <key command="Copy" shortcut="Ctrl+C" removed="true" />
+        <key command="Copy" shortcut="Ctrl+Ins" removed="true" />
+        <key command="Copy" shortcut="Ctrl+J" />
+        <key command="CopyMerged" shortcut="Ctrl+Shift+C" removed="true" />
+        <key command="Paste" shortcut="Ctrl+V" removed="true" />
+        <key command="Paste" shortcut="Shift+Ins" removed="true" />
+        <key command="Paste" shortcut="Ctrl+K" />
+        <key command="Clear" shortcut="Del" />
+        <key command="Clear" shortcut="Backspace" />
+        <key command="Fill" shortcut="F" removed="true" />
+        <key command="Stroke" shortcut="S" removed="true" />
+        <key command="Flip" shortcut="Shift+H" removed="true">
+            <param name="orientation" value="horizontal" />
+            <param name="target" value="mask" />
+        </key>
+        <key command="Flip" shortcut="Shift+V" removed="true">
+            <param name="orientation" value="vertical" />
+            <param name="target" value="mask" />
+        </key>
+        <key command="ReplaceColor" shortcut="Shift+R" removed="true" />
+        <key command="HueSaturation" shortcut="Ctrl+U" removed="true" />
+        <key command="HueSaturation" shortcut="2" />
+        <key command="ConvolutionMatrix" shortcut="F9" removed="true" />
+        <key command="Outline" shortcut="Shift+O" removed="true" />
+        <key command="ColorCurve" shortcut="Ctrl+M" removed="true" />
+        <key command="ColorCurve" shortcut="F10" removed="true" />
+        <key command="ColorCurve" shortcut="3" />
+        <key command="PasteText" shortcut="T" removed="true" />
+        <key command="Options" shortcut="Ctrl+K" removed="true" />
+        <key command="KeyboardShortcuts" shortcut="Ctrl+Alt+Shift+K" removed="true" />
+        <key command="SpriteProperties" shortcut="Ctrl+P" removed="true" />
+        <key command="CanvasSize" shortcut="C" removed="true" />
+        <key command="LayerProperties" shortcut="Shift+P" removed="true" />
+        <key command="LayerVisibility" shortcut="Shift+X" removed="true" />
+        <key command="OpenGroup" shortcut="Shift+E" removed="true" />
+        <key command="NewLayer" shortcut="Shift+N" removed="true" />
+        <key command="NewLayer" shortcut="I" />
+        <key command="NewLayer" shortcut="Shift+Space+N" removed="true">
+            <param name="before" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="X">
+            <param name="before" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Alt+Shift+N" removed="true">
+            <param name="group" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Ctrl+Shift+V" removed="true">
+            <param name="fromClipboard" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Ctrl+J" removed="true">
+            <param name="viaCopy" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Shift+J">
+            <param name="viaCopy" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Ctrl+Shift+J" removed="true">
+            <param name="viaCut" value="true" />
+        </key>
+        <key command="NewLayer" shortcut="Shift+Q">
+            <param name="viaCut" value="true" />
+        </key>
+        <key command="GotoPreviousLayer" context="Normal" shortcut="Down" />
+        <key command="GotoNextLayer" context="Normal" shortcut="Up" />
+        <key command="NewFrame" shortcut="Alt+N" removed="true" />
+        <key command="NewFrame" shortcut="Shift+I" />
+        <key command="NewFrame" shortcut="Alt+B" removed="true">
+            <param name="content" value="empty" />
+        </key>
+        <key command="NewFrame" shortcut="Alt+M" removed="true">
+            <param name="content" value="cellinked" />
+        </key>
+        <key command="NewFrame" shortcut="Alt+Shift+D" removed="true">
+            <param name="content" value="cellinked" />
+        </key>
+        <key command="NewFrame" shortcut="Shift+X">
+            <param name="content" value="cellinked" />
+        </key>
+        <key command="NewFrame" shortcut="Alt+D" removed="true">
+            <param name="content" value="celcopies" />
+        </key>
+        <key command="RemoveFrame" shortcut="Alt+C" removed="true" />
+        <key command="FrameProperties" shortcut="P" removed="true">
+            <param name="frame" value="current" />
+        </key>
+        <key command="ReverseFrames" shortcut="Alt+I" removed="true" />
+        <key command="GotoFirstFrame" shortcut="Home" removed="true" />
+        <key command="GotoPreviousFrame" context="Normal" shortcut="Left" removed="true" />
+        <key command="GotoNextFrame" context="Normal" shortcut="Right" removed="true" />
+        <key command="GotoPreviousFrameWithSameTag" shortcut="," />
+        <key command="GotoNextFrameWithSameTag" shortcut="." />
+        <key command="GotoLastFrame" shortcut="End" removed="true" />
+        <key command="GotoFrame" shortcut="Alt+G" removed="true" />
+        <key command="PlayAnimation" shortcut="Enter" removed="true" />
+        <key command="PlayAnimation" shortcut="Enter Pad" removed="true" />
+        <key command="PlayAnimation" shortcut="Space" />
+        <key command="PlayPreviewAnimation" shortcut="Shift+Enter" removed="true" />
+        <key command="MaskAll" shortcut="Ctrl+A" removed="true" />
+        <key command="MaskAll" shortcut="Shift+&apos;" />
+        <key command="MaskContent" shortcut="Ctrl+T" removed="true" />
+        <key command="MaskContent" shortcut="Y" />
+        <key command="DeselectMask" shortcut="Ctrl+D" removed="true" />
+        <key command="DeselectMask" shortcut="&apos;" />
+        <key command="ReselectMask" shortcut="Ctrl+Shift+D" removed="true" />
+        <key command="InvertMask" shortcut="Ctrl+Shift+I" removed="true" />
+        <key command="Refresh" shortcut="F5" removed="true" />
+        <key command="TogglePreview" shortcut="F7" removed="true" />
+        <key command="FullscreenPreview" shortcut="F8" removed="true" />
+        <key command="ShowGrid" shortcut="Ctrl+&apos;" removed="true" />
+        <key command="ShowPixelGrid" shortcut="Ctrl+Shift+&apos;" removed="true" />
+        <key command="SnapToGrid" shortcut="Shift+S" removed="true" />
+        <key command="SetLoopSection" shortcut="F2" removed="true" />
+        <key command="ShowOnionSkin" shortcut="F3" removed="true" />
+        <key command="ToggleTimelineThumbnails" shortcut="F6" removed="true" />
+        <key command="Timeline" shortcut="Tab" removed="true">
+            <param name="switch" value="true" />
+        </key>
+        <key command="PaletteEditor" shortcut="A" removed="true" />
+        <key command="PaletteEditor" shortcut="F4" removed="true">
+            <param name="edit" value="switch" />
+            <param name="popup" value="foreground" />
+        </key>
+        <key command="ShowExtras" shortcut="Ctrl+H" removed="true" />
+        <key command="GotoNextTab" shortcut="Ctrl+Tab" removed="true" />
+        <key command="GotoNextTab" shortcut="Ctrl+PgDn" removed="true" />
+        <key command="GotoPreviousTab" shortcut="Ctrl+Shift+Tab" removed="true" />
+        <key command="GotoPreviousTab" shortcut="Ctrl+PgUp" removed="true" />
+        <key command="SwitchColors" shortcut="X" removed="true" />
+        <key command="ChangeColor" shortcut="9" removed="true">
+            <param name="change" value="decrement-index" />
+            <param name="target" value="foreground" />
+        </key>
+        <key command="ChangeColor" shortcut="[" removed="true">
+            <param name="change" value="decrement-index" />
+            <param name="target" value="foreground" />
+        </key>
+        <key command="ChangeColor" shortcut="0" removed="true">
+            <param name="change" value="increment-index" />
+            <param name="target" value="foreground" />
+        </key>
+        <key command="ChangeColor" shortcut="]" removed="true">
+            <param name="change" value="increment-index" />
+            <param name="target" value="foreground" />
+        </key>
+        <key command="ChangeBrush" shortcut="+" removed="true">
+            <param name="change" value="increment-size" />
+        </key>
+        <key command="ChangeBrush" shortcut="=" removed="true">
+            <param name="change" value="increment-size" />
+        </key>
+        <key command="ChangeBrush" shortcut="+ Pad" removed="true">
+            <param name="change" value="increment-size" />
+        </key>
+        <key command="ChangeBrush" shortcut="-" removed="true">
+            <param name="change" value="decrement-size" />
+        </key>
+        <key command="ChangeBrush" shortcut="- Pad" removed="true">
+            <param name="change" value="decrement-size" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+1" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="1" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+2" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="2" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+3" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="3" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+4" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="4" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+5" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="5" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+6" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="6" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+7" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="7" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+8" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="8" />
+        </key>
+        <key command="ChangeBrush" shortcut="Alt+9" removed="true">
+            <param name="change" value="custom" />
+            <param name="slot" value="9" />
+        </key>
+        <key command="Zoom" shortcut="~" removed="true">
+            <param name="percentage" value="50" />
+        </key>
+        <key command="Zoom" shortcut="`" removed="true">
+            <param name="percentage" value="50" />
+        </key>
+        <key command="Zoom" shortcut="1" removed="true">
+            <param name="percentage" value="100" />
+        </key>
+        <key command="Zoom" shortcut="2" removed="true">
+            <param name="percentage" value="200" />
+        </key>
+        <key command="Zoom" shortcut="3" removed="true">
+            <param name="percentage" value="400" />
+        </key>
+        <key command="Zoom" shortcut="4" removed="true">
+            <param name="percentage" value="800" />
+        </key>
+        <key command="Zoom" shortcut="5" removed="true">
+            <param name="percentage" value="1600" />
+        </key>
+        <key command="Zoom" shortcut="6" removed="true">
+            <param name="percentage" value="3200" />
+        </key>
+        <key command="Zoom" shortcut="Ctrl++" removed="true">
+            <param name="action" value="in" />
+        </key>
+        <key command="Zoom" shortcut="Ctrl+=" removed="true">
+            <param name="action" value="in" />
+        </key>
+        <key command="Zoom" shortcut="Ctrl+Shift+=" removed="true">
+            <param name="action" value="in" />
+        </key>
+        <key command="Zoom" shortcut="Ctrl+-" removed="true">
+            <param name="action" value="out" />
+        </key>
+        <key command="LayerOpacity" shortcut="Shift+1" removed="true">
+            <param name="opacity" value="64" />
+        </key>
+        <key command="LayerOpacity" shortcut="Shift+2" removed="true">
+            <param name="opacity" value="128" />
+        </key>
+        <key command="LayerOpacity" shortcut="Shift+3" removed="true">
+            <param name="opacity" value="192" />
+        </key>
+        <key command="LayerOpacity" shortcut="Shift+4" removed="true">
+            <param name="opacity" value="255" />
+        </key>
+        <key command="ScrollCenter" shortcut="Shift+Z" removed="true" />
+        <key command="FitScreen" shortcut="Ctrl+0" removed="true" />
+        <key command="Scroll" shortcut="Space+Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-pixel" />
+        </key>
+        <key command="Scroll" shortcut="Space+Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-pixel" />
+        </key>
+        <key command="Scroll" shortcut="Space+Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-pixel" />
+        </key>
+        <key command="Scroll" shortcut="Space+Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-pixel" />
+        </key>
+        <key command="Scroll" shortcut="Shift+Space+Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-tile-width" />
+        </key>
+        <key command="Scroll" shortcut="Shift+Space+Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-tile-width" />
+        </key>
+        <key command="Scroll" shortcut="Shift+Space+Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-tile-height" />
+        </key>
+        <key command="Scroll" shortcut="Shift+Space+Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="units" value="zoomed-tile-height" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="tile-width" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="tile-width" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="tile-height" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="tile-height" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Shift+Left" removed="true">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="tile-width" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Shift+Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="tile-width" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Shift+Up" removed="true">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="tile-height" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Alt+Shift+Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="target" value="boundaries" />
+            <param name="units" value="tile-height" />
+        </key>
+        <key command="NewBrush" shortcut="Ctrl+B" removed="true" />
+        <key command="NewSpriteFromSelection" shortcut="Ctrl+Alt+N" removed="true" />
+        <key command="Screenshot" shortcut="F12" removed="true">
+            <param name="steam" value="true" />
+        </key>
+        <key command="BrightnessContrast" shortcut="1" />
+        <key command="DuplicateLayer" shortcut="Ctrl+I" />
+        <key command="MergeDownLayer" shortcut="Shift+K" />
+        <key command="RemoveLayer" shortcut="Ctrl+X" />
+        <key command="Flip" shortcut="4">
+            <param name="orientation" value="horizontal" />
+            <param name="target" value="canvas" />
+        </key>
+        <key command="Flip" shortcut="5">
+            <param name="orientation" value="vertical" />
+            <param name="target" value="canvas" />
+        </key>
+        <key command="GotoPreviousFrame" shortcut="Left" />
+        <key command="GotoNextFrame" shortcut="Right" />
+    </commands>
+    <tools>
+        <key tool="rectangular_marquee" shortcut="M" removed="true" />
+        <key tool="rectangular_marquee" shortcut="J" />
+        <key tool="elliptical_marquee" shortcut="Shift+M" removed="true" />
+        <key tool="lasso" shortcut="Q" />
+        <key tool="polygonal_lasso" shortcut="Shift+Q" removed="true" />
+        <key tool="magic_wand" shortcut="W" removed="true" />
+        <key tool="pencil" shortcut="B" removed="true" />
+        <key tool="pencil" shortcut="E" />
+        <key tool="spray" shortcut="Shift+B" removed="true" />
+        <key tool="eraser" shortcut="E" removed="true" />
+        <key tool="eraser" shortcut="Shift+E" />
+        <key tool="eyedropper" shortcut="I" removed="true" />
+        <key tool="hand" shortcut="H" removed="true" />
+        <key tool="move" shortcut="V" removed="true" />
+        <key tool="slice" shortcut="Shift+C" removed="true" />
+        <key tool="zoom" shortcut="Z" removed="true" />
+        <key tool="paint_bucket" shortcut="G" removed="true" />
+        <key tool="paint_bucket" shortcut="P" />
+        <key tool="gradient" shortcut="Shift+G" removed="true" />
+        <key tool="line" shortcut="L" removed="true" />
+        <key tool="line" shortcut="Ctrl+E" />
+        <key tool="curve" shortcut="Shift+L" removed="true" />
+        <key tool="rectangle" shortcut="U" removed="true" />
+        <key tool="filled_rectangle" shortcut="U" removed="true" />
+        <key tool="ellipse" shortcut="Shift+U" removed="true" />
+        <key tool="filled_ellipse" shortcut="Shift+U" removed="true" />
+        <key tool="contour" shortcut="D" removed="true" />
+        <key tool="polygon" shortcut="Shift+D" removed="true" />
+        <key tool="blur" shortcut="R" removed="true" />
+        <key tool="jumble" shortcut="R" removed="true" />
+    </tools>
+    <quicktools>
+        <key tool="eyedropper" shortcut="Alt" removed="true" />
+        <key tool="eyedropper" shortcut="U" />
+        <key tool="move" shortcut="Ctrl" removed="true" />
+        <key tool="move" shortcut="K" />
+        <key tool="hand" shortcut="Space" removed="true" />
+    </quicktools>
+    <actions>
+        <key action="StraightLineFromLastPoint" shortcut="Shift" removed="true" />
+        <key action="AngleSnapFromLastPoint" shortcut="Ctrl" removed="true" />
+    </actions>
+    <wheel />
+</keyboard>
