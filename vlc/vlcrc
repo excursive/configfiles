@@ -1,0 +1,10 @@
+[core] # core program
+
+# Video Auto Scaling (boolean)
+autoscale=0
+
+# Video output module (string)
+vout=xcb_xv
+
+# Allow metadata network access (boolean)
+metadata-network-access=0
