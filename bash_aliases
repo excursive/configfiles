@@ -20,7 +20,7 @@ alias optipng8="optipng -strip all -o7 -zm1-9"
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
 
 alias gifinfo='gifsicle --info --color-info --extension-info --size-info'
-alias gifoptim='gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3'
+alias gifoptimize='gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3'
 
 alias aadebug="apparmor_parser -Q --debug"
 
