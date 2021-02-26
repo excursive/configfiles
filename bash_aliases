@@ -14,8 +14,8 @@ alias pngreduce="pngquant --speed 1 --strip --verbose"
 alias png8fs="pngquant --quality 100 --speed 1 --strip --verbose 256 --"
 alias png8nofs="pngquant --quality 100 --speed 1 --nofs --strip --verbose 256 --"
 
-alias pngoptim7="optipng -strip all -o7"
-alias pngoptim8="optipng -strip all -o7 -zm1-9"
+alias optipng7="optipng -strip all -o7"
+alias optipng8="optipng -strip all -o7 -zm1-9"
 
 alias mozjpegoptim="mozjpegtran -copy none -optimize -perfect"
 
@@ -24,19 +24,17 @@ alias gifoptim='gifsicle --merge --no-app-extensions --no-names --no-comments --
 
 alias aadebug="apparmor_parser -Q --debug"
 
-alias ytdl="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites"
 
-alias ytdl-video-backup="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestvideo[ext=webm]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
+alias ytdl="youtube-dl --output '%(extractor)s-%(uploader_id)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
 
-alias ytdl-music-backup="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestaudio[ext=m4a],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
+alias youtube-video-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestvideo[ext=webm]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
 
-alias ytdl-backup="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
+alias youtube-music-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestaudio[ext=m4a],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
 
-alias ytdl-strip="youtube-dl --output '%(uploader)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --postprocessor-args '-map_metadata -1 -c copy -c:v copy -c:a copy -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact' --no-post-overwrites"
+alias youtube-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
 
-alias screenrec720panim="ffmpeg -f x11grab -framerate 30 -video_size 1280x720 -draw_mouse 0 -show_region 0 -i :0.0+640,254 -f pulse -channels 2 -ac 2 -thread_queue_size 512 -i alsa_output.pci-0000_00_1f.3.analog-stereo.monitor -c:v libx264 -threads 2 -pix_fmt yuv420p -preset veryfast -crf 17 -tune animation -c:a flac -map 0:v:0 -map 1:a:0 -flags bitexact recording.mkv"
+alias youtube-strip="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --postprocessor-args '-map_metadata -1 -c copy -c:v copy -c:a copy -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact' --no-post-overwrites"
 
-alias enc24fpsanim="ffmpeg -i recording.mkv -ss -to -vf "decimate=cycle=5,setpts=N/24/TB" -c:v libx264 -threads 1 -crf 23 -preset veryfast -tune animation -c:a aac -map_metadata -1 -map 0:v:0 -map 0:a:0 -strict -2 -flags bitexact encoded.mp4"
 
 #alias protonrun="STEAM_COMPAT_DATA_PATH=~/PREFIX_LOCATION/ ~/.steam/ubuntu12_32/steam-runtime/run.sh ~/.steam/steam/steamapps/common/Proton\ 3.7/proton run ~/PROGRAM_LOCATION"
 
@@ -330,7 +328,7 @@ tumblrbackuppost() {
 }
 
 # arguments:
-# 1 = [ jpeg | audio | video | video-subtitled ]
+# 1 = [ jpeg | png | pngm | gif | audio | video | video-subtitled ]
 # 2... = files to process
 batch_optimize_files() {
   local filetype="$1"
@@ -353,6 +351,16 @@ batch_optimize_files() {
       'jpg' | 'jpeg')
         mozjpegtran -copy none -optimize -perfect "${in_file}" > "${temp_file}"
       ;;
+      'png')
+        zopflipng "${in_file}" "${temp_file}"
+      ;;
+      'pngm')
+        zopflipng -m "${in_file}" "${temp_file}"
+      ;;
+      'gif')
+        gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3 \
+                 "${in_file}" > "${temp_file}"
+      ;;
       'video-subtitled')
         ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
                         -y -c copy -c:v copy -c:a copy -c:s copy \
@@ -370,7 +378,7 @@ batch_optimize_files() {
       ;;
       *)
         printf 'Error: Invalid filetype. Valid filetypes are:\n'
-        printf '       [ jpeg | audio | video | video-subtitled ]\n'
+        printf '       [ jpeg | png | pngm | gif | audio | video | video-subtitled ]\n'
         return 1
       ;;
     esac
@@ -396,6 +404,18 @@ batch_optimize_files() {
 
 jpgoptim() {
   batch_optimize_files 'jpeg' "$@"
+}
+
+pngoptim() {
+  batch_optimize_files 'png' "$@"
+}
+
+pngmoptim() {
+  batch_optimize_files 'pngm' "$@"
+}
+
+gifoptim() {
+  batch_optimize_files 'gif' "$@"
 }
 
 stripvideo() {
