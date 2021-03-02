@@ -352,10 +352,10 @@ batch_optimize_files() {
         mozjpegtran -copy none -optimize -perfect "${in_file}" > "${temp_file}"
       ;;
       'png')
-        zopflipng "${in_file}" "${temp_file}"
+        zopflipng -y "${in_file}" "${temp_file}"
       ;;
       'pngm')
-        zopflipng -m "${in_file}" "${temp_file}"
+        zopflipng -m -y "${in_file}" "${temp_file}"
       ;;
       'gif')
         gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3 \
@@ -391,8 +391,8 @@ batch_optimize_files() {
       continue
     fi
     
-    rm "${in_file}"
-    mv "${temp_file}" "${in_file}"
+    rm -f -- "${in_file}"
+    mv --no-target-directory "${temp_file}" "${in_file}"
     local out_size="$(stat -c '%s' "${in_file}")"
     
     local size_diff="$(($in_size - $out_size))"
