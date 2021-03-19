@@ -278,7 +278,7 @@ ffmpeg_screenrec() {
          '-f' 'x11grab' \
          '-framerate' "$fps" '-video_size' "$resolution" \
          '-draw_mouse' '0' '-show_region' "$region" '-thread_queue_size' '1024' \
-         '-i' ":0.0+${offset}" \
+         '-i' "${DISPLAY}.0+${offset}" \
          '-f' 'pulse' '-channels' '2' '-ac' '2' '-thread_queue_size' '1024' \
          '-i' 'alsa_output.pci-0000_00_1f.3.analog-stereo.monitor' \
          '-c:v' 'libx264' '-threads' '2' '-filter:v' "$vf" \
