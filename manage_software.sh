@@ -565,7 +565,7 @@ manage_youtube_dl() {
   case "$1" in
     'default' | '2020.11.26')
       printf '\n======== Defaulting to youtube-dl version 2020.12.12\n'
-      local youtube_dl_version='3cb1a5dc73f934f1810852d12971f99ab32f6c96'
+      local youtube_dl_version='ebfd66c4b1d6ffabd8a5bc52737f2bacac341d3d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
