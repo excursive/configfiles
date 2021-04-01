@@ -233,11 +233,11 @@ create_symlinks() {
 
 manage_blender() {
   case "$1" in
-    'default' | '2.90.1')
-      printf '\n======== Defaulting to Blender version 2.90.1\n'
-      local blender_version='2.90.1'
-      local blender_sha256='054668c46a3e56921f283709f51a35f7860786183001cf2ea9be3249d13ac667'
-      local blender_dl_url='Blender2.90/blender-2.90.1-linux64.tar.xz'
+    'default')
+      printf '\n======== Defaulting to Blender version 2.92.0\n'
+      local blender_version='2.92.0'
+      local blender_sha256='2cd17ad6e9d6c241ac14b84ad6e72b507aeec979da3d926b1a146e88e0eb3eb4'
+      local blender_dl_url='Blender2.92/blender-2.92.0-linux64.tar.xz'
     ;;
     *)
       printf '\n======== Error: Unknown Blender version number\n'
@@ -376,11 +376,11 @@ Category=Audio;"
 
 manage_krita() {
   case "$1" in
-    'default' | '4.4.1')
-      printf '\n======== Defaulting to krita version 4.4.2\n'
-      local krita_version='4.4.2'
-      local krita_sha256='91d92ce5633f62f4b292a3e72084da3042bb959e51eccee89c841ff96fd01f24'
-      local krita_dl_url='stable/krita/4.4.2/krita-4.4.2-x86_64.appimage'
+    'default')
+      printf '\n======== Defaulting to krita version 4.4.3\n'
+      local krita_version='4.4.3'
+      local krita_sha256='95b35a7ff2d591d8adad6159b98558f9b88e99a24568ba9ee217126188f5d026'
+      local krita_dl_url='stable/krita/4.4.3/krita-4.4.3-x86_64.appimage'
     ;;
     *)
       printf '\n======== Error: Unknown krita version number\n'
@@ -564,8 +564,8 @@ manage_vim_lightline() {
 manage_youtube_dl() {
   case "$1" in
     'default' | '2020.11.26')
-      printf '\n======== Defaulting to youtube-dl version 2020.12.12\n'
-      local youtube_dl_version='ebfd66c4b1d6ffabd8a5bc52737f2bacac341d3d'
+      printf '\n======== Defaulting to youtube-dl version 2021.04.01\n'
+      local youtube_dl_version='ca304beb1538e54c5a18fdd50846ed2259d63b8c'
     ;;
     *)
       if is_valid_sha1 "$1"; then
