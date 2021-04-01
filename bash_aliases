@@ -75,6 +75,13 @@ is_alphanumeric() {
   [[ "$1" =~ $regex ]]
 }
 
+is_ascii_url() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^\.?([a-z0-9]+\.)*[a-z0-9]+\.[a-z0-9]+$'
+  [[ "$1" =~ $regex ]]
+}
+
 is_printable_ascii() {
   local LC_ALL=C
   export LC_ALL
@@ -317,6 +324,85 @@ ffmpeg_trim() {
                    -ss "$start_time" -to "$end_time" \
                    -c copy -c:v copy -c:a copy \
                    -map 0:v:0 -map 0:a:0
+}
+
+ff_cookies_print() {
+  local host_where_clause=''
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '-h' | '--help')
+        printf 'Formats and prints a nestcape cookies file from a firefox cookies.sqlite db\n'
+        printf 'Arguments:\n'
+        printf '  [ -h | --help ] print this help message\n'
+        printf '  [ --host HOST ] only print cookies from the domain HOST\n'
+        printf '  [ path to cookies.sqlite file ]\n'
+        printf '    (will find cookies.sqlite file automatically if omitted)\n'
+        return 0
+      ;;
+      '--host')
+        if ! is_ascii_url "$2"; then
+          printf 'Error: --host must be followed with a valid domain\n'
+          return 1
+        fi
+        host_where_clause=" where host='${2}'"
+        shift 2
+      ;;
+      *)
+        break
+      ;;
+    esac
+  done
+  
+  local sql_db=''
+  if [ -n "${1}" ] && [ -r "${1}" ]; then
+    sql_db="${1}"
+  else
+    sql_db="$(find "${HOME}/.mozilla/firefox/" -mindepth 2 -maxdepth 2 \
+                -name 'cookies.sqlite' -print0 | \
+                head --lines=1 --zero-terminated | \
+                tr --delete '\0')"
+  fi
+  
+  # make a temporary copy of the cookies sqlite database
+  local temp_file=''
+  temp_file="$(mktemp --tmpdir="${PWD}" -t 'cookies.sqlite.XXXXXXXXXX')"
+  if [ "$?" -ne 0 ]; then
+    printf 'Error: Could not copy firefox cookies.sqlite file to a temp file\n'
+    return 1
+  fi
+  cat "${sql_db}" >| "${temp_file}"
+  
+  sqlite3 -noheader -separator $'\t' "${temp_file}" \
+          "select host, case substr(host,1,1)='.' when 0 then 'FALSE' else 'TRUE' end, path, case isSecure when 0 then 'FALSE' else 'TRUE' end, expiry, name, value from moz_cookies${host_where_clause};"
+  local ret="$?"
+  
+  rm -f -- "${temp_file}"
+  if [ "$ret" -ne 0 ]; then
+    printf 'Error: An error occurred reading the sqlite cookies database\n'
+    return 1
+  fi
+}
+
+# ease-of-use function to write a netscape cookies.txt file with only the
+# cookies from the given domain
+ff_cookies_domain() {
+  local domain="$1"
+  local output_file='cookies.txt'
+  if [ -e "${output_file}" ]; then
+    printf 'Error: Output file already exists\n'
+    return 1
+  fi
+  local output=''
+  output="$(ff_cookies_print '--host' "$domain")"
+  if [ "$?" -ne 0 ]; then
+    printf '%s\n' "$output"
+    return 1
+  fi
+  if [ -z "$output" ]; then
+    printf 'No cookies with given domain found\n'
+    return 0
+  fi
+  printf '%s\n' "$output" > "${output_file}"
 }
 
 tumblrbackuptag() {
