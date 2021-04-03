@@ -25,15 +25,6 @@ alias gifoptimize='gifsicle --merge --no-app-extensions --no-names --no-comments
 alias aadebug="apparmor_parser -Q --debug"
 
 
-alias ytdl="youtube-dl --output '%(extractor)s-%(uploader_id)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
-
-alias youtube-video-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestvideo[ext=webm]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
-
-alias youtube-music-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestaudio[ext=m4a],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
-
-alias youtube-backup="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' --postprocessor-args '-c copy -c:v copy -c:a copy' --no-post-overwrites --fixup never"
-
-alias youtube-strip="youtube-dl --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' --no-overwrites --no-continue --no-mtime --no-call-home --postprocessor-args '-map_metadata -1 -c copy -c:v copy -c:a copy -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact' --no-post-overwrites"
 
 
 #alias protonrun="STEAM_COMPAT_DATA_PATH=~/PREFIX_LOCATION/ ~/.steam/ubuntu12_32/steam-runtime/run.sh ~/.steam/steam/steamapps/common/Proton\ 3.7/proton run ~/PROGRAM_LOCATION"
@@ -331,6 +322,37 @@ ffmpeg_trim() {
                    -ss "$start_time" -to "$end_time" \
                    -c copy -c:v copy -c:a copy \
                    -map 0:v:0 -map 0:a:0
+}
+
+ytdl_options() {
+  youtube-dl --no-overwrites --no-continue --no-mtime --no-call-home \
+             --postprocessor-args '-c copy -c:v copy -c:a copy' \
+             --no-post-overwrites --fixup never "$@"
+}
+
+ytdl() {
+  ytdl_options --output '%(extractor)s-%(uploader_id)s-%(id)s-%(format_id)s.%(ext)s' "$@"
+}
+
+ytdl_cookies() {
+  ytdl --cookies 'cookies.txt' \
+       --user-agent 'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0' "$@"
+}
+
+youtube_output() {
+  ytdl_options --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' "$@"
+}
+
+youtube_backup() {
+  youtube_output --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' "$@"
+}
+
+youtube_backup_video_only() {
+  youtube_output --format 'bestvideo[ext=mp4],bestvideo[ext=webm]' "$@"
+}
+
+youtube_backup_audio_only() {
+  youtube_output --format 'bestaudio[ext=m4a],bestaudio[acodec=opus]' "$@"
 }
 
 ff_cookies_print() {
