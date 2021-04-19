@@ -100,7 +100,7 @@ md5r() {
     fi
     printf '%s\n' "$output" > "${1}"
   else
-    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty -- md5sum --
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty md5sum --
   fi
 }
 
@@ -113,7 +113,7 @@ sha256r() {
     fi
     printf '%s\n' "$output" > "${1}"
   else
-    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty -- sha256sum --
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty sha256sum --
   fi
 }
 
@@ -187,7 +187,7 @@ grep-non-ascii() {
     if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = '-n' ]; then
       printf '\e[0;36m%s\e[0m\n' \
         "$(grep --color='auto' -n --binary --perl-regexp "$regex" -- "${in_file}" | \
-             cut --fields=1 --delimiter=':' | tr '\n' ' ')"
+             cut --fields=1 --delimiter=':' -- | tr '\n' ' ' -- )"
     fi
   done
 }
@@ -390,7 +390,7 @@ ff_cookies_print() {
   else
     sql_db="$(find "${HOME}/.mozilla/firefox/" -mindepth 2 -maxdepth 2 -name 'cookies.sqlite' \
                 -printf '%T@ %p\0' | sort -nrz -- | cut -d ' ' -f '2-' -z -- | \
-                head --lines=1 --zero-terminated -- | tr --delete '\0')"
+                head --lines=1 --zero-terminated -- | tr --delete '\0' -- )"
   fi
   # session cookies are stored elsewhere, in recovery.jsonlz4
   local json_mozlz4="$(dirname "${sql_db}")"'/sessionstore-backups/recovery.jsonlz4'
@@ -754,7 +754,7 @@ capslock_key_config() {
 }
 
 kppextract() {
-  local line="$(identify -verbose "$1" | grep 'preset:')"
+  local line="$(identify -verbose "$1" | grep 'preset:' --)"
   local l1="${line#*preset: }"
   printf '%s\n' "$l1"
 }
@@ -770,8 +770,8 @@ kpptotxt() {
 }
 
 kppdiff() {
-  local preset1="$(kppextract "${1}" | xmllint --c14n - | xmllint --format -)"
-  local preset2="$(kppextract "${2}" | xmllint --c14n - | xmllint --format -)"
+  local preset1="$(kppextract "${1}" | xmllint --c14n -- - | xmllint --format -- -)"
+  local preset2="$(kppextract "${2}" | xmllint --c14n -- - | xmllint --format -- -)"
   diff <(printf '%s' "$preset1") <(printf '%s' "$preset2")
 }
 
