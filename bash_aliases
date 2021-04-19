@@ -95,12 +95,12 @@ md5r() {
   if [ -n "${1}" ]; then
     local output="$(md5r)"
     if [ -e "${1}" ]; then
-      printf 'Error: Output file already exists\n'
+      printf 'Error: Output file already exists\n' 1>&2
       return 1
     fi
     printf '%s\n' "$output" > "${1}"
   else
-    find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty md5sum
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty -- md5sum --
   fi
 }
 
@@ -108,12 +108,12 @@ sha256r() {
   if [ -n "${1}" ]; then
     local output="$(sha256r)"
     if [ -e "${1}" ]; then
-      printf 'Error: Output file already exists\n'
+      printf 'Error: Output file already exists\n' 1>&2
       return 1
     fi
     printf '%s\n' "$output" > "${1}"
   else
-    find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty -- sha256sum --
   fi
 }
 
@@ -199,7 +199,7 @@ cmpimg() {
   if [ -z "${3}" ]; then
     out_file='null:'
   elif [ -e "${3}" ]; then
-    printf 'Error: Output file already exists\n'
+    printf 'Error: Output file already exists\n' 1>&2
     return 1
   else
     out_file="${3}"
@@ -215,7 +215,7 @@ cmpgif() {
   if [ -z "${3}" ]; then
     out_file='null:'
   elif [ -e "${3}" ]; then
-    printf 'Error: Output file already exists\n'
+    printf 'Error: Output file already exists\n' 1>&2
     return 1
   else
     out_file="${3}"
@@ -270,7 +270,7 @@ ffmpeg_screenrec() {
   local aac_bitrate="$8"
   local region="$9"
   if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
-    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n'
+    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n' 1>&2
     return 1
   fi
   local vf='format=yuv420p'
@@ -315,7 +315,7 @@ ffmpeg_trim() {
   local start_time="$3"
   local end_time="$4"
   if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
-    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n'
+    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n' 1>&2
     return 1
   fi
   ffmpeg_bitexact "${in_file}" "${out_file}" \
@@ -522,7 +522,12 @@ batch_optimize_files() {
     if [ -n "${extension}" ]; then
       suffix=".${extension}"
     fi
-    local temp_file="$(mktemp "--suffix=${suffix}" "${in_file}.XXXXXX")"
+    local temp_file=''
+    temp_file="$(mktemp "--suffix=${suffix}" "${in_file}.XXXXXX")"
+    if [ "$?" -ne 0 ]; then
+      printf 'Error: Could not create temp file for %s\n' "${in_file}" 1>&2
+      continue
+    fi
     
     case "$filetype" in
       'jpg' | 'jpeg')
@@ -554,7 +559,7 @@ batch_optimize_files() {
                         -map 0:a:0
       ;;
       *)
-        printf 'Error: Invalid filetype. Valid filetypes are:\n'
+        printf 'Error: Invalid filetype. Valid filetypes are:\n' 1>&2
         printf '       [ jpeg | png | pngm | gif | audio | video | video-subtitled ]\n'
         return 1
       ;;
@@ -564,7 +569,7 @@ batch_optimize_files() {
     printf '\n'
     if [ "$ret" -ne 0 ]; then
       rm -f -- "${temp_file}"
-      printf 'Error, Skipping %s\n\n' "${in_file}"
+      printf 'Error, Skipping %s\n\n' "${in_file}" 1>&2
       continue
     fi
     
@@ -648,21 +653,21 @@ set_terminal_colors() {
   local palette_regex='^\[('\''#[[:xdigit:]]{6}'\'', ){15}'\''#[[:xdigit:]]{6}'\''\]$'
   if [ -n "$1" ] && [ "$1" != _ ]; then
     if [[ ! "$1" =~ $color_regex ]]; then
-      printf 'Error: Invalid background color\n'
+      printf 'Error: Invalid background color\n' 1>&2
       return 1
     fi
     bg_color="$1"
   fi
   if [ -n "$2" ] && [ "$2" != _ ]; then
     if [[ ! "$2" =~ $color_regex ]]; then
-      printf 'Error: Invalid foreground color\n'
+      printf 'Error: Invalid foreground color\n' 1>&2
       return 1
     fi
     fg_color="$2"
   fi
   if [ -n "$3" ] && [ "$3" != _ ]; then
     if [[ ! "$3" =~ $palette_regex ]]; then
-      printf 'Error: Invalid palette\n'
+      printf 'Error: Invalid palette\n' 1>&2
       return 1
     fi
     palette="$3"
@@ -672,7 +677,7 @@ set_terminal_colors() {
   local regex='^:[[:xdigit:]-]+/$'
   if [[ ! "$profiles" =~ $regex ]]; then
     # TODO: allow specifying a profile
-    printf 'Error: Could not get terminal profile, or got multiple profiles\n'
+    printf 'Error: Could not get terminal profile, or got multiple profiles\n' 1>&2
     return 1
   fi
   local profile="$profiles"
@@ -711,11 +716,11 @@ mouse_sensitivity_config() {
     ;;
     *)
       if ! is_decimal "$1"; then
-        printf 'Error: Invalid speed\n'
+        printf 'Error: Invalid speed\n' 1>&2
         return 1
       fi
       if [ "$2" != 'default' ] && [ "$2" != 'flat' ] && [ "$2" != 'adaptive' ]; then
-        printf 'Error: Invalid accel-profile\n'
+        printf 'Error: Invalid accel-profile\n' 1>&2
         return 1
       fi
       gsettings set org.gnome.desktop.peripherals.mouse speed "$1"
@@ -743,7 +748,7 @@ capslock_key_config() {
       gsettings reset org.gnome.desktop.input-sources xkb-options
     ;;
     *)
-      printf 'Error: Invalid setting, see --help\n'
+      printf 'Error: Invalid setting, see --help\n' 1>&2
     ;;
   esac
 }
@@ -756,7 +761,7 @@ kppextract() {
 
 kpptotxt() {
   if [ -e "${1}.txt" ]; then
-    printf 'Error: Output file %s already exists\n' "${1}.txt"
+    printf 'Error: Output file %s already exists\n' "${1}.txt" 1>&2
     return 1
   fi
   local preset="$(kppextract "${1}")"
@@ -772,7 +777,7 @@ kppdiff() {
 
 kppwrite() {
   if [ -e "${2}" ]; then
-    printf 'Error: Output file %s already exists\n' "${2}"
+    printf 'Error: Output file %s already exists\n' "${2}" 1>&2
     return 1
   fi
   local text="$(<"${3}")"
