@@ -528,6 +528,7 @@ batch_optimize_files() {
       printf 'Error: Could not create temp file for %s\n' "${in_file}" 1>&2
       continue
     fi
+    chmod 664 -- "${temp_file}"
     
     case "$filetype" in
       'jpg' | 'jpeg')
