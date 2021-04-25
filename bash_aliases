@@ -87,6 +87,13 @@ is_printable_ascii() {
   [[ "$1" =~ $regex ]]
 }
 
+is_permissions() {
+  local LC_ALL=C
+  export LC_ALL
+  local regex='^[0-7]{3}$'
+  [[ "$1" =~ $regex ]]
+}
+
 contains_nl_or_bs() {
   [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
@@ -514,13 +521,21 @@ tumblrbackuppost() {
 batch_optimize_files() {
   local filetype="$1"
   shift 1
+  
+  local success_count='0'
+  local fail_count='0'
   for in_file in "$@"; do
-    printf '\n** Processing: %s\n' "$in_file"
-    local in_size="$(stat -c '%s' "$in_file")"
-    printf 'Input file size = %s bytes\n\n' "$in_size"
+    printf '======== Processing file: %s\n' "${in_file}"
+    local in_size="$(stat -c '%s' "${in_file}")"
+    local in_perms="$(stat -c '%a' "${in_file}")"
+    if ! is_permissions "$in_perms"; then
+      fail_count="$(( "$fail_count" + 1 ))"
+      printf '\e[0;31m==== Error:\e[0m Could not read input file permissions\n\n\n' 1>&2
+      continue
+    fi
     
     # TODO: handle case where extension is missing or doesn't match container format
-    local base_name="$(basename ${in_file})"
+    local base_name="$(basename "${in_file}")"
     local extension="${base_name##*.}"
     local suffix=''
     if [ -n "${extension}" ]; then
@@ -529,10 +544,10 @@ batch_optimize_files() {
     local temp_file=''
     temp_file="$(mktemp "--suffix=${suffix}" "${in_file}.XXXXXX")"
     if [ "$?" -ne 0 ]; then
-      printf 'Error: Could not create temp file for %s\n' "${in_file}" 1>&2
+      fail_count="$(( "$fail_count" + 1 ))"
+      printf '\e[0;31m==== Error:\e[0m Could not create temp file\n\n\n' 1>&2
       continue
     fi
-    chmod 664 -- "${temp_file}"
     
     case "$filetype" in
       'jpg' | 'jpeg')
@@ -569,24 +584,27 @@ batch_optimize_files() {
         return 1
       ;;
     esac
-    
-    local ret="$?"
-    printf '\n'
-    if [ "$ret" -ne 0 ]; then
+    if [ "$?" -ne 0 ]; then
       rm -f -- "${temp_file}"
-      printf 'Error, Skipping %s\n\n' "${in_file}" 1>&2
+      fail_count="$(( "$fail_count" + 1 ))"
+      printf '\e[0;31m==== Error:\e[0m Could not optimize %s\n\n\n' "${in_file}" 1>&2
       continue
     fi
     
     rm -f -- "${in_file}"
+    chmod "$in_perms" -- "${temp_file}"
     mv --no-target-directory "${temp_file}" "${in_file}"
+    success_count="$(( "$success_count" + 1 ))"
     local out_size="$(stat -c '%s' "${in_file}")"
     
-    local size_diff="$(($in_size - $out_size))"
+    local size_diff="$(( "$in_size" - "$out_size" ))"
     local percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
-    printf 'Output file size = %d bytes (%d bytes = %.2f%% decrease)\n\n' \
-           "$out_size" "$size_diff" "$percent_diff"
+    printf '==== Reduced file size by %d bytes (%.2f%%)\n\n\n' "$size_diff" "$percent_diff"
   done
+  printf '======== %s files successfully optimized\n' "$success_count"
+  if [ "$fail_count" -ne 0 ]; then
+    printf '\e[0;31m==== Note:\e[0m %s files could not be optimized due to errors\n' "$fail_count" 1>&2
+  fi
 }
 
 jpgoptim() {
