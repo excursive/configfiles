@@ -91,6 +91,10 @@ contains_nl_or_bs() {
   [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
 
+permcheck() {
+  find . -perm -o=w -a \! -type l
+}
+
 md5r() {
   if [ -n "${1}" ]; then
     local output="$(md5r)"
