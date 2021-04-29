@@ -286,7 +286,7 @@ Type=Application
 Name=Blender
 Comment=Free and open source 3D creation suite
 Icon=${install_dir}/blender.svg
-Exec=${install_dir}/blender
+Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${install_dir}/blender
 Path=${install_dir}
 Terminal=false
 Category=Video;Graphics;"
