@@ -26,9 +26,6 @@ alias aadebug="apparmor_parser -Q --debug"
 
 
 
-
-#alias protonrun="STEAM_COMPAT_DATA_PATH=~/PREFIX_LOCATION/ ~/.steam/ubuntu12_32/steam-runtime/run.sh ~/.steam/steam/steamapps/common/Proton\ 3.7/proton run ~/PROGRAM_LOCATION"
-
 #wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/tag+name/page" 'https://staff.tumblr.com/tagged/tag+name'
 
 is_positive_integer() {
@@ -126,6 +123,16 @@ sha256r() {
   else
     find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty sha256sum --
   fi
+}
+
+proton_prefix_run() {
+  local prefix_path="${1}"
+  local proton_version="$2"
+  local executable_to_run="${3}"
+  env STEAM_COMPAT_DATA_PATH="${prefix_path}" \
+    "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
+    "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/proton" run \
+    "${executable_to_run}"
 }
 
 grep-non-ascii() {

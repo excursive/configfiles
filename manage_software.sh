@@ -299,7 +299,7 @@ Category=Video;Graphics;"
 
 manage_lmms() {
   case "$1" in
-    'default' | '1.2.2')
+    'default')
       printf '\n======== Defaulting to LMMS version 1.2.2\n'
       local lmms_version='1.2.2'
       local lmms_commit_sha1='94363be152f526edba4e884264d891f1361cf54b'
@@ -563,9 +563,9 @@ manage_vim_lightline() {
 
 manage_youtube_dl() {
   case "$1" in
-    'default' | '2020.11.26')
-      printf '\n======== Defaulting to youtube-dl version 2021.04.01\n'
-      local youtube_dl_version='ca304beb1538e54c5a18fdd50846ed2259d63b8c'
+    'default')
+      printf '\n======== Defaulting to youtube-dl version 2021.04.26\n'
+      local youtube_dl_version='273964d190fb048477e71114c4734fcb819c5c16'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -587,6 +587,37 @@ manage_youtube_dl() {
 python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
   
   save_launcher_script 'youtube-dl' "$launcher_text"
+}
+
+
+
+
+manage_winetricks() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to winetricks version 20210206 from Feb 6, 2021\n'
+      local winetricks_version='49e7f00aa889030aea7d10bd533a4b1922b466b1'
+    ;;
+    *)
+      # sed deletion is by line number, so must stick to a specific commit
+      #if is_valid_sha1 "$1"; then
+      #  local winetricks_version="$1"
+      #else
+        printf '\n======== Error: winetricks version is not default or a valid sha1 hash\n'
+        exit 1
+      #fi
+    ;;
+  esac
+  
+  local winetricks_dir="${PWD}/winetricks"
+  
+  checkout_commit "${winetricks_dir}" "$winetricks_version" \
+                  'https://github.com/Winetricks/winetricks.git'
+  
+  printf '\n==== Deleting checksum skip for downloads over 500 MB (lines 1318 to 1326)\n'
+  sed -i -e '1318,1326d' "${winetricks_dir}/src/winetricks"
+  
+  create_symlinks "${winetricks_dir}/src/winetricks"
 }
 
 
@@ -674,8 +705,8 @@ manage_zopflipng() {
 manage_pngquant() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to pngquant version from December 2020\n'
-      local pngquant_version='2540662cf2c847fbf5d90ce3bf74b8ce506557e3'
+      printf '\n======== Defaulting to pngquant version 2.15.1 from May 13, 2021\n'
+      local pngquant_version='a6ff122ac96f47deec2a9b3d67f5e6654ccd9bbf'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -757,9 +788,9 @@ manage_pngquant() {
 
 manage_gifski() {
   case "$1" in
-    'default' | '1.2.2')
-      printf '\n======== Defaulting to gifski version 1.2.0\n'
-      local gifski_version='4a6b9411a79436da40c5bee3aa9afa74559a76d5'
+    'default')
+      printf '\n======== Defaulting to gifski version 1.4.0 from Feb 14, 2021\n'
+      local gifski_version='12a362e0d14d555ae10e3b0795f6320af1458927'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -852,8 +883,8 @@ manage_gifski() {
 
 manage_gifsicle() {
   case "$1" in
-    'default' | '1.92')
-      printf '\n======== Defaulting to gifsicle version 1.92\n'
+    'default')
+      printf '\n======== Defaulting to gifsicle version 1.92 from Apr 18, 2019\n'
       local gifsicle_version='1e2ca7401692ba94d7405de6e9dd1d1e73ca880f'
     ;;
     *)
@@ -947,9 +978,9 @@ manage_gifsicle() {
 
 manage_mozjpeg() {
   case "$1" in
-    'default' | '4.0.0')
-      printf '\n======== Defaulting to mozjpeg version 4.0.0\n'
-      local mozjpeg_version='d23e3fc58613bc3f0aa395a8c73a2b1e7dae9e25'
+    'default')
+      printf '\n======== Defaulting to mozjpeg version 4.0.3 from Feb 25, 2021\n'
+      local mozjpeg_version='ed21c3ba6fff72ed9ca0b2cf03bcc6f41ac5271d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1087,9 +1118,9 @@ manage_mozjpeg() {
 
 manage_godot() {
   case "$1" in
-    'default' | '3.2.3')
-      printf '\n======== Defaulting to godot version 3.2.3\n'
-      local godot_version='31d0f8ad8d5cf50a310ee7e8ada4dcdb4510690b'
+    'default')
+      printf '\n======== Defaulting to godot version 3.3 from Apr 21, 2021\n'
+      local godot_version='8e68f2e5f48c66bfa80b9bb7746a488afb70086d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1194,9 +1225,9 @@ Category=Development;Game;Graphics;"
 
 manage_aseprite() {
   case "$1" in
-    'default' | '1.2.25')
-      printf '\n======== Defaulting to aseprite version 1.2.25\n'
-      local aseprite_version='f44aad06db9d7a7efe9beb0038df37140ac9c2ba'
+    'default')
+      printf '\n======== Defaulting to aseprite version 1.2.27 from Apr 19, 2021\n'
+      local aseprite_version='32b5d20a8d88d92e413cad474325fb64a9860f12'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1279,7 +1310,7 @@ manage_aseprite() {
                     'https://skia.googlesource.com/skia.git'
     
     printf '\n==== Syncing skia dependencies\n'
-    PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
+    env PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
     
     printf '\n==== Modifying files to match aseprite-m81 skia\n'
     sed -i -e '1878i\
@@ -1313,7 +1344,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
       exit 1
     fi
     cd "${skia_src_dir}"
-    PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
+    env PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
       --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
     cd "${skia_build_dir}"
     ninja -C "${skia_build_dir}" skia modules
@@ -1458,6 +1489,9 @@ case "$1" in
   ;;
   'pngquant')
     manage_pngquant "$version" "$keep_sources"
+  ;;
+  'winetricks')
+    manage_winetricks "$version" "$keep_sources"
   ;;
   'youtube-dl')
     manage_youtube_dl "$version"
