@@ -125,14 +125,97 @@ sha256r() {
   fi
 }
 
-proton_prefix_run() {
-  local prefix_path="${1}"
+proton_wine() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Arguments:\n'
+    printf '  action: [ env | wine | steam ]\n'
+    printf '    env: set WINE and WINEPREFIX environment variables and run command\n'
+    printf '    wine: set wine env vars and run command with proton like normal wine\n'
+    printf '    steam: set STEAM_COMPAT_DATA_PATH var and run command with proton\n'
+    printf '  proton version\n'
+    printf '  wine prefix: [ (wine prefix path) | (steam app id) ]\n'
+    printf '  start from: [ temp-dir | current-dir | executable-dir ]\n'
+    printf '    (helpful for windows programs that only check current directory for dlls)\n'
+    printf '  command to run (or to be run with wine)\n'
+    return 0
+  fi
+  local action="$1"
   local proton_version="$2"
-  local executable_to_run="${3}"
-  env STEAM_COMPAT_DATA_PATH="${prefix_path}" \
-    "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-    "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/proton" run \
-    "${executable_to_run}"
+  local command_to_run="${5}"
+  if [ ! -x "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" ]; then
+    printf 'Error: Could not find specified proton version: %s\n' "$proton_version" 1>&2
+    return 1
+  fi
+  local orig_dir="${PWD}"
+  local start_dir=''
+  case "${3}" in
+    'temp-dir' | 'tmp-dir')
+      start_dir='/tmp'
+    ;;
+    'current-dir')
+      start_dir="${orig_dir}"
+    ;;
+    'executable-dir')
+      local executable_path=''
+      executable_path="$(realpath -e "${command_to_run}")"
+      if [ "$?" -ne 0 ]; then
+        printf 'Error: Could not get path of executable: %s\n' "${command_to_run}" 1>&2
+        return 1
+      fi
+      start_dir="$(dirname "${executable_path}")"
+    ;;
+    *)
+      printf 'Error: Invalid start directory, see --help\n' 1>&2
+      return 1
+    ;;
+  esac
+  local prefix=''
+  if is_positive_integer "${4}"; then
+    if [ ! -d "${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx" ]; then
+      printf 'Error: Could not find prefix for specified steam app id: %s\n' "${4}" 1>&2
+      return 1
+    fi
+    if [ "$action" = 'steam' ]; then
+      prefix="${HOME}/.steam/debian-installation/steamapps/compatdata/${4}"
+    else
+      prefix="${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx"
+    fi
+  else
+    prefix="${4}"
+  fi
+  shift 4
+  
+  if ! cd "${start_dir}"; then
+    printf 'Error: Could not cd to start directory\n' 1>&2
+    return 1
+  fi
+  case "$action" in
+    'env')
+      env WINE="${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+          WINEPREFIX="${prefix}" \
+          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
+          "$@"
+    ;;
+    'wine')
+      env WINE="${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+          WINEPREFIX="${prefix}" \
+          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
+          "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+          "$@"
+    ;;
+    'steam')
+      env STEAM_COMPAT_DATA_PATH="${prefix}" \
+          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
+          "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/proton" run \
+          "$@"
+    ;;
+    *)
+      printf 'Error: Invalid action, see --help\n' 1>&2
+      cd "${orig_dir}"
+      return 1
+    ;;
+  esac
+  cd "${orig_dir}"
 }
 
 grep-non-ascii() {
