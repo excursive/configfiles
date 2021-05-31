@@ -564,8 +564,8 @@ manage_vim_lightline() {
 manage_youtube_dl() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to youtube-dl version 2021.04.26\n'
-      local youtube_dl_version='273964d190fb048477e71114c4734fcb819c5c16'
+      printf '\n======== Defaulting to youtube-dl version 2021.05.16\n'
+      local youtube_dl_version='f47627a1c9a790fac29d5c166bc0f7944fcb1a98'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1119,8 +1119,8 @@ manage_mozjpeg() {
 manage_godot() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to godot version 3.3 from Apr 21, 2021\n'
-      local godot_version='8e68f2e5f48c66bfa80b9bb7746a488afb70086d'
+      printf '\n======== Defaulting to godot version 3.3.2 from May 24, 2021\n'
+      local godot_version='7610409b8a14b8499763efa76578795c755a846d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
