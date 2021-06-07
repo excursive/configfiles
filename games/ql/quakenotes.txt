@@ -1,0 +1,9 @@
+base quake live m_cpi=800 mouse sens: 10.5 = 1.51534 normal quake sens
+
+sensitivities tested for playing without acceleration:
+1.25 times base: 1.89418
+1.25 times base (zoom): 1.52160
+1.5 times base: 2.27301
+1.5 times base (zoom): 1.74259
+
+m_cpi=800 ql mouse sens cap: 21.0 = 3.03068 normal quake sens
