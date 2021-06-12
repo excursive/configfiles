@@ -564,8 +564,8 @@ manage_vim_lightline() {
 manage_youtube_dl() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to youtube-dl version 2021.05.16\n'
-      local youtube_dl_version='f47627a1c9a790fac29d5c166bc0f7944fcb1a98'
+      printf '\n======== Defaulting to youtube-dl version 2021.06.06\n'
+      local youtube_dl_version='b224cf39d53bd16bcfda2ac493712c3ff449ecb8'
     ;;
     *)
       if is_valid_sha1 "$1"; then
