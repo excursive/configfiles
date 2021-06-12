@@ -80,7 +80,7 @@ is_domain_list() {
 is_printable_ascii() {
   local LC_ALL=C
   export LC_ALL
-  local regex='[ -~]'
+  local regex='^[ -~]*$'
   [[ "$1" =~ $regex ]]
 }
 
@@ -218,7 +218,7 @@ proton_wine() {
   cd "${orig_dir}"
 }
 
-grep-non-ascii() {
+grep_non_ascii() {
   local LC_ALL=C
   export LC_ALL
   
