@@ -6,7 +6,7 @@ patch_steam_quake_2() {
   
   # make sure we have an unmodified steam quake2 version 3.20 exe
   local q2_exe="${HOME}/.steam/debian-installation/steamapps/common/Quake 2/quake2.exe"
-  if [ ! -w  ]; then
+  if [ ! -w "${q2_exe}" ]; then
     printf 'Error: Steam quake 2 v3.20 exe does not exist or is not writable\n' 1>&2
     exit 1
   fi
