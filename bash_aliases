@@ -329,6 +329,11 @@ cmpgif() {
   printf '\n'
 }
 
+cmpgifdiff() {
+  gifdiff "${1}" "${2}"
+  printf '%s\n' "$?"
+}
+
 sha256audio() {
   ffmpeg -loglevel error -i "$1" -map 0:a -f hash -
 }

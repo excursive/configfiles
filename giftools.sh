@@ -14,20 +14,6 @@ is_positive_integer_range() {
   [[ "$1" =~ $regex ]]
 }
 
-is_decimal() {
-  local LC_ALL=C
-  export LC_ALL
-  local regex='^[+-]?(([[:digit:]]+(\.[[:digit:]]*)?)|(\.[[:digit:]]+))$'
-  [[ "$1" =~ $regex ]]
-}
-
-is_color_hex_code() {
-  local LC_ALL=C
-  export LC_ALL
-  local regex='^#[[:xdigit:]]{6}([[:xdigit:]]{2})?$'
-  [[ "$1" =~ $regex ]]
-}
-
 is_alphanumeric() {
   local LC_ALL=C
   export LC_ALL
@@ -35,12 +21,6 @@ is_alphanumeric() {
   [[ "$1" =~ $regex ]]
 }
 
-is_printable_ascii() {
-  local LC_ALL=C
-  export LC_ALL
-  local regex='[ -~]'
-  [[ "$1" =~ $regex ]]
-}
 
 
 
@@ -105,8 +85,8 @@ reduce_colors() {
   local original_colors="$(identify -alpha Background -format '%k' "${input_file}")"
   # handle case where input image has less than specified max colors, otherwise
   # color quantization will never find more colors beyond what's in the image
-  local max_colors="$(( "$original_colors" < "$4" ? \
-                        "$original_colors" : "$4" ))"
+  local max_colors="$(( $original_colors < $4 ? \
+                        $original_colors : $4 ))"
   #printf 'number of colors in original image: %s\n' "$original_colors" >&2
   #printf 'target number of colors: %s\n' "$max_colors" >&2
   shift 5
@@ -116,7 +96,7 @@ reduce_colors() {
   local guess="$low_guess"
   local high_guess=''
   local guess_result='0'
-  while [ -z "$high_guess" ] || [ "$low_guess" -lt "$(( "$high_guess" - 1 ))" ]; do
+  while [ -z "$high_guess" ] || [ "$low_guess" -lt "$(( $high_guess - 1 ))" ]; do
     # important: for -quantize LAB we need to convert to 16 bit depth and LAB colorspace,
     # otherwise precision errors slightly shift the resulting palette, creating
     # very subtle dithering in solid blocks of color that look like random dead pixels
@@ -144,9 +124,9 @@ reduce_colors() {
       rm -f -- "${output_file}-test"
     fi
     if [ -z "$high_guess" ]; then
-      guess="$(( "$low_guess" * 2 ))"
+      guess="$(( $low_guess * 2 ))"
     else
-      guess="$(( "$low_guess" + ( ( "$high_guess" - "$low_guess" ) / 2 ) ))"
+      guess="$(( $low_guess + ( ( $high_guess - $low_guess ) / 2 ) ))"
     fi
   done
   # don't accidentally delete this printf lol
@@ -155,40 +135,11 @@ reduce_colors() {
 
 
 
-video_frames() {
-  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf 'Arguments:\n'
-    printf '  input video\n'
-    printf '  starting time\n'
-    printf '  ending time\n'
-    printf '    format: [-][HH:]MM:SS[.XX]\n'
-    printf '                    [-]SS[.XX][s|ms|us]\n'
-    printf '  name of directory to save frames to\n'
-    exit 0
-  fi
-  local input="$1"
-  local start="$2"
-  local end="$3"
-  local output_dir="$4"
-  if [ -e "${output_dir}" ]; then
-    printf 'Error: Output directory already exists\n'
-    exit 1
-  fi
-  if ! mkdir "${output_dir}"; then
-    printf 'Error: Could not create output directory\n'
-    exit 1
-  fi
-  ffmpeg -i "${input}" -ss "$start" -to "$end" -map_metadata -1 \
-         -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
-         "${output_dir}/%01d.png"
-}
-
-
 
 process_frames() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'
-    printf '  folder of frames\n'
+    printf '  folder of frames named 1.png, 2.png, ...\n'
     printf '  [ all | (range of frames, e.g. 23-52) | (single frame number) ]\n'
     printf '  output format: [ png | gif (for programs that only accept gifs as input) ]\n'
     printf '  working colorspace: [ LAB | sRGB | (colorspace) ]\n'
@@ -209,7 +160,7 @@ process_frames() {
   local end_frame=''
   if [ "$2" = 'all' ]; then
     start_frame='1'
-    end_frame='999999'
+    end_frame='9999'
   elif is_positive_integer "$2"; then
     start_frame="$2"
     end_frame="$2"
@@ -246,335 +197,142 @@ process_frames() {
   
   printf 'Processing frames: '
   local current_frame="$start_frame"
-  while [ "$current_frame" -le "$end_frame" ] && \
-        [ -e "${frame_directory}/${current_frame}.png" ]; do
-    printf '%s ' "$current_frame"
-    if [ "$out_format" = 'gif' ]; then
-      edit_in_colorspace "${frame_directory}/${current_frame}.png" \
-                         "${frame_directory}/${current_frame}-out.gif" \
-                         "$working_colorspace" "$@" '-colors' '256'
-    else
-      edit_in_colorspace "${frame_directory}/${current_frame}.png" \
-                         "${frame_directory}/${current_frame}-out.png" \
-                         "$working_colorspace" "$@"
+  while [ "$current_frame" -le "$end_frame" ]; do
+    if [ -e "${frame_directory}/${current_frame}.png" ]; then
+      printf '%s ' "$current_frame"
+      if [ "$out_format" = 'gif' ]; then
+        if [ -e "${frame_directory}/${current_frame}-out.gif" ]; then
+          printf '\e[0;31mError:\e[0m File with frame output filename already exists\n\n' 1>&2
+          exit 1
+        fi
+        edit_in_colorspace "${frame_directory}/${current_frame}.png" \
+                           "${frame_directory}/${current_frame}-out.gif" \
+                           "$working_colorspace" "$@" '-colors' '256'
+      else
+        if [ -e "${frame_directory}/${current_frame}-out.png" ]; then
+          printf '\e[0;31mError:\e[0m File with frame output filename already exists\n\n' 1>&2
+          exit 1
+        fi
+        edit_in_colorspace "${frame_directory}/${current_frame}.png" \
+                           "${frame_directory}/${current_frame}-out.png" \
+                           "$working_colorspace" "$@"
+      fi
     fi
-    current_frame="$(( "$current_frame" + 1 ))"
+    current_frame="$(( $current_frame + 1 ))"
   done
   printf '\n\nAll done!\n'
 }
 
 
 
-create_gif_gifski() {
+
+process_gif() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf 'Arguments:\n'
-    printf '  output file\n'
-    printf '  folder of frames\n'
-    printf '  [ all | (range of frames, e.g. 23-52) | (single frame number) ]\n'
-    printf '  loopcount [ forever | once ]\n'
-    printf '  max width   [ (maximum width)  | _ ]\n'
-    printf '  max height  [ (maximum height) | _ ]\n'
-    printf '    (an underscore on one dimension leaves it unconstrained)\n'
-    printf '    (stretches if both width and height are set)\n'
-    printf '  quality (integer 1-100)\n'
-    printf '  fps\n'
-    exit 0
-  fi
-  
-  local output_file="${1}"
-  if [ -e "${output_file}" ]; then
-    printf 'Error: Output file already exists\n'
-    exit 1
-  fi
-  
-  if [ ! -d "${2}" ]; then
-    printf 'Error: Invalid frame directory\n'
-    exit 1
-  fi
-  local frame_directory="${2}"
-  
-  local start_frame=''
-  local end_frame=''
-  if [ "$3" = 'all' ]; then
-    start_frame='1'
-    end_frame='999999'
-  elif is_positive_integer "$3"; then
-    start_frame="$3"
-    end_frame="$3"
-  elif is_positive_integer_range "$3"; then
-    start_frame="${3%%-*}"
-    end_frame="${3##*-}"
-    if [ "$end_frame" -lt "$start_frame" ]; then
-      printf 'Error: Ending frame number lower than starting frame number\n'
-      exit 1
-    fi
-  else
-    printf 'Error: Invalid frame numbers\n'
-    exit 1
-  fi
-  
-  local -a args=()
-  
-  if [ "$4" = 'once' ]; then
-    args+=( '--once' )
-  elif [ "$4" != 'forever' ]; then
-    printf 'Error: Invalid loopcount\n'
-    exit 1
-  fi
-  
-  if [ "$5" != '_' ]; then
-    if is_positive_integer "$5"; then
-      args+=( '--width' "$5" )
-    else
-      printf 'Error: Invalid maximum width\n'
-      exit 1
-    fi
-  fi
-  
-  if [ "$6" != '_' ]; then
-    if is_positive_integer "$6"; then
-      args+=( '--height' "$6" )
-    else
-      printf 'Error: Invalid maximum height\n'
-      exit 1
-    fi
-  fi
-  
-  if is_positive_integer "$7" && [ "$7" -ge 1 ] && [ "$7" -le 100 ]; then
-    args+=( '--quality' "$7" )
-  else
-    printf 'Error: Quality must be an integer from 1 to 100\n'
-    exit 1
-  fi
-  
-  if is_positive_integer "$8" && [ "$8" -ge 1 ]; then
-    args+=( '--fps' "$8" )
-  else
-    printf 'Error: FPS must be an integer greater than 0\n'
-    exit 1
-  fi
-  
-  shift 8
-  
-  local current_frame="$start_frame"
-  while [ "$current_frame" -le "$end_frame" ] && \
-        [ -e "${frame_directory}/${current_frame}-out.png" ]; do
-    args+=( "${frame_directory}/${current_frame}-out.png" )
-    current_frame="$(( "$current_frame" + 1 ))"
-  done
-  
-  gifski "${args[@]}" --output "${output_file}"
-}
-
-
-
-create_gif_gifsicle() {
-  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf 'Arguments:\n'
-    printf '  output file\n'
-    printf '  folder of frames\n'
-    printf '  [ all | (range of frames, e.g. 23-52) | (single frame number) ]\n'
-    printf '  resize-method [ default (catrom) | (gifsicle resize-method) ]\n'
-    printf '  color-method [ default (blend-diversity) | (gifsicle color-method) ]\n'
-    printf '  loopcount [ forever | (positive integer) ]\n'
-    printf '  dither method [ default (ordered) | (gifsicle dither method) ]\n'
-    printf '  resize-colors [ default (256) | integer <= 256 ]\n'
+    printf 'process-gif: Merges the input gif(s) into an optimized gif with gifsicle\n'
+    printf 'Arguments: --color-method X [OPTIONS]... -- <OUTPUT.gif> <INPUT.gif>...\n'
+    printf 'Options:\n'
+    printf '  --resize-method [ default (catrom) | ... ]\n'
+    printf '  --color-method [ median-cut | blend-diversity | ... ]\n'
+    printf '  --dither [ default (ordered) | o4 | squarehalftone,4,4 | ... ]\n'
+    printf '  --resize-colors [ default (256) | integer <= 256 ]\n'
     printf '    (when resizing images, add intermediate colors when image has fewer than\n'
     printf '     the given number of colors)\n'
-    printf '  global color table [ no-gct | integer <= 256 ]\n'
+    printf '  --colors global color table [ no-gct | integer <= 256 ]\n'
     printf '    (reduces the total number of colors to the given number to eliminate\n'
     printf '     any local color tables, reducing filesize)\n'
-    printf '  resize-fit  [ none | (maximum widthxheight) ]\n'
+    printf '  --resize-fit  [ none | (maximum widthxheight) ]\n'
     printf '    (does not resize image if it already fits within dimensions)\n'
     printf '    (an underscore on one dimension leaves it unconstrained)\n'
-    printf '  optimization level [ O1 (frame) | O2 (+transparency) | O3 (+try several) ]\n'
-    printf '  lossy lzw compression [ no-lossy | lossy-default (20) | (positive integer) ]\n'
+    printf '  --lossy [ (positive integer) ]\n'
     printf '    (higher values = more artifacts and noise, but potentially smaller files)\n'
-    printf '  delay [ (integer >= 0; duration of each frame in 1/100ths of a second) ]\n'
-    printf '  operation [ (gifsicle mode option, listed below:) ]\n'
-    printf '    merge: combine all gif inputs into one output\n'
-    printf '    batch: modify each gif input in place, writing to the same filename\n'
-    printf '    explode: create an output gif for each frame of input file\n'
+    printf '  --delay [ (positive integer; duration of each frame in 1/100ths of a second) ]\n'
     exit 0
   fi
   
-  local output_file="${1}"
-  if [ -e "${output_file}" ]; then
-    printf 'Error: Output file already exists\n'
-    exit 1
-  fi
-  
-  if [ ! -d "${2}" ]; then
-    printf 'Error: Invalid frame directory\n'
-    exit 1
-  fi
-  local frame_directory="${2}"
-  
-  local start_frame=''
-  local end_frame=''
-  if [ "$3" = 'all' ]; then
-    start_frame='1'
-    end_frame='999999'
-  elif is_positive_integer "$3"; then
-    start_frame="$3"
-    end_frame="$3"
-  elif is_positive_integer_range "$3"; then
-    start_frame="${3%%-*}"
-    end_frame="${3##*-}"
-    if [ "$end_frame" -lt "$start_frame" ]; then
-      printf 'Error: Ending frame number lower than starting frame number\n'
-      exit 1
-    fi
-  else
-    printf 'Error: Invalid frame numbers\n'
-    exit 1
-  fi
+  local resize_method='catrom'
+  local color_method=''
+  local dither='ordered'
+  local resize_colors='256'
   
   local -a args=( '--no-app-extensions' '--no-names' '--no-comments' '--no-extensions' )
+  args+=( '-O2' )
   
-  args+=( '--resize-method' )
-  if [ "$4" = 'default' ]; then
-    args+=( 'catrom' )
-  elif is_printable_ascii "$4"; then
-    args+=( "$4" )
-  else
-    printf 'Error: Invalid resize method\n'
-    exit 1
-  fi
-  
-  args+=( '--color-method' )
-  if [ "$5" = 'default' ]; then
-    args+=( 'blend-diversity' )
-  elif is_printable_ascii "$5"; then
-    args+=( "$5" )
-  else
-    printf 'Error: Invalid color method\n'
-    exit 1
-  fi
-  
-  if [ "$6" = 'forever' ]; then
-    args+=( '--loopcount=forever' )
-  elif is_positive_integer "$6"; then
-    args+=( "--loopcount=${6}" )
-  else
-    printf 'Error: Invalid loopcount\n'
-    exit 1
-  fi
-  
-  if [ "$7" = 'default' ]; then
-    args+=( '--dither=ordered' )
-  elif is_printable_ascii "$7"; then
-    args+=( "--dither=${7}" )
-  else
-    printf 'Error: Invalid dither method\n'
-    exit 1
-  fi
-  
-  args+=( '--resize-colors' )
-  if [ "$8" = 'default' ]; then
-    args+=( '256' )
-  elif is_positive_integer "$8" && [ "$8" -le 256 ]; then
-    args+=( "$8" )
-  else
-    printf 'Error: Invalid resize-colors value\n'
-    exit 1
-  fi
-  
-  if [ "$9" = 'no-gct' ]; then
-    args+=()
-  elif is_positive_integer "$9" && [ "$9" -ge 2 ] && [ "$9" -le 256 ]; then
-    args+=( '--colors' "$9" )
-  else
-    printf 'Error: Invalid number of colors for global color table\n'
-    exit 1
-  fi
-  
-  if [ "${10}" = 'none' ]; then
-    args+=()
-  elif is_printable_ascii "${10}"; then
-    args+=( '--resize-fit' "${10}" )
-  else
-    printf 'Error: Invalid maximum dimensions\n'
-    exit 1
-  fi
-  
-  if [ "${11}" = 'O1' ]; then
-    args+=( '-O1' )
-  elif [ "${11}" = 'O2' ]; then
-    args+=( '-O2' )
-  elif [ "${11}" = 'O3' ]; then
-    args+=( '-O3' )
-  else
-    printf 'Error: Invalid optimization level\n'
-    exit 1
-  fi
-  
-  if [ "${12}" = 'no-lossy' ]; then
-    args+=()
-  elif [ "${12}" = 'lossy-default' ]; then
-    args+=( '--lossy' )
-  elif is_positive_integer "${12}"; then
-    args+=( "--lossy=${12}" )
-  else
-    printf 'Error: Invalid lossiness\n'
-    exit 1
-  fi
-  
-  args+=( '--delay' )
-  if is_positive_integer "${13}"; then
-    args+=( "${13}" )
-  else
-    printf 'Error: Invalid frame duration\n'
-    exit 1
-  fi
-  
-  local operation="${14}"
-  shift 14
-  args+=( "$@" )
-  if [ "$operation" = 'merge' ]; then
-    args+=( '--merge' )
-  elif [ "$operation" = 'batch' ]; then
-    args+=( '--batch' )
-  elif [ "$operation" = 'explode' ]; then
-    args+=( '--explode' )
-  else
-    printf 'Error: Invalid operation\n'
-    exit 1
-  fi
-  
-  local current_frame="$start_frame"
-  while [ "$current_frame" -le "$end_frame" ] && \
-        [ -e "${frame_directory}/${current_frame}-out.gif" ]; do
-    args+=( "${frame_directory}/${current_frame}-out.gif" )
-    current_frame="$(( "$current_frame" + 1 ))"
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '--resize-method')
+        resize_method="$2"
+      ;;
+      '--color-method')
+        color_method="$2"
+      ;;
+      '--dither')
+        dither="$2"
+      ;;
+      '--resize-colors')
+        resize_colors="$2"
+      ;;
+      '--colors')
+        args+=( '--colors' "$2" )
+      ;;
+      '--resize-fit')
+        args+=( '--resize-fit' "$2" )
+      ;;
+      '--lossy')
+        args+=( "--lossy=${2}" )
+      ;;
+      '--delay')
+        args+=( '--delay' "$2" )
+      ;;
+      '--')
+        shift 1
+        break
+      ;;
+      *)
+        printf '\e[0;31mError:\e[0m Invalid option or did not denote end of options with --\n\n' 1>&2
+        exit 1
+      ;;
+    esac
+    shift 2
   done
   
-  gifsicle "${args[@]}" > "${output_file}"
+  if [ -z "$color_method" ]; then
+    printf '\e[0;31mError:\e[0m Must specify a --color-method\n\n' 1>&2
+    exit 1
+  fi
+  
+  args+=( '--resize-method' "$resize_method" )
+  args+=( '--color-method' "$color_method" )
+  args+=( "--dither=${dither}" )
+  args+=( '--resize-colors' "$resize_colors" )
+  args+=( '--merge' )
+  
+  local output_file="${1}"
+  shift 1
+  if [ -e "${output_file}" ]; then
+    printf '\e[0;31mError:\e[0m Output file already exists\n\n' 1>&2
+    exit 1
+  fi
+  
+  gifsicle "${args[@]}" "$@" > "${output_file}"
 }
 
 
 
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
-  printf '  operation [ video-frames | process-frames | create-gif ]\n'
-  printf '    (see operation --help for operation arguments)\n'
+  printf '  operation [ frames | gif ]\n'
+  printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
 
 declare operation="$1"
 shift 1
 case "$operation" in
-  'video-frames')
-    video_frames "$@"
-  ;;
-  'process-frames')
+  'frames')
     process_frames "$@"
   ;;
-  'create-gif-gifski')
-    create_gif_gifski "$@"
-  ;;
-  'create-gif-gifsicle')
-    create_gif_gifsicle "$@"
+  'gif')
+    process_gif "$@"
   ;;
   *)
     printf '\nError: Invalid operation\n'
@@ -582,4 +340,5 @@ case "$operation" in
   ;;
 esac
 
+printf '\n'
 exit 0
