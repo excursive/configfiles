@@ -26,8 +26,6 @@ alias aadebug="apparmor_parser -Q --debug"
 
 
 
-#wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/tag+name/page" 'https://staff.tumblr.com/tagged/tag+name'
-
 is_positive_integer() {
   local LC_ALL=C
   export LC_ALL
@@ -293,8 +291,6 @@ grep_non_ascii() {
   done
 }
 
-# TODO: functions below have been edited but need testing
-
 cmpimg() {
   local out_file=''
   if [ -z "${3}" ]; then
@@ -343,11 +339,9 @@ sha256video() {
 }
 
 ffmpeg_bitexact() {
-  local in_file="${1}"
-  local out_file="${2}"
-  shift 2
-  ffmpeg -i "${in_file}" \
-         "$@" \
+  local out_file="${1}"
+  shift 1
+  ffmpeg "$@" \
          -map_metadata -1 -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
          "${out_file}"
 }
@@ -359,75 +353,57 @@ ffmpeg_screenrec() {
     printf '  screen offset [ "x,y" ]\n'
     printf '  recording resolution [ "widthxhegiht" ]\n'
     printf '  fps [ 24 | 30 | 60 ] (24 will use decimate filter to remove dup frames)\n'
-    printf '  tune [ film | animation | stillimage | etc. ]\n'
-    printf '  crf [ positive integer, 17 is a good choice for nearly lossless ]\n'
-    printf '  preset [ veryfast and slow are good choices ]\n'
-    printf '  aac bitrate [ 320k is a good choice for nearly lossless audio ]\n'
-    printf '  show_region [ 0 | 1 | (defaults to 0 if not specified) ]\n'
+    printf '  colorspace [ yuv420p (default) | rgb24 ]\n'
+    printf '  ... ffmpeg arguments, video and audio codec options, examples below:\n'
+    printf '    -show_region [ 0 (default) | 1 ]\n'
+    printf '    -c:v [ libx264 | ... ]\n'
+    printf '    -threads [ 1 | 2 | 3 | ... ] (libx264, more threads = small quality loss)\n'
+    printf '    -tune [ film | animation | stillimage | ... ]\n'
+    printf '    -crf [ ... | 22 | 23 (default) | 24 | ... ] (lower = higher quality)\n'
+    printf '    -preset [ veryfast | faster | fast | medium | slow | slower | veryslow ]\n'
+    printf '    -c:a [ aac | ... ]\n'
+    printf '    -b:a audio bitrate [ 320k is a good choice for nearly lossless audio ]\n'
     return 0
   fi
+  
   local out_file="${1}"
   local offset="$2"
   local resolution="$3"
   local fps="$4"
-  local tune="$5"
-  local crf="$6"
-  local preset="$7"
-  local aac_bitrate="$8"
-  local region="$9"
+  local colorspace="$5"
+  shift 5
+  
   if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
     printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n' 1>&2
     return 1
   fi
-  local vf='format=yuv420p'
+  
+  if [ "$colorspace" != 'yuv420p' ] && [ "$colorspace" != 'rgb24' ]; then
+    printf 'Error: colorspace should be yuv420p or rgb24\n' 1>&2
+    return 1
+  fi
+  local vf="format=${colorspace}"
   if [ "$fps" = '24' ]; then
     fps='30'
     vf="decimate=cycle=5,setpts=N/24/TB,${vf}"
   fi
-  [ -z "$region" ] && region='0'
+  
   local -a ffmpeg_args=( '-loglevel' 'warning' \
          '-f' 'x11grab' \
          '-framerate' "$fps" '-video_size' "$resolution" \
-         '-draw_mouse' '0' '-show_region' "$region" '-thread_queue_size' '1024' \
+         '-draw_mouse' '0' '-thread_queue_size' '1024' \
          '-i' "${DISPLAY}.0+${offset}" \
          '-f' 'pulse' '-channels' '2' '-ac' '2' '-thread_queue_size' '1024' \
          '-i' 'alsa_output.pci-0000_00_1f.3.analog-stereo.monitor' \
-         '-c:v' 'libx264' '-threads' '2' '-filter:v' "$vf" \
-         '-tune' "$tune" '-crf' "$crf" '-preset' "$preset" \
-         '-c:a' 'aac' '-b:a' "$aac_bitrate" \
+         '-filter:v' "$vf" \
+         "$@" \
          '-map' '0:v:0' '-map' '1:a:0' \
          '-map_metadata' '-1' \
          '-flags' 'bitexact' '-flags:v' 'bitexact' '-flags:a' 'bitexact' \
          '-fflags' 'bitexact' \
          "${out_file}" )
-  printf 'ffmpeg arguments: %s\n' "${ffmpeg_args[*]}"
+  printf 'running ffmpeg with these arguments: %s\n\n' "${ffmpeg_args[*]}"
   ffmpeg "${ffmpeg_args[@]}"
-}
-
-ffmpeg_trim() {
-  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf 'Trims a video file without reencoding\n'
-    printf 'Arguments:\n'
-    printf '  output_file.mp4\n'
-    printf '  input_file\n'
-    printf '  start time\n'
-    printf '  end time\n'
-    printf '    format options: [-][HH:]MM:SS[.XX]\n'
-    printf '                            [-]SS[.XX][s|ms|us]\n'
-    return 0
-  fi
-  local out_file="${1}"
-  local in_file="${2}"
-  local start_time="$3"
-  local end_time="$4"
-  if contains_nl_or_bs "${out_file}" || ! is_printable_ascii "${out_file}"; then
-    printf 'Error: output name cannot contain LF or \ or non-printable ascii characters\n' 1>&2
-    return 1
-  fi
-  ffmpeg_bitexact "${in_file}" "${out_file}" \
-                   -ss "$start_time" -to "$end_time" \
-                   -c copy -c:v copy -c:a copy \
-                   -map 0:v:0 -map 0:a:0
 }
 
 ytdl_options() {
@@ -602,14 +578,6 @@ ff_cookies_txt() {
   printf '%s\n' "$output" > "${output_file}"
 }
 
-tumblrbackuptag() {
-  wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post,/tagged/$2/page" "https://$1.tumblr.com/tagged/$2"
-}
-
-tumblrbackuppost() {
-  wget --execute robots=off --adjust-extension --user-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/70.0" --recursive --level=inf --convert-links --backups=1 --backup-converted --page-requisites --include-directories="/post/$2" "https://$1.tumblr.com/post/$2"
-}
-
 # arguments:
 # 1 = [ jpeg | png | pngm | gif | audio | video | video-subtitled ]
 # 2... = files to process
@@ -659,17 +627,17 @@ batch_optimize_files() {
                  "${in_file}" > "${temp_file}"
       ;;
       'video-subtitled')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
+        ffmpeg_bitexact "${temp_file}" -loglevel warning -i "${in_file}" \
                         -y -c copy -c:v copy -c:a copy -c:s copy \
                         -map 0:v:0 -map 0:a:0 -map 0:s:0
       ;;
       'video')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
+        ffmpeg_bitexact "${temp_file}" -loglevel warning -i "${in_file}" \
                         -y -c copy -c:v copy -c:a copy \
                         -map 0:v:0 -map 0:a:0
       ;;
       'audio')
-        ffmpeg_bitexact "${in_file}" "${temp_file}" -loglevel warning \
+        ffmpeg_bitexact "${temp_file}" -loglevel warning -i "${in_file}" \
                         -y -c copy -c:a copy \
                         -map 0:a:0
       ;;
@@ -722,7 +690,7 @@ stripvideo() {
   batch_optimize_files 'video' "$@"
 }
 
-# edit a srgb image in the given colorspace using imagemagick
+# edit an 8 bit/channel srgb image in the given colorspace using imagemagick
 edit_in_colorspace() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'

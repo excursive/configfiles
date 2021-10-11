@@ -1,5 +1,32 @@
 #!/bin/bash
 
+ffmpeg_bitexact() {
+  local out_file="${1}"
+  shift 1
+  ffmpeg "$@" \
+         -map_metadata -1 -flags bitexact -flags:v bitexact -flags:a bitexact -fflags bitexact \
+         "${out_file}"
+}
+
+ffmpeg_trim() {
+  local out_file="${1}"
+  local in_file="${2}"
+  local start_time="$3"
+  local end_time="$4"
+  local seek_mode='-accurate_seek'
+  if [ "$5" = '-noaccurate_seek' ]; then
+    seek_mode='-noaccurate_seek'
+  elif [ -n "$5" ] && [ "$5" != '-accurate_seek' ]; then
+    printf 'Error: valid seek modes are: [ -accurate_seek (default) | -noaccurate_seek ]\n' 1>&2
+    exit 1
+  fi
+  ffmpeg_bitexact "${out_file}" \
+                  "${seek_mode}" -ss "$start_time" -i "${in_file}" \
+                  -to "$end_time" \
+                  -c copy -c:v copy -c:a copy \
+                  -map 0:v:0 -map 0:a:0
+}
+
 average_color_channels() {
   local out_dir="${1}"
   if ! mkdir "${out_dir}"; then
@@ -28,18 +55,51 @@ average_color_channels() {
 
 
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-  printf 'avgcolors arguments:\n'
-  printf '  output dir to create\n'
-  printf '  directory with base frames (named 1.png, 2.png, ...)\n'
-  printf '  directory with frames to avg color channels with\n'
-  printf '  start frame\n'
-  printf '  end frame\n'
+  printf 'functions:\n'
+  printf '  ffmpeg_bitexact - specify bitexact output when running ffmpeg\n'
+  printf '  trim - trim video+audio streams without reencoding\n'
+  printf '  avgcolors - average the color channels only of two folders of frames\n'
   exit 0
 fi
 
-case "$1" in
+function="$1"
+shift 1
+
+case "$function" in
+  'ffmpeg_bitexact')
+    if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+      printf 'ffmpeg_bitexact arguments:\n'
+      printf '  out_file\n'
+      printf '  preceeding ffmpeg arguments\n'
+      exit 0
+    fi
+    ffmpeg_bitexact "$@"
+  ;;
+  'trim')
+    if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+      printf 'trim arguments:\n'
+      printf '  out_file\n'
+      printf '  in_file\n'
+      printf '  start time\n'
+      printf '  end time\n'
+      printf '    format options: [-][HH:]MM:SS[.XX]\n'
+      printf '                            [-]SS[.XX][s|ms|us]\n'
+      printf '  seek_mode [ -accurate_seek (default) | -noaccurate_seek ]\n'
+      exit 0
+    fi
+    ffmpeg_trim "$@"
+  ;;
   'avgcolors')
-    average_color_channels "$2" "$3" "$4" "$5" "$6"
+    if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+      printf 'avgcolors arguments:\n'
+      printf '  output dir to create\n'
+      printf '  directory with base frames (named 1.png, 2.png, ...)\n'
+      printf '  directory with frames to avg color channels with\n'
+      printf '  start frame\n'
+      printf '  end frame\n'
+      exit 0
+    fi
+    average_color_channels "$@"
   ;;
   '')
     printf '\nError: No arguments supplied, see -h or --help\n'
