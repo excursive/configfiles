@@ -382,7 +382,7 @@ ffmpeg_screenrec() {
     printf 'Error: colorspace should be yuv420p or rgb24\n' 1>&2
     return 1
   fi
-  local vf="format=${colorspace}"
+  local vf='format='"${colorspace}"
   if [ "$fps" = '24' ]; then
     fps='30'
     vf="decimate=cycle=5,setpts=N/24/TB,${vf}"
