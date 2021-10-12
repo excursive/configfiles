@@ -1,5 +1,11 @@
 #!/bin/bash
 
+video_reference() {
+  printf "scaling: -filter:v 'scale=1280:720:flags=lanczos+bitexact:param0=3.0'\n"
+  printf '                   param0: (float) width (alpha) of lanczos algorithm\n'
+  printf '     (note ffmpeg does not convert to linear colorspace when scaling)\n'
+}
+
 ffmpeg_bitexact() {
   local out_file="${1}"
   shift 1
@@ -21,8 +27,8 @@ ffmpeg_trim() {
     exit 1
   fi
   ffmpeg_bitexact "${out_file}" \
-                  "${seek_mode}" -ss "$start_time" -i "${in_file}" \
-                  -to "$end_time" \
+                  "${seek_mode}" -ss "$start_time" -to "$end_time" \
+                  -i "${in_file}" \
                   -c copy -c:v copy -c:a copy \
                   -map 0:v:0 -map 0:a:0
 }
@@ -56,6 +62,7 @@ average_color_channels() {
 
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'functions:\n'
+  printf '  ref - examples of ffmpeg commands for reference\n'
   printf '  ffmpeg_bitexact - specify bitexact output when running ffmpeg\n'
   printf '  trim - trim video+audio streams without reencoding\n'
   printf '  avgcolors - average the color channels only of two folders of frames\n'
@@ -66,6 +73,9 @@ function="$1"
 shift 1
 
 case "$function" in
+  'ref' | 'reference' | 'hints')
+    video_reference
+  ;;
   'ffmpeg_bitexact')
     if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
       printf 'ffmpeg_bitexact arguments:\n'

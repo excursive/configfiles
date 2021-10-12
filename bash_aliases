@@ -355,7 +355,6 @@ ffmpeg_screenrec() {
     printf '  fps [ 24 | 30 | 60 ] (24 will use decimate filter to remove dup frames)\n'
     printf '  colorspace [ yuv420p (default) | rgb24 ]\n'
     printf '  ... ffmpeg arguments, video and audio codec options, examples below:\n'
-    printf '    -show_region [ 0 (default) | 1 ]\n'
     printf '    -c:v [ libx264 | ... ]\n'
     printf '    -threads [ 1 | 2 | 3 | ... ] (libx264, more threads = small quality loss)\n'
     printf '    -tune [ film | animation | stillimage | ... ]\n'
@@ -391,7 +390,7 @@ ffmpeg_screenrec() {
   local -a ffmpeg_args=( '-loglevel' 'warning' \
          '-f' 'x11grab' \
          '-framerate' "$fps" '-video_size' "$resolution" \
-         '-draw_mouse' '0' '-thread_queue_size' '1024' \
+         '-draw_mouse' '0' '-show_region' '0' '-thread_queue_size' '1024' \
          '-i' "${DISPLAY}.0+${offset}" \
          '-f' 'pulse' '-channels' '2' '-ac' '2' '-thread_queue_size' '1024' \
          '-i' 'alsa_output.pci-0000_00_1f.3.analog-stereo.monitor' \
@@ -402,7 +401,7 @@ ffmpeg_screenrec() {
          '-flags' 'bitexact' '-flags:v' 'bitexact' '-flags:a' 'bitexact' \
          '-fflags' 'bitexact' \
          "${out_file}" )
-  printf 'running ffmpeg with these arguments: %s\n\n' "${ffmpeg_args[*]}"
+  printf '\nrunning ffmpeg with these arguments: %s\n\n' "${ffmpeg_args[*]}"
   ffmpeg "${ffmpeg_args[@]}"
 }
 
@@ -472,7 +471,7 @@ ff_cookies_print() {
   else
     sql_db="$(find "${HOME}/.mozilla/firefox/" -mindepth 2 -maxdepth 2 -name 'cookies.sqlite' \
                 -printf '%T@ %p\0' | sort -nrz -- | cut -d ' ' -f '2-' -z -- | \
-                head --lines=1 --zero-terminated -- | tr --delete '\0' -- )"
+                head --lines=1 --zero-terminated -- | tr --delete '\0' )"
   fi
   # session cookies are stored elsewhere, in recovery.jsonlz4
   local json_mozlz4="$(dirname "${sql_db}")"'/sessionstore-backups/recovery.jsonlz4'

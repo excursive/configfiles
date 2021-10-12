@@ -1,5 +1,15 @@
 #!/bin/bash
 
+gif_reference() {
+  printf 'gifski lossy is great, can increase number of colors\n'
+  printf 'o4 is best ordered dither method\n'
+  printf 'square halftone size 3-6 pixels is also good\n'
+  printf 'halftone number of colors is 2+, no difference between 1 and 2,\n'
+  printf '  very little difference beyond 4\n'
+  printf '64 colors, squarehalftone,8,2 is cool\n'
+  printf 'median-cut is always worth testing\n'
+}
+
 is_positive_integer() {
   local LC_ALL=C
   export LC_ALL
@@ -320,7 +330,7 @@ process_gif() {
 
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
-  printf '  operation [ frames | gif ]\n'
+  printf '  operation [ ref | frames | gif ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
@@ -328,6 +338,9 @@ fi
 declare operation="$1"
 shift 1
 case "$operation" in
+  'ref' | 'reference' | 'hints')
+    gif_reference
+  ;;
   'frames')
     process_frames "$@"
   ;;
