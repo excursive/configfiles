@@ -561,6 +561,37 @@ manage_vim_lightline() {
 
 
 
+manage_yt_dlp() {
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to yt-dlp version 2021.10.10\n'
+      local yt_dlp_version='dec0d56fa9bee6a9c10ed33184a1a852e3d6180b'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local yt_dlp_version="$1"
+      else
+        printf '\n======== Error: yt-dlp version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local yt_dlp_dir="${PWD}/yt-dlp"
+  
+  checkout_commit "${yt_dlp_dir}" "$yt_dlp_version" \
+                  'https://github.com/yt-dlp/yt-dlp.git'
+  
+  local launcher_text='#!/bin/bash
+
+python3 '"${yt_dlp_dir}"'/yt_dlp/__main__.py "$@"'
+  
+  save_launcher_script 'yt-dlp' "$launcher_text"
+}
+
+
+
+
 manage_youtube_dl() {
   case "$1" in
     'default')
@@ -1119,8 +1150,8 @@ manage_mozjpeg() {
 manage_godot() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to godot version 3.3.2 from May 24, 2021\n'
-      local godot_version='7610409b8a14b8499763efa76578795c755a846d'
+      printf '\n======== Defaulting to godot version 3.3.4 from Oct 1, 2021\n'
+      local godot_version='faf3f883d1a25ec8a2b7a31ecc9e3363613b2478'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -1452,7 +1483,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  software name:\n'
   printf '    [ aseprite | godot | mozjpeg | gifsicle | gifski | pngquant | zopflipng |\n'
-  printf '      youtube-dl |\n'
+  printf '      youtube-dl | yt-dlp |\n'
   printf '      vim-lightline | vim-two-firewatch | vim-gruvbox |\n'
   printf '      rust | krita | lmms | blender ]\n'
   printf '  software version [ default | (a git commit sha1) | (a version number) ]\n'
@@ -1495,6 +1526,9 @@ case "$1" in
   ;;
   'youtube-dl')
     manage_youtube_dl "$version"
+  ;;
+  'yt-dlp')
+    manage_yt_dlp "$version"
   ;;
   'vim-lightline')
     manage_vim_lightline "$version"

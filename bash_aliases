@@ -406,8 +406,7 @@ ffmpeg_screenrec() {
 }
 
 ytdl_options() {
-  youtube-dl --no-overwrites --no-continue --no-mtime --no-call-home \
-             --postprocessor-args '-c copy -c:v copy -c:a copy' \
+  yt-dlp --no-overwrites --no-continue --no-mtime --no-call-home \
              --no-post-overwrites --fixup never "$@"
 }
 
@@ -417,7 +416,7 @@ ytdl() {
 
 ytdl_cookies() {
   ytdl --cookies 'cookies.txt' \
-       --user-agent 'Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0' "$@"
+       --user-agent 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0' "$@"
 }
 
 youtube_output() {
