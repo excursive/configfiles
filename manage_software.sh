@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # make bash stricter about errors
-#set -e -o pipefail
+#set -e
+#set -o pipefail
 
 is_valid_sha1() {
   local LC_ALL=C

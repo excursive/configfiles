@@ -1,81 +1,142 @@
-ubuntu 20.04 packages:
+#!/bin/bash
 
-purge: unattended-upgrades evolution-data-server
+set -e
+set -o pipefail
 
-ubuntu-restricted-extras (excluding chromium-codecs-ffmpeg-extra flashplugin-installer gstreamer1.0-fluendo-mp3 libzbar0 oxideqt-codecs-extra unrar):
---no-install-recommends
+apt-get purge unattended-upgrades
 
-vlc steam build-essential multiarch-support gcc-multilib g++-multilib vim blender git ffmpeg gimp audacity inkscape cmake brasero gparted g++ valgrind mesa-utils chromium-browser qt5-style-plugins sqlite3 autoconf automake
+apt-get install ubuntu-restricted-extras build-essential multiarch-support gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc mpv steam gimp audacity
 
-wine additional packages (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks):
---no-install-recommends
-
-================
-
-mozjpeg dependencies:
-main:
-libtool
+#====wine additional packages --no-install-recommends (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks)
 
 
-universe:
-nasm
 
-================
+#================
+#    mozjpeg
+#================
 
-godot dependencies:
-main:
-pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
+#====main:
+apt-get install libtool
 
-also included in godot repo:
-libfreetype-dev libogg-dev libpng-dev libtheora-dev libvorbis-dev libvpx-dev libwebp-dev libminiupnpc-dev libopus-dev libpcre2-dev zlib1g-dev libzstd-dev
-
-
-universe (excluding yasm):
-scons
-
-================
-
-aesprite dependencies:
-main:
-g++ cmake libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev curl libfreetype6-dev libgif-dev libharfbuzz-dev libjpeg-dev libpng-dev libpixman-1-dev zlib1g-dev
+#====universe (optional):
+#====apt-get install nasm
 
 
-universe:
-ninja-build
 
-================
+#================
+#     godot
+#================
 
-skia dependencies:
-main:
-build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
+#====main:
+apt-get install pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libfreetype6-dev libssl-dev libudev-dev libxi-dev libxrandr-dev
 
+#====main (also included in godot repo):
+apt-get install libfreetype-dev libogg-dev libpng-dev libtheora-dev libvorbis-dev libvpx-dev libwebp-dev libminiupnpc-dev libopus-dev libpcre2-dev zlib1g-dev libzstd-dev
 
-universe (excluding freeglut3-dev):
+#====universe:
+apt-get install scons
 
-================
-
-dolphin dependencies:
-main:
-libevdev-dev libudev-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 git cmake make gcc g++
-
-also included in dolphin repo:
-ca-certificates pkg-config libminiupnpc-dev libcurl4-openssl-dev libsystemd-dev libbluetooth-dev libasound2-dev libpulse-dev libbz2-dev libzstd-dev liblzo2-dev libpng-dev libusb-1.0-0-dev gettext
+#====universe (optional):
+#====apt-get install yasm
 
 
-universe:
-ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev qt5-default qtbase5-private-dev
 
-also included in dolphin repo:
-libsfml-dev libmbedtls-dev libhidapi-dev libpugixml-dev
+#================
+#   aesprite
+#================
 
-================
+#====main:
+apt-get install g++ cmake libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev curl libfreetype6-dev libgif-dev libharfbuzz-dev libjpeg-dev libpng-dev libpixman-1-dev zlib1g-dev
 
-rpcs3:
-main:
-build-essential libasound2-dev libpulse-dev zlib1g-dev libedit-dev libvulkan-dev libudev-dev libevdev-dev
+#====universe:
+apt-get install ninja-build
 
 
-universe:
-libopenal-dev libglew-dev libsdl2-2.0-0 libsdl2-dev
 
-================
+#================
+#     skia
+#================
+
+#====main:
+apt-get install build-essential libfontconfig1-dev libfreetype6-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libharfbuzz-dev libicu-dev libjpeg-dev libpng-dev libwebp-dev
+
+
+#====universe (optional):
+#====apt-get install freeglut3-dev
+
+
+
+#================
+#    dolphin
+#================
+
+#====main:
+apt-get install libevdev-dev libudev-dev libxrandr-dev libxi-dev libpangocairo-1.0-0 git cmake make gcc g++
+
+#====main (also included in dolphin repo):
+apt-get install ca-certificates pkg-config libminiupnpc-dev libcurl4-openssl-dev libsystemd-dev libbluetooth-dev libasound2-dev libpulse-dev libbz2-dev libzstd-dev liblzo2-dev libpng-dev libusb-1.0-0-dev gettext
+
+#====universe:
+apt-get install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev qt5-default qtbase5-private-dev
+
+#====universe (qt5 packages):
+#====apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtbase5-private-dev
+
+#====universe (also included in dolphin repo):
+#====apt-get install libsfml-dev libmbedtls-dev libhidapi-dev libpugixml-dev
+
+
+
+#================
+#     rpcs3
+#================
+
+#====main:
+apt-get install build-essential libasound2-dev libpulse-dev zlib1g-dev libedit-dev libvulkan-dev libudev-dev libevdev-dev
+
+#====universe:
+apt-get install libopenal-dev libglew-dev libsdl2-2.0-0 libsdl2-dev
+
+#====universe (qt5 packages):
+#====apt-get install qtbase5-dev libqt5svg5-dev
+
+
+
+#================
+#     PCSX2
+#================
+
+#====main:
+apt-get install cmake gcc-multilib g++-multilib libaio-dev:i386 libbz2-dev:i386 libegl1-mesa-dev:i386 libgles2-mesa-dev:i386 libjpeg-dev:i386 zlib1g-dev:i386 libjack-jackd2-dev:i386 liblzma-dev:i386 libxml2-dev:i386 libpcap0.8-dev:i386
+
+#====universe:
+apt-get install libglew-dev:i386 libgtk2.0-dev:i386 libsdl1.2-dev:i386 libwxgtk3.0-gtk3-dev:i386 libsdl2-dev:i386 libportaudiocpp0:i386 portaudio19-dev:i386 libsoundtouch-dev:i386
+
+#====multiverse (optional):
+#====apt-get install libcggl:i386 nvidia-cg-toolkit
+
+
+
+#================
+#  DuckStation
+#================
+
+#====main:
+apt-get install cmake libxrandr-dev pkg-config libevdev-dev libwayland-dev libwayland-egl-backend-dev
+
+#====main (optional):
+apt-get install libcurl4-gnutls-dev libgbm-dev libdrm-dev
+
+#====universe:
+apt-get install libsdl2-dev extra-cmake-modules
+
+#====universe (qt5 packages):
+#====apt-get install qtbase5-dev qtbase5-private-dev qtbase5-dev-tools qttools5-dev
+
+#====universe (optional):
+#====apt-get install ninja-build
+
+
+
+printf '\n\n==== All done! ====\n\n'
+
