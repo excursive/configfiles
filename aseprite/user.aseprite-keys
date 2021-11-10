@@ -43,11 +43,16 @@
             <param name="orientation" value="horizontal" />
             <param name="target" value="mask" />
         </key>
+        <key command="Flip" shortcut="5">
+            <param name="orientation" value="horizontal" />
+            <param name="target" value="mask" />
+        </key>
         <key command="Flip" shortcut="Shift+V" removed="true">
             <param name="orientation" value="vertical" />
             <param name="target" value="mask" />
         </key>
         <key command="ReplaceColor" shortcut="Shift+R" removed="true" />
+        <key command="ReplaceColor" shortcut="4" />
         <key command="HueSaturation" shortcut="Ctrl+U" removed="true" />
         <key command="HueSaturation" shortcut="2" />
         <key command="ConvolutionMatrix" shortcut="F9" removed="true" />
@@ -155,6 +160,7 @@
         <key command="GotoPreviousTab" shortcut="Ctrl+Shift+Tab" removed="true" />
         <key command="GotoPreviousTab" shortcut="Ctrl+PgUp" removed="true" />
         <key command="SwitchColors" shortcut="X" removed="true" />
+        <key command="SwitchColors" shortcut="Shift+4" />
         <key command="ChangeColor" shortcut="9" removed="true">
             <param name="change" value="decrement-index" />
             <param name="target" value="foreground" />
@@ -318,7 +324,19 @@
             <param name="target" value="content" />
             <param name="units" value="pixel" />
         </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Left">
+            <param name="direction" value="left" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
         <key command="MoveMask" context="Selection" shortcut="Right" removed="true">
+            <param name="direction" value="right" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Right">
             <param name="direction" value="right" />
             <param name="quantity" value="1" />
             <param name="target" value="content" />
@@ -330,7 +348,19 @@
             <param name="target" value="content" />
             <param name="units" value="pixel" />
         </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Up">
+            <param name="direction" value="up" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
         <key command="MoveMask" context="Selection" shortcut="Down" removed="true">
+            <param name="direction" value="down" />
+            <param name="quantity" value="1" />
+            <param name="target" value="content" />
+            <param name="units" value="pixel" />
+        </key>
+        <key command="MoveMask" context="Selection" shortcut="Shift+Down">
             <param name="direction" value="down" />
             <param name="quantity" value="1" />
             <param name="target" value="content" />
@@ -417,12 +447,8 @@
         <key command="DuplicateLayer" shortcut="Ctrl+I" />
         <key command="MergeDownLayer" shortcut="Shift+K" />
         <key command="RemoveLayer" shortcut="Ctrl+X" />
-        <key command="Flip" shortcut="4">
+        <key command="Flip" shortcut="Shift+5">
             <param name="orientation" value="horizontal" />
-            <param name="target" value="canvas" />
-        </key>
-        <key command="Flip" shortcut="5">
-            <param name="orientation" value="vertical" />
             <param name="target" value="canvas" />
         </key>
         <key command="GotoPreviousFrame" shortcut="Left" />
