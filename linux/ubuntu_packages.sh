@@ -7,9 +7,14 @@ printf '\n\n\n================\n'
 printf       '     general    \n'
 printf       '================\n'
 
+
 sudo apt-get purge unattended-upgrades
 
-sudo apt-get install ubuntu-restricted-extras build-essential multiarch-support gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc mpv steam gimp audacity
+sudo apt-get dist-upgrade
+
+sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc mpv steam gimp audacity
+
+#sudo apt-get --no-install-recommends install mpv python3-pyxattr
 
 #====wine additional packages --no-install-recommends (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks)
 
@@ -81,7 +86,7 @@ sudo apt-get install libevdev-dev libudev-dev libxrandr-dev libxi-dev libpangoca
 sudo apt-get install ca-certificates pkg-config libminiupnpc-dev libcurl4-openssl-dev libsystemd-dev libbluetooth-dev libasound2-dev libpulse-dev libbz2-dev libzstd-dev liblzo2-dev libpng-dev libusb-1.0-0-dev gettext
 
 #====universe:
-sudo apt-get install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev qt5-default qtbase5-private-dev
+sudo apt-get install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
 
 #====universe (qt5 packages):
 #====sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtbase5-private-dev
@@ -114,7 +119,10 @@ printf       '================\n'
 sudo apt-get install cmake gcc-multilib g++-multilib libaio-dev:i386 libbz2-dev:i386 libegl1-mesa-dev:i386 libgles2-mesa-dev:i386 libjpeg-dev:i386 zlib1g-dev:i386 libjack-jackd2-dev:i386 liblzma-dev:i386 libxml2-dev:i386 libpcap0.8-dev:i386
 
 #====universe:
-sudo apt-get install libglew-dev:i386 libgtk2.0-dev:i386 libsdl1.2-dev:i386 libwxgtk3.0-gtk3-dev:i386 libsdl2-dev:i386 libportaudiocpp0:i386 portaudio19-dev:i386 libsoundtouch-dev:i386
+sudo apt-get install libgtk2.0-dev:i386 libsdl1.2-dev:i386 libwxgtk3.0-gtk3-dev:i386 libsdl2-dev:i386 libportaudiocpp0:i386 portaudio19-dev:i386 libsoundtouch-dev:i386
+
+# not in repo in 20.04+?
+#sudo apt-get install libglew-dev:i386
 
 #====multiverse (optional):
 #====sudo apt-get install libcggl:i386 nvidia-cg-toolkit
