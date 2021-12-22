@@ -12,7 +12,7 @@ sudo apt-get purge unattended-upgrades
 
 sudo apt-get dist-upgrade
 
-sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc mpv steam gimp audacity
+sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc steam gimp audacity
 
 #sudo apt-get --no-install-recommends install mpv python3-pyxattr
 
