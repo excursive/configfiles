@@ -12,7 +12,10 @@ sudo apt-get purge unattended-upgrades
 
 sudo apt-get dist-upgrade
 
-sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib gparted g++ valgrind sqlite3 autoconf automake cmake brasero vim git ffmpeg vlc steam gimp audacity
+sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib g++ autoconf automake cmake valgrind
+sudo apt-get install flatpak sqlite3 brasero vim git ffmpeg flac vlc steam gimp audacity
+sudo apt-get install cd-paranoia cdrdao mkcue libcue-dev cue2toc libbluray2
+sudo apt-get install libdvd-pkg
 
 #sudo apt-get --no-install-recommends install mpv python3-pyxattr
 
@@ -137,7 +140,7 @@ printf       '================\n\n'
 sudo apt-get install cmake libxrandr-dev pkg-config libevdev-dev libwayland-dev libwayland-egl-backend-dev
 
 #====main (optional):
-sudo apt-get install libcurl4-gnutls-dev libgbm-dev libdrm-dev
+sudo apt-get install libcurl4-openssl-dev libgbm-dev libdrm-dev
 
 #====universe:
 sudo apt-get install libsdl2-dev extra-cmake-modules
@@ -148,6 +151,22 @@ sudo apt-get install libsdl2-dev extra-cmake-modules
 #====universe (optional):
 #====sudo apt-get install ninja-build
 
+
+
+printf '\n\n\n================\n'
+printf       '     whipper    \n'
+printf       '================\n\n'
+
+sudo apt-get install python3-pip cd-paranoia cdrdao gobject-introspection libsndfile1-dev flac sox git libdiscid-dev
+
+
+
+
+printf '\n\n\n================\n'
+printf       '     cyanrip    \n'
+printf       '================\n\n'
+
+sudo apt-get install libavcodec-dev libswresample-dev libavutil-dev libavformat-dev libavfilter-dev libcdio-paranoia-dev libmusicbrainz5-dev libcurl4-openssl-dev
 
 
 printf '\n\n\n================\n'

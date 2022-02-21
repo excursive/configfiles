@@ -1,0 +1,71 @@
+================
+    directories
+================
+
+ls -l /media
+drwxr-x---+ 2 root root          4096 Jan 01 12:00 user1
+drwxr-x---+ 2 root root          4096 Jan 01 12:00 user2
+drwxr-x---  3 root group1        4096 Jan 01 12:00 group1_drives
+drwxr-x---+ 2 root root          4096 Jan 01 12:00 user3
+
+mount point:
+sudo ls -l /media/group1_drives
+drwxr-x--- 2 root root           4096 Jan 01 12:00 drivename
+
+mounted:
+sudo ls -l /media/group1_drives
+drwx------ 3 user2 user2         4096 Jan 01 12:00 drivename
+
+
+
+
+================
+    tables
+================
+
+cat /etc/crypttab
+sdaXX_crypt UUID=uuid none luks
+sdaXX_crypt UUID=uuid none luks
+luks-uuid   UUID=uuid none luks,nofail
+
+
+cat /etc/fstab
+# <file system>          <mount point>                   <type>  <options>          <dump>  <pass>
+/dev/mapper/sdaXX_crypt  /                               ext4    errors=remount-ro  0       1
+UUID=uuid                /boot                           ext4    defaults           0       2
+UUID=uuid                /boot/efi                       vfat    umask=0077         0       1
+/dev/mapper/sdaXX_crypt  /home                           ext4    defaults,nodev     0       2
+/swapfile                none                            swap    sw                 0       0
+/dev/disk/by-uuid/uuid   /media/group1_drives/drivename  auto    nosuid,nodev,nouser,async,relatime,nofail 0 2
+
+
+
+
+================
+    commands
+================
+id user2
+groups user2
+getent group user2
+
+
+# group id should be larger than expected number of users for id neatness
+sudo groupadd --gid 1XXX group1
+sudo usermod -a -G group1 user2
+
+
+sudo mkdir /media/group1_drives
+sudo mkdir /media/group1_drives/drivename
+
+sudo chgrp group1 /media/group1_drives
+sudo chmod 750 /media/group1_drives
+sudo chmod 750 /media/group1_drives/drivename
+
+#====create partition (if not existing) and set up crypttab and fstab
+#====(can use gnome disks, but it doesn't seem to set pass=2, so should go over everything with nano afterwards)
+
+#====then restart and if partition mounted successfully and using a newly created partition,
+#====may need to set owner of partition root dir to relevant user:
+
+sudo chown user2 /media/group1_drives/drivename
+sudo chgrp user2 /media/group1_drives/drivename
