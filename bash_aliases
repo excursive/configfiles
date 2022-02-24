@@ -261,7 +261,7 @@ grep_non_ascii() {
     esac
   done
   local regex="${chars_start}${h_tab}${newline}${c_return}${chars_end}${not_cr_lf}"
-  printf '  perl-regexp: %s\n' "$regex"
+  #printf '  perl-regexp: %s\n' "$regex"
   
   for in_file in "$@"; do
     if [ ! -e "${in_file}" ]; then
@@ -286,7 +286,7 @@ grep_non_ascii() {
     if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = '-n' ]; then
       printf '\e[0;36m%s\e[0m\n' \
         "$(grep --color='auto' -n --binary --perl-regexp "$regex" -- "${in_file}" | \
-             cut --fields=1 --delimiter=':' -- | tr '\n' ' ' -- )"
+             cut --fields=1 --delimiter=':' -- | tr '\n' ' ' )"
     fi
   done
 }
