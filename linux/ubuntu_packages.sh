@@ -166,7 +166,7 @@ printf '\n\n\n================\n'
 printf       '     cyanrip    \n'
 printf       '================\n\n'
 
-sudo apt-get install libavcodec-dev libswresample-dev libavutil-dev libavformat-dev libavfilter-dev libcdio-paranoia-dev libmusicbrainz5-dev libcurl4-openssl-dev
+sudo apt-get install meson ninja-build libavcodec-dev libswresample-dev libavutil-dev libavformat-dev libavfilter-dev libcdio-paranoia-dev libmusicbrainz5-dev libcurl4-openssl-dev
 
 
 printf '\n\n\n================\n'

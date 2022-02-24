@@ -1,0 +1,20 @@
+Picture:
+  Backlight: 75
+  Brightness: 29
+  Contrast: 67
+  Sharpness: 2
+
+Color:
+  Panel Uniformity: Off
+  Gamma: Off
+  Temperature: User
+    R: 128
+    G: 123
+    B: 122
+  Color Effect: User
+    R: 51 44
+    Y: 43 42
+    G: 45 41
+    C: 56 44
+    B: 52 52
+    M: 46 40
