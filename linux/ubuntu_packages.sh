@@ -157,7 +157,7 @@ printf '\n\n\n================\n'
 printf       '     whipper    \n'
 printf       '================\n\n'
 
-sudo apt-get install python3-pip cd-paranoia cdrdao gobject-introspection libsndfile1-dev flac sox git libdiscid-dev
+sudo apt-get install python3-pip cd-paranoia cdrdao gobject-introspection libsndfile1-dev flac sox git libdiscid-dev libiso9660-dev
 
 
 
