@@ -126,11 +126,15 @@ dl_and_verify_file() {
     exit 1
   fi
   
-  wget --execute robots=off --output-document="${filename}" \
-       --no-clobber --no-use-server-timestamps --https-only "$url"
-  if [ "$?" -ne 0 ]; then
-    printf '\n==== Error: Could not download %s\n' "${filename}"
-    exit 1
+  if [ ! -e "${filename}" ]; then
+    wget --execute robots=off --output-document="${filename}" \
+         --no-clobber --no-use-server-timestamps --https-only "$url"
+    if [ "$?" -ne 0 ]; then
+      printf '\n==== Error: Could not download %s\n' "${filename}"
+      exit 1
+    fi
+  else
+    printf '\n==== Filename exists; using existing file and skipping download\n'
   fi
   
   printf '\n==== Verifying download matches specified sha256 checksum:\n'
@@ -565,8 +569,8 @@ manage_vim_lightline() {
 manage_yt_dlp() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to yt-dlp version 2022.02.03\n'
-      local yt_dlp_version='28469edd7da89fba67d22619f7a8f8d3864b4ac7'
+      printf '\n======== Defaulting to yt-dlp version 2022.02.04\n'
+      local yt_dlp_version='c1653e9efba2768910e6a5f62c88c7a95317b431'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -650,6 +654,24 @@ manage_winetricks() {
   sed -i -e '1318,1326d' "${winetricks_dir}/src/winetricks"
   
   create_symlinks "${winetricks_dir}/src/winetricks"
+}
+
+
+
+
+manage_qt5_deb() {
+}
+
+
+
+
+manage_cyanrip() {
+}
+
+
+
+
+manage_whipper() {
 }
 
 
@@ -754,7 +776,6 @@ manage_pngquant() {
   local pngquant_dir="${PWD}/pngquant"
   
   local install_dir="${pngquant_dir}/pngquant-${pngquant_version}"
-  local build_dir="${pngquant_dir}/build"
   local src_dir="${pngquant_dir}/src"
   
   local pngquant_src_dir="${src_dir}/pngquant"
@@ -1492,6 +1513,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   exit 0
 fi
 
+starting_dir="${PWD}"
 
 keep_sources=''
 if [ "$3" = 'keep_sources' ]; then
@@ -1522,8 +1544,17 @@ case "$1" in
   'pngquant')
     manage_pngquant "$version" "$keep_sources"
   ;;
+  'whipper')
+    manage_whipper "$version" "$keep_sources"
+  ;;
+  'cyanrip')
+    manage_cyanrip "$version" "$keep_sources"
+  ;;
+  'qt5-deb')
+    manage_qt5_deb
+  ;;
   'winetricks')
-    manage_winetricks "$version" "$keep_sources"
+    manage_winetricks "$version"
   ;;
   'youtube-dl')
     manage_youtube_dl "$version"
@@ -1561,6 +1592,8 @@ case "$1" in
     exit 1
   ;;
 esac
+
+cd "${starting_dir}"
 
 printf '\n======== All done!\n'
 
