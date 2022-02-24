@@ -660,18 +660,21 @@ manage_winetricks() {
 
 
 manage_qt5_deb() {
+  printf '\n======== unfinished\n'
 }
 
 
 
 
 manage_cyanrip() {
+  printf '\n======== unfinished\n'
 }
 
 
 
 
 manage_whipper() {
+  printf '\n======== unfinished\n'
 }
 
 
