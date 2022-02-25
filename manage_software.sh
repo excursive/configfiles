@@ -667,14 +667,113 @@ manage_qt5_deb() {
 
 
 manage_cyanrip() {
-  printf '\n======== unfinished\n'
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to cyanrip commit from 2022.02.11\n'
+      local cyanrip_version='25879a9c16b81410a1dee793f6674020edb7029e'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local cyanrip_version="$1"
+      else
+        printf '\n======== Error: cyanrip version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  printf '\n======== Checking directories\n'
+  local cyanrip_dir="${PWD}/cyanrip"
+  
+  local install_dir="${cyanrip_dir}/cyanrip-${cyanrip_version}"
+  local build_dir="${cyanrip_dir}/build"
+  local src_dir="${cyanrip_dir}/src"
+  
+  local cyanrip_src_dir="${src_dir}/cyanrip"
+  
+  if [ ! -d "${cyanrip_dir}" ] && ! mkdir "${cyanrip_dir}"; then
+    printf '\n==== Error: Could not create cyanrip directory\n'
+    exit 1
+  fi
+  if [ -e "${install_dir}" ]; then
+    printf '\n==== Error: Install directory already exists\n'
+    printf '==== To reinstall, first delete the previous installation directory:\n'
+    printf '%s\n' "${install_dir}"
+    exit 1
+  fi
+  if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
+    printf '\n==== Error: Could not create src directory\n'
+    exit 1
+  fi
+  
+  
+  checkout_commit "${cyanrip_src_dir}" "$cyanrip_version" \
+                  'https://github.com/cyanreg/cyanrip.git'
+  
+  
+  printf '\n======== Building cyanrip\n'
+  if [ -e "${build_dir}" ]; then
+    printf '\n==== Error: Build directory already exists:\n'
+    printf '%s\n' "${build_dir}"
+    exit 1
+  fi
+  meson setup --prefix "${install_dir}" --buildtype release "${build_dir}" "${cyanrip_src_dir}"
+  ninja -C "${build_dir}"
+  
+  printf '\n======== Moving cyanrip build to install directory\n'
+  if ! mkdir "${install_dir}"; then
+    printf '\n==== Error: Could not create install directory\n'
+    exit 1
+  fi
+  mv "--target-directory=${install_dir}" "${build_dir}/src/cyanrip"
+  
+  create_symlinks "${install_dir}/cyanrip"
+  
+  printf '\n======== Generating checksums\n'
+  cd "${install_dir}"
+  sha256r "cyanrip-${cyanrip_version}-sha256sums.txt"
+  
+  
+  printf '\n======== Cleaning up\n'
+  rm -R -f -- "${build_dir}"
+  if [ "$2" != 'keep_sources' ]; then
+    rm -R -f -- "${src_dir}"
+  else
+    printf '==== Keeping source repo\n'
+    cd "${cyanrip_src_dir}"
+    clean_and_update_repo "$cyanrip_version" 'skip_update'
+  fi
 }
 
 
 
 
 manage_whipper() {
-  printf '\n======== unfinished\n'
+  case "$1" in
+    'default')
+      printf '\n======== Defaulting to whipper commit on 2021.07.26\n'
+      local whipper_version='18a41b6c2880e577f9f1d7b1b6e7df0be7371378'
+    ;;
+    *)
+      if is_valid_sha1 "$1"; then
+        local whipper_version="$1"
+      else
+        printf '\n======== Error: whipper version is not default or a valid sha1 hash\n'
+        exit 1
+      fi
+    ;;
+  esac
+  
+  local whipper_dir="${PWD}/whipper"
+  
+  checkout_commit "${whipper_dir}" "$whipper_version" \
+                  'https://github.com/whipper-team/whipper.git'
+  
+  local launcher_text='#!/bin/bash
+
+python3 '"${whipper_dir}"'/whipper/__main__.py "$@"'
+  
+  save_launcher_script 'whipper' "$launcher_text"
 }
 
 
