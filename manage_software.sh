@@ -150,6 +150,11 @@ dl_and_verify_file() {
   fi
 }
 
+# backslashes, spaces, newlines, tabs, and carriage returns must be escaped in desktop entry paths
+escape_desktop_entry_path() {
+  printf '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
+}
+
 # writes a desktop entry with the given contents to ~/.local/share/applications
 save_desktop_entry() {
   local filename="${1}"
@@ -169,6 +174,12 @@ save_desktop_entry() {
     printf '%s\n' "$contents" > "${path}"
     printf '\n==== Created launcher for %s in applications\n' "${filename}"
   fi
+}
+
+# escapes paths so they can be used as input in shell scripts
+# TODO is currently bash specific
+escape_shell_path() {
+  printf '%q' "${1}"
 }
 
 # writes a launcher bash script with the given contents to ~/bin
@@ -286,13 +297,14 @@ manage_blender() {
   rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
   
   
+  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Blender
 Comment=Free and open source 3D creation suite
-Icon=${install_dir}/blender.svg
-Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${install_dir}/blender
-Path=${install_dir}
+Icon=${escaped_install_dir}/blender.svg
+Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${escaped_install_dir}/blender
+Path=${escaped_install_dir}
 Terminal=false
 Category=Video;Graphics;"
   
@@ -363,13 +375,14 @@ manage_lmms() {
   chmod +x "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
   
   
+  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=LMMS
 Comment=Free, open source, multiplatform digital audio workstation
-Icon=${install_dir}/icon.png
-Exec=${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage
-Path=${install_dir}
+Icon=${escaped_install_dir}/icon.png
+Exec=${escaped_install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage
+Path=${escaped_install_dir}
 Terminal=false
 Category=Audio;"
   
@@ -440,13 +453,14 @@ manage_krita() {
   chmod +x "${install_dir}/krita-${krita_version}-x86_64.appimage"
   
   
+  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Krita
 Comment=Free and open source painting and drawing program
-Icon=${install_dir}/icon.png
-Exec=${install_dir}/krita-${krita_version}-x86_64.appimage
-Path=${install_dir}
+Icon=${escaped_install_dir}/icon.png
+Exec=${escaped_install_dir}/krita-${krita_version}-x86_64.appimage
+Path=${escaped_install_dir}
 Terminal=false
 Category=Graphics;"
   
@@ -587,9 +601,10 @@ manage_yt_dlp() {
   checkout_commit "${yt_dlp_dir}" "$yt_dlp_version" \
                   'https://github.com/yt-dlp/yt-dlp.git'
   
+  local escaped_yt_dlp_path="$(escape_shell_path "${yt_dlp_dir}/yt_dlp/__main__.py")"
   local launcher_text='#!/bin/bash
 
-python3 '"${yt_dlp_dir}"'/yt_dlp/__main__.py "$@"'
+python3 '"${escaped_yt_dlp_path}"' "$@"'
   
   save_launcher_script 'yt-dlp' "$launcher_text"
 }
@@ -618,9 +633,10 @@ manage_youtube_dl() {
   checkout_commit "${youtube_dl_dir}" "$youtube_dl_version" \
                   'https://github.com/ytdl-org/youtube-dl.git'
   
+  local escaped_youtube_dl_path="$(escape_shell_path "${youtube_dl_dir}/youtube_dl/__main__.py")"
   local launcher_text='#!/bin/bash
 
-python3 '"${youtube_dl_dir}"'/youtube_dl/__main__.py "$@"'
+python3 '"${escaped_youtube_dl_path}"' "$@"'
   
   save_launcher_script 'youtube-dl' "$launcher_text"
 }
@@ -769,9 +785,10 @@ manage_whipper() {
   checkout_commit "${whipper_dir}" "$whipper_version" \
                   'https://github.com/whipper-team/whipper.git'
   
+  local escaped_whipper_path="$(escape_shell_path "${whipper_dir}/whipper/__main__.py")"
   local launcher_text='#!/bin/bash
 
-python3 '"${whipper_dir}"'/whipper/__main__.py "$@"'
+python3 '"${escaped_whipper_path}"' "$@"'
   
   save_launcher_script 'whipper' "$launcher_text"
 }
@@ -1362,13 +1379,14 @@ manage_godot() {
   fi
   
   
+  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Godot Engine
 Comment=2D and 3D cross-platform game engine
-Icon=${install_dir}/app_icon.png
-Exec=${install_dir}/godot.x11.opt.tools.64
-Path=${install_dir}
+Icon=${escaped_install_dir}/app_icon.png
+Exec=${escaped_install_dir}/godot.x11.opt.tools.64
+Path=${escaped_install_dir}
 Terminal=false
 Category=Development;Game;Graphics;"
   
@@ -1586,13 +1604,14 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   fi
   
   
+  local escaped_ase_install_dir="$(escape_desktop_entry_path "${ase_install_dir}")"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Aseprite
 Comment=Animated Sprite Editor & Pixel Art Tool
-Icon=${ase_install_dir}/bin/data/icons/ase256.png
-Exec=${ase_install_dir}/bin/aseprite
-Path=${ase_install_dir}
+Icon=${escaped_ase_install_dir}/bin/data/icons/ase256.png
+Exec=${escaped_ase_install_dir}/bin/aseprite
+Path=${escaped_ase_install_dir}
 Terminal=false
 Category=Graphics;"
   
