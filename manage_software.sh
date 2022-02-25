@@ -220,16 +220,14 @@ create_symlink() {
     printf   '====   symlink %s not created\n' "${link_name}"
     return 1
   fi
-  if [ -e "${link_path}" ]; then
-    if [ -L "${link_path}" ]; then
-      rm -f -- "${link_path}"
-      ln -s --no-target-directory "${target}" "${link_path}"
-      printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
-    else
-      printf '\n==== Warning: symlink not created for %s\n' "${link_name}"
-      printf   '====   unknown file with that name exists in ~/bin\n'
-      return 1
-    fi
+  if [ -L "${link_path}" ]; then
+    rm -f -- "${link_path}"
+    ln -s --no-target-directory "${target}" "${link_path}"
+    printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
+  elif [ -e "${link_path}" ]; then
+    printf '\n==== Warning: symlink not created for %s\n' "${link_name}"
+    printf   '====   unknown file with that name exists in ~/bin\n'
+    return 1
   else
     ln -s --no-target-directory "${target}" "${link_path}"
     printf '\n==== Created symlink in ~/bin for %s\n' "${link_name}"
