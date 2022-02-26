@@ -29,7 +29,7 @@ sha256r() {
       printf 'Error: Output file already exists\n'
       exit 1
     fi
-    printf '%s\n' "$output" > "${1}"
+    printf -- '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z | xargs -0 --no-run-if-empty sha256sum
   fi
@@ -97,7 +97,7 @@ checkout_commit() {
     fetch_updates='skip_update'
   fi
   
-  printf '\n======== Checking out git commit\n======== %s\n' "$commit"
+  printf -- '\n======== Checking out git commit\n======== %s\n' "$commit"
   if [ ! -d "${dir}/.git" ] || ! cd "${dir}"; then
     printf '\n==== Error: git repo is missing or invalid\n'
     exit 1
@@ -130,7 +130,7 @@ dl_and_verify_file() {
     wget --execute robots=off --output-document="${filename}" \
          --no-clobber --no-use-server-timestamps --https-only "$url"
     if [ "$?" -ne 0 ]; then
-      printf '\n==== Error: Could not download %s\n' "${filename}"
+      printf -- '\n==== Error: Could not download %s\n' "${filename}"
       exit 1
     fi
   else
@@ -138,7 +138,7 @@ dl_and_verify_file() {
   fi
   
   printf '\n==== Verifying download matches specified sha256 checksum:\n'
-  printf '%s\n' "$checksum"
+  printf -- '%s\n' "$checksum"
   printf '\n==== Downloaded file checksum is:\n'
   sha256sum "${filename}"
   
@@ -163,23 +163,23 @@ save_desktop_entry() {
   if [ -e "${path}" ]; then
     if [ -f "${path}" ] \
     && [ "$(head --lines=1 "${path}")" = '[Desktop Entry]' ]; then
-      printf '%s\n' "$contents" > "${path}"
-      printf '\n==== Replaced old launcher for %s in applications\n' "${filename}"
+      printf -- '%s\n' "$contents" > "${path}"
+      printf -- '\n==== Replaced old launcher for %s in applications\n' "${filename}"
     else
-      printf '\n==== Warning: launcher not created for %s\n' "${filename}"
+      printf -- '\n==== Warning: launcher not created for %s\n' "${filename}"
       printf   '====   unknown file with that name exists in ~/.local/share/applications\n'
       return 1
     fi
   else
-    printf '%s\n' "$contents" > "${path}"
-    printf '\n==== Created launcher for %s in applications\n' "${filename}"
+    printf -- '%s\n' "$contents" > "${path}"
+    printf -- '\n==== Created launcher for %s in applications\n' "${filename}"
   fi
 }
 
 # escapes paths so they can be used as input in shell scripts
 # TODO is currently bash specific
 escape_shell_path() {
-  printf '%q' "${1}"
+  printf -- '%q' "${1}"
 }
 
 # writes a launcher bash script with the given contents to ~/bin
@@ -189,24 +189,24 @@ save_launcher_script() {
   local path="${HOME}/bin/${filename}"
   if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
     printf '\n==== Warning: Could not create ~/bin directory;\n'
-    printf   '====   launcher %s not created\n' "${filename}"
+    printf -- '====   launcher %s not created\n' "${filename}"
     return 1
   fi
   if [ -e "${path}" ]; then
     if [ -f "${path}" ] \
     && [ "$(head --lines=1 "${path}")" = '#!/bin/bash' ]; then
-      printf '%s\n' "$contents" > "${path}"
+      printf -- '%s\n' "$contents" > "${path}"
       chmod +x "${path}"
-      printf '\n==== Replaced old launcher in ~/bin for %s\n' "${filename}"
+      printf -- '\n==== Replaced old launcher in ~/bin for %s\n' "${filename}"
     else
-      printf '\n==== Warning: launcher not created for %s\n' "${filename}"
+      printf -- '\n==== Warning: launcher not created for %s\n' "${filename}"
       printf   '====   unknown file with that name exists in ~/bin\n'
       return 1
     fi
   else
-    printf '%s\n' "$contents" > "${path}"
+    printf -- '%s\n' "$contents" > "${path}"
     chmod +x "${path}"
-    printf '\n==== Created launcher in ~/bin for %s\n' "${filename}"
+    printf -- '\n==== Created launcher in ~/bin for %s\n' "${filename}"
   fi
 }
 
@@ -217,20 +217,20 @@ create_symlink() {
   local link_path="${HOME}/bin/${link_name}"
   if [ ! -d "${HOME}/bin" ] && ! mkdir "${HOME}/bin"; then
     printf '\n==== Warning: Could not create ~/bin directory;\n'
-    printf   '====   symlink %s not created\n' "${link_name}"
+    printf -- '====   symlink %s not created\n' "${link_name}"
     return 1
   fi
   if [ -L "${link_path}" ]; then
     rm -f -- "${link_path}"
     ln -s --no-target-directory "${target}" "${link_path}"
-    printf '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
+    printf -- '\n==== Replaced old symlink in ~/bin for %s\n' "${link_name}"
   elif [ -e "${link_path}" ]; then
-    printf '\n==== Warning: symlink not created for %s\n' "${link_name}"
+    printf -- '\n==== Warning: symlink not created for %s\n' "${link_name}"
     printf   '====   unknown file with that name exists in ~/bin\n'
     return 1
   else
     ln -s --no-target-directory "${target}" "${link_path}"
-    printf '\n==== Created symlink in ~/bin for %s\n' "${link_name}"
+    printf -- '\n==== Created symlink in ~/bin for %s\n' "${link_name}"
   fi
 }
 
@@ -270,7 +270,7 @@ manage_blender() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   
@@ -340,7 +340,7 @@ manage_lmms() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   
@@ -418,7 +418,7 @@ manage_krita() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   
@@ -712,7 +712,7 @@ manage_cyanrip() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -728,7 +728,7 @@ manage_cyanrip() {
   printf '\n======== Building cyanrip\n'
   if [ -e "${build_dir}" ]; then
     printf '\n==== Error: Build directory already exists:\n'
-    printf '%s\n' "${build_dir}"
+    printf -- '%s\n' "${build_dir}"
     exit 1
   fi
   meson setup --prefix "${install_dir}" --buildtype release "${build_dir}" "${cyanrip_src_dir}"
@@ -825,7 +825,7 @@ manage_zopflipng() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -904,7 +904,7 @@ manage_pngquant() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -988,12 +988,12 @@ manage_gifski() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ -e "${build_dir}" ]; then
     printf '\n==== Error: Build directory already exists:\n'
-    printf '%s\n' "${build_dir}"
+    printf -- '%s\n' "${build_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -1083,12 +1083,12 @@ manage_gifsicle() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ -e "${build_dir}" ]; then
     printf '\n==== Error: Build directory already exists:\n'
-    printf '%s\n' "${build_dir}"
+    printf -- '%s\n' "${build_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -1178,13 +1178,13 @@ manage_mozjpeg() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ -e "${build_dir}" ]; then
     printf '\n==== Error: Build directory already exists\n'
     printf '==== Please delete existing build directory and try again:\n'
-    printf '%s\n' "${build_dir}"
+    printf -- '%s\n' "${build_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -1317,7 +1317,7 @@ manage_godot() {
   if [ -e "${install_dir}" ]; then
     printf '\n==== Error: Install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${install_dir}"
+    printf -- '%s\n' "${install_dir}"
     exit 1
   fi
   if [ ! -d "${src_dir}" ] && ! mkdir "${src_dir}"; then
@@ -1434,13 +1434,13 @@ manage_aseprite() {
   if [ -e "${ase_install_dir}" ]; then
     printf '\n==== Error: Aseprite install directory already exists\n'
     printf '==== To reinstall, first delete the previous installation directory:\n'
-    printf '%s\n' "${ase_install_dir}"
+    printf -- '%s\n' "${ase_install_dir}"
     exit 1
   fi
   if [ -e "${build_dir}" ]; then
     printf '\n==== Error: Build directory already exists\n'
     printf '==== Please delete existing build directory and try again:\n'
-    printf '%s\n' "${build_dir}"
+    printf -- '%s\n' "${build_dir}"
     exit 1
   fi
   if ! mkdir "${build_dir}"; then
