@@ -333,7 +333,28 @@ cmpgifdiff() {
 }
 
 sha256audio() {
-  ffmpeg -loglevel error -i "$1" -map 0:a -f hash -
+  local in_file=''
+  for in_file in "$@"; do
+    if [ ! -e "${in_file}" ]; then
+      printf -- '\e[0;31m==== Error:\e[0m File does not exist:\n%s\n' "${in_file}" 1>&2
+      exit 1
+    fi
+    
+    local ffmpeg_output=''
+    ffmpeg_output="$(ffmpeg -loglevel quiet -i "${in_file}" -map 0:a -f hash -hash SHA256 - )"
+    if [ "$?" -ne 0 ]; then
+      printf -- '\e[0;31m==== Error:\e[0m Could not calculate sha256 of decoded audio streams in file:\n%s\n' "${in_file}" 1>&2
+      exit 1
+    fi
+    local audio_sha256="$(printf -- '%s\n' "$ffmpeg_output" | cut -d '=' --fields='2-' -- )"
+    
+    if contains_nl_or_bs "${in_file}"; then
+      local escaped_filename="$(printf -- '%s' "${in_file}" | sed -z -e 's/\\/\\\\/g' -e 's/\n/\\n/g' -- - )"
+      printf -- '\\%s  %s\n' "$audio_sha256" "$escaped_filename"
+    else
+      printf -- '%s  %s\n' "$audio_sha256" "$in_file"
+    fi
+  done
 }
 
 sha256video() {
