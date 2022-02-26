@@ -185,8 +185,8 @@ proton_wine() {
   fi
   shift 4
   
-  if ! cd "${start_dir}"; then
-    printf 'Error: Could not cd to start directory\n' 1>&2
+  if ! cd -- "${start_dir}"; then
+    printf 'Error: Could not change to start directory\n' 1>&2
     return 1
   fi
   case "$action" in
@@ -211,11 +211,11 @@ proton_wine() {
     ;;
     *)
       printf 'Error: Invalid action, see --help\n' 1>&2
-      cd "${orig_dir}"
+      cd -- "${orig_dir}"
       return 1
     ;;
   esac
-  cd "${orig_dir}"
+  cd -- "${orig_dir}"
 }
 
 grep_non_ascii() {

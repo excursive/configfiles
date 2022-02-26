@@ -98,7 +98,7 @@ checkout_commit() {
   fi
   
   printf -- '\n======== Checking out git commit\n======== %s\n' "$commit"
-  if [ ! -d "${dir}/.git" ] || ! cd "${dir}"; then
+  if [ ! -d "${dir}/.git" ] || ! cd -- "${dir}"; then
     printf '\n==== Error: git repo is missing or invalid\n'
     exit 1
   fi
@@ -275,7 +275,7 @@ manage_blender() {
   fi
   
   printf '\n======== Downloading Blender\n'
-  cd "${blender_dir}"
+  cd -- "${blender_dir}"
   dl_and_verify_file "$blender_sha256" "blender-${blender_version}-linux64.tar.xz" \
                      "https://download.blender.org/release/${blender_dl_url}"
   if [ "$?" -ne 0 ]; then
@@ -288,7 +288,7 @@ manage_blender() {
       --file="blender-${blender_version}-linux64.tar.xz"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "blender-${blender_version}-linux64-sha256sums.txt"
   
   printf '\n======== Cleaning up\n'
@@ -345,7 +345,7 @@ manage_lmms() {
   fi
   
   printf '\n======== Downloading LMMS\n'
-  cd "${lmms_dir}"
+  cd -- "${lmms_dir}"
   dl_and_verify_file "$lmms_sha256" "lmms-${lmms_version}-linux-x86_64.AppImage" \
                      "https://github.com/LMMS/lmms/releases/download/${lmms_dl_url}"
   if [ "$?" -ne 0 ]; then
@@ -354,7 +354,7 @@ manage_lmms() {
   fi
   
   printf '\n======== Downloading icon\n'
-  cd "${lmms_dir}"
+  cd -- "${lmms_dir}"
   dl_and_verify_file "$lmms_icon_sha256" 'icon.png' \
                      "https://raw.githubusercontent.com/LMMS/lmms/${lmms_commit_sha1}/${lmms_icon_url}"
   if [ "$?" -ne 0 ]; then
@@ -423,7 +423,7 @@ manage_krita() {
   fi
   
   printf '\n======== Downloading krita\n'
-  cd "${krita_dir}"
+  cd -- "${krita_dir}"
   dl_and_verify_file "$krita_sha256" "krita-${krita_version}-x86_64.appimage" \
                      "https://download.kde.org/${krita_dl_url}"
   if [ "$?" -ne 0 ]; then
@@ -432,7 +432,7 @@ manage_krita() {
   fi
   
   printf '\n======== Downloading icon\n'
-  cd "${krita_dir}"
+  cd -- "${krita_dir}"
   dl_and_verify_file "$krita_icon_sha256" 'icon.png' \
                      "https://invent.kde.org/graphics/krita/-/raw/${krita_commit_sha1}/${krita_icon_url}"
   if [ "$?" -ne 0 ]; then
@@ -744,7 +744,7 @@ manage_cyanrip() {
   create_symlinks "${install_dir}/cyanrip"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "cyanrip-${cyanrip_version}-sha256sums.txt"
   
   
@@ -754,7 +754,7 @@ manage_cyanrip() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${cyanrip_src_dir}"
+    cd -- "${cyanrip_src_dir}"
     clean_and_update_repo "$cyanrip_version" 'skip_update'
   fi
 }
@@ -839,7 +839,7 @@ manage_zopflipng() {
   
   
   printf '\n======== Building zopflipng\n'
-  cd "${zopflipng_src_dir}"
+  cd -- "${zopflipng_src_dir}"
   g++ "src/zopfli/"{blocksplitter,cache,deflate,gzip_container,hash,katajainen}.c \
       "src/zopfli/"{lz77,squeeze,tree,util,zlib_container,zopfli_lib}.c \
       "src/zopflipng/"{zopflipng_bin,zopflipng_lib}.cc \
@@ -856,7 +856,7 @@ manage_zopflipng() {
   create_symlinks "${install_dir}/zopflipng"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "zopflipng-${zopflipng_version}-sha256sums.txt"
   
   
@@ -865,7 +865,7 @@ manage_zopflipng() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${zopflipng_src_dir}"
+    cd -- "${zopflipng_src_dir}"
     clean_and_update_repo "$zopflipng_version" 'skip_update'
   fi
 }
@@ -918,7 +918,7 @@ manage_pngquant() {
   
   
   printf '\n======== Building pngquant\n'
-  cd "${pngquant_src_dir}"
+  cd -- "${pngquant_src_dir}"
   "${pngquant_src_dir}/configure" "--prefix=${install_dir}" \
                                   --enable-sse \
                                   --with-openmp=static
@@ -939,7 +939,7 @@ manage_pngquant() {
   create_symlinks "${install_dir}/bin/pngquant"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "pngquant-${pngquant_version}-sha256sums.txt"
   
   
@@ -948,7 +948,7 @@ manage_pngquant() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${pngquant_src_dir}"
+    cd -- "${pngquant_src_dir}"
     clean_and_update_repo "$pngquant_version" 'skip_update'
   fi
 }
@@ -1011,7 +1011,7 @@ manage_gifski() {
     printf '\n==== Error: Could not create build directory\n'
     exit 1
   fi
-  cd "${gifski_src_dir}"
+  cd -- "${gifski_src_dir}"
   CARGO_TARGET_DIR="${build_dir}" cargo build --release --features=openmp
   
   
@@ -1033,7 +1033,7 @@ manage_gifski() {
   create_symlinks "${install_dir}/gifski"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "gifski-${gifski_version}-sha256sums.txt"
   
   
@@ -1043,7 +1043,7 @@ manage_gifski() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${gifski_src_dir}"
+    cd -- "${gifski_src_dir}"
     clean_and_update_repo "$gifski_version" 'skip_update'
   fi
 }
@@ -1106,7 +1106,7 @@ manage_gifsicle() {
     printf '\n==== Error: Could not create build directory\n'
     exit 1
   fi
-  cd "${build_dir}"
+  cd -- "${build_dir}"
   autoreconf -i "${gifsicle_src_dir}"
   "${gifsicle_src_dir}/configure" --disable-gifview
   make
@@ -1125,7 +1125,7 @@ manage_gifsicle() {
   mv "${build_dir}/src/gifdiff" "${install_dir}/bin"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "gifsicle-${gifsicle_version}-sha256sums.txt"
   
   create_symlinks "${install_dir}/bin/gifsicle" \
@@ -1138,7 +1138,7 @@ manage_gifsicle() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${gifsicle_src_dir}"
+    cd -- "${gifsicle_src_dir}"
     clean_and_update_repo "$gifsicle_version" 'skip_update'
   fi
 }
@@ -1202,7 +1202,7 @@ manage_mozjpeg() {
     printf '\n==== Error: Could not create build directory\n'
     exit 1
   fi
-  cd "${build_dir}"
+  cd -- "${build_dir}"
   cmake -G "Unix Makefiles" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_BUILD_RPATH_USE_ORIGIN='TRUE' \
@@ -1265,7 +1265,7 @@ manage_mozjpeg() {
        "${mozjpeg_src_dir}/wrjpgcom.1"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "mozjpeg-${mozjpeg_version}-sha256sums.txt"
   
   create_symlink "${install_dir}/cjpeg"    'mozcjpeg'
@@ -1331,7 +1331,7 @@ manage_godot() {
   
   
   printf '\n======== Building godot\n'
-  cd "${godot_src_dir}"
+  cd -- "${godot_src_dir}"
   # TODO: switch to this for godot 4:
   #platform=linuxbsd
   scons -j 3 platform=x11 target=release_debug tools=yes debug_symbols=no use_lto=yes
@@ -1363,7 +1363,7 @@ manage_godot() {
   cp "${godot_src_dir}/main/app_icon.png" "${install_dir}"
   
   printf '\n======== Generating checksums\n'
-  cd "${install_dir}"
+  cd -- "${install_dir}"
   sha256r "godot-${godot_version}-sha256sums.txt"
   
   
@@ -1372,7 +1372,7 @@ manage_godot() {
     rm -R -f -- "${src_dir}"
   else
     printf '==== Keeping source repo\n'
-    cd "${godot_src_dir}"
+    cd -- "${godot_src_dir}"
     clean_and_update_repo "$godot_version" 'skip_update'
   fi
   
@@ -1465,7 +1465,7 @@ manage_aseprite() {
   if [ -e "${skia_install_dir}" ]; then
     printf '\n======== Skia install directory found. Verifying checksums...\n'
     # TODO: need a better way to check if skia installation matches checksums
-    if ! cd "${skia_install_dir}" \
+    if ! cd -- "${skia_install_dir}" \
        || ! sha256sum --check --quiet "${skia_install_dir}/skia-aseprite-m81-sha256sums.txt"; then
       printf '\n==== Error: Skia installation does not match checksums\n'
       exit 1
@@ -1514,10 +1514,10 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
       printf '\n==== Error: Could not create skia build directory\n'
       exit 1
     fi
-    cd "${skia_src_dir}"
+    cd -- "${skia_src_dir}"
     env PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
       --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
-    cd "${skia_build_dir}"
+    cd -- "${skia_build_dir}"
     ninja -C "${skia_build_dir}" skia modules
     
     
@@ -1529,7 +1529,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     # TODO: make library directory dynamic to handle other architectures
     mkdir "${skia_install_dir}/lib" "${skia_install_dir}/lib/x86_64-linux-gnu"
     mv "${skia_build_dir}"/*.a "${skia_install_dir}/lib/x86_64-linux-gnu"
-    cd "${skia_src_dir}"
+    cd -- "${skia_src_dir}"
     cp -R --parents \
       include \
       modules/particles/include/*.h \
@@ -1540,7 +1540,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
       "${skia_install_dir}"
     
     printf '\n======== Generating skia-aseprite-m81 checksums\n'
-    cd "${skia_install_dir}"
+    cd -- "${skia_install_dir}"
     sha256r 'skia-aseprite-m81-sha256sums.txt'
   fi
   
@@ -1554,7 +1554,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
     printf '\n==== Error: Could not create aseprite build directory\n'
     exit 1
   fi
-  cd "${ase_build_dir}"
+  cd -- "${ase_build_dir}"
   # enable shared libraries not in universe repo
   # disable network stuff (news and updates)
   cmake -DCMAKE_BUILD_TYPE=Release \
@@ -1589,7 +1589,7 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   cp "${skia_install_dir}"/lib/x86_64-linux-gnu/*.a "${ase_install_dir}/lib"
   
   printf '\n======== Generating aseprite checksums\n'
-  cd "${ase_install_dir}"
+  cd -- "${ase_install_dir}"
   sha256r "aseprite-${aseprite_version}-sha256sums.txt"
   
   
@@ -1712,7 +1712,7 @@ case "$1" in
   ;;
 esac
 
-cd "${starting_dir}"
+cd -- "${starting_dir}"
 
 printf '\n======== All done!\n'
 

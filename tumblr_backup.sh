@@ -3,8 +3,10 @@
 is_positive_integer() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[[:digit:]]+$'
-  [[ "$1" =~ $regex ]]
+  case "$1" in
+    ''|*[!0-9]*) return 1 ;;
+    *) return 0 ;;
+  esac
 }
 
 is_domain_part() {
