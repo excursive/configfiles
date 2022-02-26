@@ -670,7 +670,8 @@ batch_optimize_files() {
       ;;
       *)
         printf 'Error: Invalid filetype. Valid filetypes are:\n' 1>&2
-        printf '       [ jpeg | png | pngm | gif | audio | video | video-subtitled ]\n' 1>&2
+        printf '       [ png | pngm | pngstrip | pngmstrip | \n' 1>&2
+        printf '         jpeg | gif | audio | video | video-subtitled ]\n' 1>&2
         return 1
       ;;
     esac
