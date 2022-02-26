@@ -29,8 +29,10 @@ alias aadebug="apparmor_parser -Q --debug"
 is_positive_integer() {
   local LC_ALL=C
   export LC_ALL
-  local regex='^[[:digit:]]+$'
-  [[ "$1" =~ $regex ]]
+  case "$1" in
+    ''|*[!0-9]*) return 1 ;;
+    *) return 0 ;;
+  esac
 }
 
 is_positive_integer_range() {
@@ -104,7 +106,7 @@ md5r() {
       printf 'Error: Output file already exists\n' 1>&2
       return 1
     fi
-    printf '%s\n' "$output" > "${1}"
+    printf -- '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty md5sum --
   fi
@@ -117,7 +119,7 @@ sha256r() {
       printf 'Error: Output file already exists\n' 1>&2
       return 1
     fi
-    printf '%s\n' "$output" > "${1}"
+    printf -- '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty sha256sum --
   fi
@@ -141,7 +143,7 @@ proton_wine() {
   local proton_version="$2"
   local command_to_run="${5}"
   if [ ! -x "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" ]; then
-    printf 'Error: Could not find specified proton version: %s\n' "$proton_version" 1>&2
+    printf -- 'Error: Could not find specified proton version: %s\n' "$proton_version" 1>&2
     return 1
   fi
   local orig_dir="${PWD}"
@@ -157,7 +159,7 @@ proton_wine() {
       local executable_path=''
       executable_path="$(realpath -e "${command_to_run}")"
       if [ "$?" -ne 0 ]; then
-        printf 'Error: Could not get path of executable: %s\n' "${command_to_run}" 1>&2
+        printf -- 'Error: Could not get path of executable: %s\n' "${command_to_run}" 1>&2
         return 1
       fi
       start_dir="$(dirname "${executable_path}")"
@@ -170,7 +172,7 @@ proton_wine() {
   local prefix=''
   if is_positive_integer "${4}"; then
     if [ ! -d "${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx" ]; then
-      printf 'Error: Could not find prefix for specified steam app id: %s\n' "${4}" 1>&2
+      printf -- 'Error: Could not find prefix for specified steam app id: %s\n' "${4}" 1>&2
       return 1
     fi
     if [ "$action" = 'steam' ]; then
@@ -261,20 +263,20 @@ grep_non_ascii() {
     esac
   done
   local regex="${chars_start}${h_tab}${newline}${c_return}${chars_end}${not_cr_lf}"
-  #printf '  perl-regexp: %s\n' "$regex"
+  #printf -- '  perl-regexp: %s\n' "$regex"
   
   for in_file in "$@"; do
     if [ ! -e "${in_file}" ]; then
-      printf '%s: file does not exist\n' "${in_file}"
+      printf -- '%s: file does not exist\n' "${in_file}"
       continue
     fi
     
     local total_lines="$(grep --color='auto' -c --binary --perl-regexp "$regex" -- "${in_file}")"
     
     if [ "$total_lines" -gt 0 ]; then
-      printf '\e[0;31m%s: %s\e[0m' "${in_file}" "$total_lines"
+      printf -- '\e[0;31m%s: %s\e[0m' "${in_file}" "$total_lines"
     else
-      printf '%s: %s' "${in_file}" "$total_lines"
+      printf -- '%s: %s' "${in_file}" "$total_lines"
     fi
     
     if [ -s "${in_file}" ] && [ ! -z "$(tail --bytes=1 "${in_file}")" ]; then
@@ -284,7 +286,7 @@ grep_non_ascii() {
     printf '\n'
     
     if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = '-n' ]; then
-      printf '\e[0;36m%s\e[0m\n' \
+      printf -- '\e[0;36m%s\e[0m\n' \
         "$(grep --color='auto' -n --binary --perl-regexp "$regex" -- "${in_file}" | \
              cut --fields=1 --delimiter=':' -- | tr '\n' ' ' )"
     fi
@@ -327,7 +329,7 @@ cmpgif() {
 
 cmpgifdiff() {
   gifdiff "${1}" "${2}"
-  printf '%s\n' "$?"
+  printf -- '%s\n' "$?"
 }
 
 sha256audio() {
@@ -401,7 +403,7 @@ ffmpeg_screenrec() {
          '-flags' 'bitexact' '-flags:v' 'bitexact' '-flags:a' 'bitexact' \
          '-fflags' 'bitexact' \
          "${out_file}" )
-  printf '\nrunning ffmpeg with these arguments: %s\n\n' "${ffmpeg_args[*]}"
+  printf -- '\nrunning ffmpeg with these arguments: %s\n\n' "${ffmpeg_args[*]}"
   ffmpeg "${ffmpeg_args[@]}"
 }
 
@@ -521,15 +523,15 @@ ff_cookies_print() {
   # all kinds of terrible things happening here
   # should really be using python or some library that can decompress arbitrary lz4 blocks
   local block_size="$(stat -c '%s' "${temp_json_mozlz4}")"
-  local block_hex="$(printf '%08x' "$(("$block_size" & 2147483647))")"
+  local block_hex="$(printf -- '%08x' "$(("$block_size" & 2147483647))")"
   local hex_3="${block_hex:0:2}"
   local hex_2="${block_hex:2:2}"
   local hex_1="${block_hex:4:2}"
   local hex_0="${block_hex:6:2}"
-  printf '\x04\x22\x4D\x18\x60\x60\x51' >> "${temp_lz4}"
-  printf "\x${hex_0}\x${hex_1}\x${hex_2}\x${hex_3}" >> "${temp_lz4}"
+  printf -- '\x04\x22\x4D\x18\x60\x60\x51' >> "${temp_lz4}"
+  printf -- "\x${hex_0}\x${hex_1}\x${hex_2}\x${hex_3}" >> "${temp_lz4}"
   cat "${temp_json_mozlz4}" >> "${temp_lz4}"
-  printf '\x00\x00\x00\x00' >> "${temp_lz4}"
+  printf -- '\x00\x00\x00\x00' >> "${temp_lz4}"
   lz4 -q -q -d -f "${temp_lz4}" "${json_decompressed}"
   local session_cookies=''
   session_cookies="$(python3 <<EOF
@@ -553,7 +555,7 @@ EOF
     printf 'No cookies found\n' 1>&2
     return 0
   fi
-  printf '%s\n%s\n%s\n' "$netscape_header" "$sql_cookies" "$session_cookies"
+  printf -- '%s\n%s\n%s\n' "$netscape_header" "$sql_cookies" "$session_cookies"
 }
 
 # ease-of-use function to write a netscape cookies.txt file with only the
@@ -573,7 +575,7 @@ ff_cookies_txt() {
   if [ -z "$output" ]; then
     return 0
   fi
-  printf '%s\n' "$output" > "${output_file}"
+  printf -- '%s\n' "$output" > "${output_file}"
 }
 
 # arguments:
@@ -586,7 +588,7 @@ batch_optimize_files() {
   local success_count='0'
   local fail_count='0'
   for in_file in "$@"; do
-    printf '======== Processing file: %s\n' "${in_file}"
+    printf -- '======== Processing file: %s\n' "${in_file}"
     local in_size="$(stat -c '%s' "${in_file}")"
     local in_perms="$(stat -c '%a' "${in_file}")"
     if ! is_permissions "$in_perms"; then
@@ -615,10 +617,16 @@ batch_optimize_files() {
         mozjpegtran -copy none -optimize -perfect "${in_file}" > "${temp_file}"
       ;;
       'png')
-        zopflipng -y "${in_file}" "${temp_file}"
+        zopflipng -y --keepchunks=PLTE,tRNS,cHRM,gAMA,iCCP,sBIT,sRGB,iTXt,tEXt,zTXt,bKGD,hIST,pHYs,sPLT,tIME "${in_file}" "${temp_file}"
       ;;
       'pngm')
-        zopflipng -m -y "${in_file}" "${temp_file}"
+        zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,iCCP,sBIT,sRGB,iTXt,tEXt,zTXt,bKGD,hIST,pHYs,sPLT,tIME "${in_file}" "${temp_file}"
+      ;;
+      'pngstrip')
+        zopflipng -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
+      ;;
+      'pngmstrip')
+        zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
       ;;
       'gif')
         gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3 \
@@ -641,14 +649,14 @@ batch_optimize_files() {
       ;;
       *)
         printf 'Error: Invalid filetype. Valid filetypes are:\n' 1>&2
-        printf '       [ jpeg | png | pngm | gif | audio | video | video-subtitled ]\n'
+        printf '       [ jpeg | png | pngm | gif | audio | video | video-subtitled ]\n' 1>&2
         return 1
       ;;
     esac
     if [ "$?" -ne 0 ]; then
       rm -f -- "${temp_file}"
       fail_count="$(( "$fail_count" + 1 ))"
-      printf '\e[0;31m==== Error:\e[0m Could not optimize %s\n\n\n' "${in_file}" 1>&2
+      printf -- '\e[0;31m==== Error:\e[0m Could not optimize %s\n\n\n' "${in_file}" 1>&2
       continue
     fi
     
@@ -659,12 +667,12 @@ batch_optimize_files() {
     local out_size="$(stat -c '%s' "${in_file}")"
     
     local size_diff="$(( "$in_size" - "$out_size" ))"
-    local percent_diff="$(printf '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
+    local percent_diff="$(printf -- '100 * %s / %s\n' "$size_diff" "$in_size" | bc -l)"
     printf '==== Reduced file size by %d bytes (%.2f%%)\n\n\n' "$size_diff" "$percent_diff"
   done
-  printf '======== %s files successfully optimized\n' "$success_count"
+  printf -- '======== %s files successfully optimized\n' "$success_count"
   if [ "$fail_count" -ne 0 ]; then
-    printf '\e[0;31m==== Note:\e[0m %s files could not be optimized due to errors\n' "$fail_count" 1>&2
+    printf -- '\e[0;31m==== Note:\e[0m %s files could not be optimized due to errors\n' "$fail_count" 1>&2
   fi
 }
 
@@ -678,6 +686,14 @@ pngoptim() {
 
 pngmoptim() {
   batch_optimize_files 'pngm' "$@"
+}
+
+pngoptimstrip() {
+  batch_optimize_files 'pngstrip' "$@"
+}
+
+pngmoptimstrip() {
+  batch_optimize_files 'pngmstrip' "$@"
 }
 
 gifoptim() {
@@ -840,28 +856,28 @@ capslock_key_config() {
 kppextract() {
   local line="$(identify -verbose "$1" | grep 'preset:' --)"
   local l1="${line#*preset: }"
-  printf '%s\n' "$l1"
+  printf -- '%s\n' "$l1"
 }
 
 kpptotxt() {
   if [ -e "${1}.txt" ]; then
-    printf 'Error: Output file %s already exists\n' "${1}.txt" 1>&2
+    printf -- 'Error: Output file %s already exists\n' "${1}.txt" 1>&2
     return 1
   fi
   local preset="$(kppextract "${1}")"
   local formatted="${preset//> <param />$'\n'<param }"
-  printf '%s\n' "$formatted" > "${1}.txt"
+  printf -- '%s\n' "$formatted" > "${1}.txt"
 }
 
 kppdiff() {
   local preset1="$(kppextract "${1}" | xmllint --c14n -- - | xmllint --format -- -)"
   local preset2="$(kppextract "${2}" | xmllint --c14n -- - | xmllint --format -- -)"
-  diff <(printf '%s' "$preset1") <(printf '%s' "$preset2")
+  diff <(printf -- '%s' "$preset1") <(printf -- '%s' "$preset2")
 }
 
 kppwrite() {
   if [ -e "${2}" ]; then
-    printf 'Error: Output file %s already exists\n' "${2}" 1>&2
+    printf -- 'Error: Output file %s already exists\n' "${2}" 1>&2
     return 1
   fi
   local text="$(<"${3}")"
