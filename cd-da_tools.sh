@@ -17,6 +17,13 @@ contains_nl_or_bs() {
   [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
 
+mkdir_or_exit() {
+  if contains_nl_or_bs "${1}" || ! mkdir "${1}"; then
+    printf -- '\e[0;31m==== Error:\e[0m Could not create directory:\n%s\n\n' "${1}" 1>&2
+    exit 1
+  fi
+}
+
 
 
 num_samples() {
@@ -247,6 +254,10 @@ rip_whipper() {
           --track-template 'disc_%N_track_%t.%x' \
           --disc-template '%d_%B' \
           --release-id 0000000
+  if [ "$?" -ne 0 ]; then
+    printf '\e[0;31m==== Error:\e[0m Ripping CD with whipper failed\n\n' 1>&2
+    exit 1
+  fi
 }
 
 
@@ -257,6 +268,10 @@ read_toc() {
     exit 0
   fi
   cdrdao read-toc --source-device /dev/cdrom --datafile "${1}" "${2}"
+  if [ "$?" -ne 0 ]; then
+    printf '\e[0;31m==== Error:\e[0m Reading CD toc with cdrdao failed\n\n' 1>&2
+    exit 1
+  fi
 }
 
 
@@ -267,6 +282,10 @@ run_cyanrip() {
           -L '{album}_{barcode}' \
           -T simple \
           "$@"
+  if [ "$?" -ne 0 ]; then
+    printf '\e[0;31m==== Error:\e[0m Ripping CD with cyanrip failed\n\n' 1>&2
+    exit 1
+  fi
 }
 
 
@@ -302,10 +321,12 @@ rip_cyanrip() {
     exit 1
   fi
   
-  
-  run_cyanrip "$@"
-  
+  sleep 3s
+  mkdir_or_exit "${rip_dir}"
   read_toc "d${disc_num}.wav" "${rip_dir}/d${disc_num}.toc"
+  
+  sleep 3s
+  run_cyanrip "$@"
   
   cd -- "${rip_dir}"
   
