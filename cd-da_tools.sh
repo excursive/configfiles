@@ -287,8 +287,8 @@ run_cd_paranoia() {
 run_cyanrip() {
   cyanrip -d /dev/cdrom -s 6 -p 1=track -o flac \
           -D '{album}_{barcode}' \
-          -F '{if #totaldiscs# > #1#d|disc|-}{track}' \
-          -L '{album}_{barcode}' \
+          -F 'd{disc}-{track}' \
+          -L 'log-cyanrip-d{disc}' \
           -T simple \
           "$@"
   if [ "$?" -ne 0 ]; then
@@ -345,9 +345,9 @@ rip_cyanrip() {
   cd -- "${rip_dir}"
   
   printf '\n==== Saving raw audio sha256sums to raw_audio_sha256sums-d%s.txt\n' "$disc_num"
-  #sha256audio -- "${rip_dir}/d${disc_num}-underread-6-sectors.wav" > "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
-  #sha256audio -- "${tracks[@]}" >> "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
-  sha256audio -- "${tracks[@]}" > "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
+  #sha256audio -- "${rip_dir}/d${disc_num}-underread-6-sectors.wav" > "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
+  #sha256audio -- "${tracks[@]}" >> "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
+  sha256audio -- "${tracks[@]}" > "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
   
   printf '\n==== Checking beginning and end of rip\n'
   local pregap_zero_samples_at_beginning=''
@@ -368,8 +368,6 @@ rip_cyanrip() {
   fi
   printf -- 'track 1 zero samples at beginning : %s\n' "$t1_zero_samples_at_beginning"
   printf -- 'last track zero samples at end    : %s\n\n' "$last_track_zero_samples_at_end"
-  
-  mv --no-target-directory -- "${logfile}" "${logfile%.log}-d${disc_num}.log"
   
   if [ "$disc_num" -eq "$total_discs" ]; then
     printf -- '\n==== All done, saving sha256sums of all files\n\n'
