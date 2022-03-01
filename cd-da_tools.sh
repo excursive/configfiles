@@ -275,6 +275,15 @@ read_toc() {
 }
 
 
+run_cd_paranoia() {
+  cd-paranoia --verbose --output-wav --force-cdrom-device /dev/cdrom --abort-on-skip "$@"
+  if [ "$?" -ne 0 ]; then
+    printf '\e[0;31m==== Error:\e[0m cd-paranoia reported an error\n\n' 1>&2
+    exit 1
+  fi
+}
+
+
 run_cyanrip() {
   cyanrip -d /dev/cdrom -s 6 -p 1=track -o flac \
           -D '{album}_{barcode}' \
@@ -329,9 +338,15 @@ rip_cyanrip() {
   sleep 5s
   run_cyanrip "$@"
   
+  #sleep 5s
+  #run_cd_paranoia --sample-offset '-3522' --log-summary "${rip_dir}/d${disc_num}-underread-6-sectors.log" -- '-[.11]' \
+  #                                                      "${rip_dir}/d${disc_num}-underread-6-sectors.wav"
+  
   cd -- "${rip_dir}"
   
   printf '\n==== Saving raw audio sha256sums to raw_audio_sha256sums-d%s.txt\n' "$disc_num"
+  #sha256audio -- "${rip_dir}/d${disc_num}-underread-6-sectors.wav" > "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
+  #sha256audio -- "${tracks[@]}" >> "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
   sha256audio -- "${tracks[@]}" > "${rip_dir}/raw_audio_sha256sums-d${disc_num}.txt"
   
   printf '\n==== Checking beginning and end of rip\n'
@@ -379,7 +394,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              num-samples | contatenate | split-by-samples | \n'
   printf '              audio-to-raw | raw-to-format | \n'
   printf '              s16le-audio-is-zero | zero-samples-at-beginning | zero-samples-at-end | \n'
-  printf '              read-toc | \n'
+  printf '              read-toc | run-cd-paranoia | \n'
   printf '              run-cyanrip | rip-cyanrip ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
@@ -420,6 +435,9 @@ case "$operation" in
   ;;
   'read-toc' | 'read_toc')
     read_toc "$@"
+  ;;
+  'run-cd-paranoia' | 'run_cd_paranoia')
+    run_cd_paranoia "$@"
   ;;
   'run-cyanrip' | 'run_cyanrip')
     run_cyanrip "$@"
