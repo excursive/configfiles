@@ -18,8 +18,8 @@ contains_nl_or_bs() {
 }
 
 mkdir_or_exit() {
-  if contains_nl_or_bs "${1}" || ! mkdir "${1}"; then
-    printf -- '\e[0;31m==== Error:\e[0m Could not create directory:\n%s\n\n' "${1}" 1>&2
+  if contains_nl_or_bs "${1}" || [ ! -d "${1}" ] && ! mkdir -- "${1}"; then
+    printf -- '\e[0;31mError:\e[0m Could not create directory:\n%s\n\n' "${1}" 1>&2
     exit 1
   fi
 }
@@ -29,7 +29,7 @@ mkdir_or_exit() {
 num_samples() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf -- 'Can pass multiple files, samples for each will be listed separated by newlines\n'
-    printf -- 'Arguments: [input1.flac] [input2.flac] [input3.flac]... [output.flac]\n'
+    printf -- 'Arguments: [input1.flac] [input2.flac] [input3.flac]... [output.flac]\n\n'
     exit 0
   fi
   sox --info -s -- "$@"
@@ -37,7 +37,7 @@ num_samples() {
 
 concatenate() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [input1.flac] [input2.flac] [input3.flac]... [output.flac]\n'
+    printf -- 'Arguments: [input1.flac] [input2.flac] [input3.flac]... [output.flac]\n\n'
     exit 0
   fi
   #ffmpeg -i 'concat:track1.wav|track2.wav|track3.wav' -c copy out.wav
@@ -46,7 +46,7 @@ concatenate() {
 
 split_by_samples() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [input.flac] [output.flac] [length 1] [length 2] [length 3]...\n'
+    printf -- 'Arguments: [input.flac] [output.flac] [length 1] [length 2] [length 3]...\n\n'
     exit 0
   fi
   
@@ -55,14 +55,14 @@ split_by_samples() {
   shift 2
   
   if ! is_positive_integer "$1"; then
-    printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n' 1>&2
+    printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n\n' 1>&2
     exit 1
   fi
   args+=( 'trim' '0' "${1}s" )
   shift 1
   while [ "$#" -gt 0 ]; do
     if ! is_positive_integer "$1"; then
-      printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n' 1>&2
+      printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n\n' 1>&2
       exit 1
     fi
     args+=( ':' 'newfile' ':' 'trim' '0' "${1}s" )
@@ -73,7 +73,7 @@ split_by_samples() {
 
 audio_to_raw() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [input.___] [output.raw]\n'
+    printf -- 'Arguments: [input.___] [output.raw]\n\n'
     exit 0
   fi
   #ffmpeg -i "${1}" -f s16le -c:a pcm_s16le "${2}"
@@ -82,7 +82,7 @@ audio_to_raw() {
 
 raw_to_format() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [input.raw] [output.___]\n'
+    printf -- 'Arguments: [input.raw] [output.___]\n\n'
     exit 0
   fi
   #ffmpeg -f s16le -ar 44100 -ac 2 -i "${1}" -c:a copy "${2}"
@@ -96,7 +96,7 @@ sha256audio() {
     case "$1" in
       '-h' | '--help')
         printf 'Like sha256sum, but decodes and computes checksum of only audio streams\n'
-        printf 'Will fail for raw audio data, but sha256sum can be used for that\n'
+        printf 'Will fail for raw audio data, but sha256sum can be used for that\n\n'
         exit 0
       ;;
       '--') shift 1 ; break ;;
@@ -107,14 +107,14 @@ sha256audio() {
   local in_file=''
   for in_file in "$@"; do
     if [ ! -e "${in_file}" ]; then
-      printf -- '\e[0;31m==== Error:\e[0m File does not exist:\n%s\n' "${in_file}" 1>&2
+      printf -- '\e[0;31m==== Error:\e[0m File does not exist:\n%s\n\n' "${in_file}" 1>&2
       exit 1
     fi
     
     local ffmpeg_output=''
     ffmpeg_output="$(ffmpeg -loglevel quiet -i "${in_file}" -map '0:a' -f hash -hash SHA256 -)"
     if [ "$?" -ne 0 ]; then
-      printf -- '\e[0;31m==== Error:\e[0m Could not calculate sha256 of decoded audio streams in file:\n%s\n' "${in_file}" 1>&2
+      printf -- '\e[0;31m==== Error:\e[0m Could not calculate sha256 of decoded audio streams in file:\n%s\n\n' "${in_file}" 1>&2
       exit 1
     fi
     local audio_sha256="$(printf -- '%s\n' "$ffmpeg_output" | cut -d '=' --fields='2-' --)"
@@ -138,7 +138,7 @@ sha256audior() {
   if [ -n "${1}" ]; then
     local output="$(sha256r)"
     if [ -e "${1}" ]; then
-      printf -- '\e[0;31mError:\e[0m Output file already exists\n' 1>&2
+      printf -- '\e[0;31mError:\e[0m Output file already exists\n\n' 1>&2
       return 1
     fi
     printf -- '%s\n' "$output" > "${1}"
@@ -158,7 +158,7 @@ sha256r() {
   if [ -n "${1}" ]; then
     local output="$(sha256r)"
     if [ -e "${1}" ]; then
-      printf 'Error: Output file already exists\n' 1>&2
+      printf 'Error: Output file already exists\n\n' 1>&2
       return 1
     fi
     printf -- '%s\n' "$output" > "${1}"
@@ -209,7 +209,7 @@ zero_samples_at_beginning() {
   temp_file="$(temp_raw_s16le "${1}")"
   local num_bytes="$(stat -c '%s' "${temp_file}")"
   if cmp --silent -n "$num_bytes" -- /dev/zero "${temp_file}"; then
-    printf '==== Audio file is all zeros\n'
+    printf 'audio is all zeros\n'
     rm -f -- "${temp_file}"
     exit 0
   fi
@@ -255,7 +255,7 @@ rip_whipper() {
           --disc-template '%d_%B' \
           --release-id 0000000
   if [ "$?" -ne 0 ]; then
-    printf '\e[0;31m==== Error:\e[0m Ripping CD with whipper failed\n\n' 1>&2
+    printf '\e[0;31m==== Error:\e[0m whipper reported an error\n\n' 1>&2
     exit 1
   fi
 }
@@ -264,12 +264,12 @@ rip_whipper() {
 
 read_toc() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [disc_audio_filename.wav] [output.toc]\n'
+    printf -- 'Arguments: [disc_audio_filename.wav] [output.toc]\n\n'
     exit 0
   fi
   cdrdao read-toc --source-device /dev/cdrom --datafile "${1}" "${2}"
   if [ "$?" -ne 0 ]; then
-    printf '\e[0;31m==== Error:\e[0m Reading CD toc with cdrdao failed\n\n' 1>&2
+    printf '\e[0;31m==== Error:\e[0m cdrdao reported an error\n\n' 1>&2
     exit 1
   fi
 }
@@ -283,7 +283,7 @@ run_cyanrip() {
           -T simple \
           "$@"
   if [ "$?" -ne 0 ]; then
-    printf '\e[0;31m==== Error:\e[0m Ripping CD with cyanrip failed\n\n' 1>&2
+    printf '\e[0;31m==== Error:\e[0m cyanrip reported an error\n\n' 1>&2
     exit 1
   fi
 }
@@ -321,11 +321,12 @@ rip_cyanrip() {
     exit 1
   fi
   
-  sleep 3s
+  sleep 5s
   mkdir_or_exit "${rip_dir}"
   read_toc "d${disc_num}.wav" "${rip_dir}/d${disc_num}.toc"
+  printf '\n'
   
-  sleep 3s
+  sleep 5s
   run_cyanrip "$@"
   
   cd -- "${rip_dir}"
