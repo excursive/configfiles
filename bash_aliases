@@ -4,6 +4,8 @@ PATH="${PATH}:${HOME}/bin"
 
 alias srm="rm -I"
 
+alias ddsafe="dd conv=excl bs=4096 iflag=skip_bytes"
+
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
 
