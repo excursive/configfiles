@@ -4,13 +4,28 @@
 #set -e
 #set -o pipefail
 
-is_positive_integer() {
+is_whole_number() {
   local LC_ALL=C
   export LC_ALL
   case "$1" in
     ''|*[!0-9]*) return 1 ;;
     *) return 0 ;;
   esac
+}
+
+is_positive_integer() {
+  is_whole_number "${1}"
+}
+
+is_negative_integer() {
+  case "${1}" in
+    -*) is_whole_number "${1#-}" ;;
+    *) return 1 ;;
+  esac
+}
+
+is_integer() {
+  is_whole_number "${1#-}"
 }
 
 contains_nl_or_bs() {
@@ -25,6 +40,42 @@ mkdir_or_exit() {
 }
 
 
+
+
+
+# converts input audio file to headerless s16le 2 channel raw audio, and writes it
+# to a temp file, and prints its name. exits with 0 if successful.
+mktemp_raw() {
+  local temp_file=''
+  temp_file="$(mktemp "--suffix=.raw" "raw_audio_temp_XXXXXX")" || exit 1
+  #if ! ffmpeg -loglevel quiet -i "${1}" -y -map '0:a' -f s16le '-c:a' pcm_s16le "${temp_file}"; then
+  if ! sox --no-clobber --show-progress -- "${1}" --type raw "${output}"; then
+    rm -f -- "${temp_file}"
+    exit 2
+  fi
+  printf -- '%s' "${temp_file}"
+}
+
+# input file must be headerless s16le 2 channel raw audio data
+# if extension is .wav, assume actual audio format is correct and header is 44 bytes
+# negative starting samples are relative to to the end of input
+print_samples() {
+  if { [ -n "$2" ] && ! [ "$2" -ne 0 ] ; } || { [ -n "$3" ] && ! [ "$3" -gt 0 ] ; } ; then
+    printf -- '\e[0;31m==== Error:\e[0m Invalid start and/or length samples\n\n' 1>&2
+    exit 1
+  fi
+  local wav_header='0'
+  case "${1}" in
+    *.wav) wav_header='44' ;;
+  esac
+  local num_bytes="$(stat -c '%s' "${1}")"
+  local num_samples="$(( ( "${num_bytes}" - "$wav_header" ) / 4 ))"
+  local -a args=()
+  is_negative_integer "$2" && args+=( "--skip-bytes=$(( ( ( "${num_samples}" + "${2}" ) * 4 ) + "$wav_header" ))" )
+  is_positive_integer "$2" && args+=( "--skip-bytes=$(( ( ( "${2}" * 4 ) - 4 ) + "$wav_header" ))" )
+  is_positive_integer "$3" && args+=( "--read-bytes=$(( "${3}" * 4 ))" )
+  od --output-duplicates --address-radix=n --endian=little --format=d2 --width=4 "${args[@]}" -- "${1}"
+}
 
 num_samples() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
@@ -44,11 +95,29 @@ concatenate() {
   sox --no-clobber --show-progress --combine concatenate -- "$@"
 }
 
+
+
+# splits an audio file by lengths in samples, or sample timestamps in original file
 split_by_samples() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [input.flac] [output.flac] [length 1] [length 2] [length 3]...\n\n'
+    printf -- 'Arguments: [ lengths | timestamps ] [input.flac] [output.flac] [ samples ]...\n\n'
     exit 0
   fi
+  
+  local method="$1"
+  shift 1
+  if [ "$method" != 'lengths' ] && [ "$method" != 'timestamps' ]; then
+    printf -- '\e[0;31m==== Error:\e[0m Method must be lengths or timestamps\n\n' 1>&2
+    exit 1
+  fi
+  
+  local total_samples=''
+  total_samples="$(num_samples "${1}")"
+  if [ "$?" -ne 0 ] || ! is_positive_integer "$total_samples"; then
+    printf -- '\e[0;31m==== Error:\e[0m Could not get total samples\n\n' 1>&2
+    exit 1
+  fi
+  local split_samples='0'
   
   local -a args=()
   args+=( "${1}" "${2}" )
@@ -58,6 +127,7 @@ split_by_samples() {
     printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n\n' 1>&2
     exit 1
   fi
+  split_samples="$(( "$split_samples" + "$1" ))"
   args+=( 'trim' '0' "${1}s" )
   shift 1
   while [ "$#" -gt 0 ]; do
@@ -65,19 +135,38 @@ split_by_samples() {
       printf -- '\e[0;31m==== Error:\e[0m Samples must be positive integers\n\n' 1>&2
       exit 1
     fi
-    args+=( ':' 'newfile' ':' 'trim' '0' "${1}s" )
+    local length="$1"
+    if [ "$method" = 'timestamps' ]; then
+      length="$(( "$1" - "$split_samples" ))"
+    fi
+    split_samples="$(( "$split_samples" + "$length" ))"
+    if [ "$split_samples" -gt "$total_samples" ]; then
+      printf -- '\e[0;31m==== Error:\e[0m Requested samples beyond end of audio\n\n' 1>&2
+      exit 1
+    fi
+    args+=( ':' 'newfile' ':' 'trim' '0' "${length}s" )
     shift 1
   done
+  local samples_remaining="$(( "$total_samples" - "$split_samples" ))"
+  if [ "$samples_remaining" -gt 0 ]; then
+    args+=( ':' 'newfile' ':' 'trim' '0' "${samples_remaining}s" )
+  fi
   sox --no-clobber --show-progress -- "${args[@]}"
 }
 
-audio_to_raw() {
+
+
+to_raw() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf -- 'Arguments: [input.___] [output.raw]\n\n'
     exit 0
   fi
-  #ffmpeg -i "${1}" -f s16le -c:a pcm_s16le "${2}"
-  sox --no-clobber --show-progress -- "${1}" --type raw "${2}"
+  local output="${2}"
+  if [ -z "${output}" ]; then
+    output="${1}.raw"
+  fi
+  #ffmpeg -loglevel quiet -i "${1}" -map '0:a' -f s16le '-c:a' pcm_s16le "${2}"
+  sox --no-clobber --show-progress -- "${1}" --type raw "${output}"
 }
 
 raw_to_format() {
@@ -169,88 +258,193 @@ sha256r() {
 
 
 
-temp_raw_s16le() {
-  local temp_file=''
-  temp_file="$(mktemp "--suffix=.raw" "raw_audio_temp_XXXXXX")"
+# arguments: [ all | beginning | end ] [input.raw|wav]
+check_0_samples() {
+  local num_bytes=''
+  num_bytes="$(stat -c '%s' "${2}")"
   if [ "$?" -ne 0 ]; then
-    printf '\e[0;31m==== Error:\e[0m Could not create temp file\n\n' 1>&2
-    exit 2
+    printf '\e[0;31m==== Error:\e[0m Could not get size of input file\n\n' 1>&2
+    exit 1
   fi
-  ffmpeg -loglevel quiet -i "${1}" -y -map '0:a' -f s16le '-c:a' pcm_s16le "${temp_file}"
-  if [ "$?" -ne 0 ]; then
-    printf '\e[0;31m==== Error:\e[0m Could not convert to raw s16le data\n\n' 1>&2
-    rm -f -- "${temp_file}"
-    exit 2
-  fi
-  printf -- '%s' "${temp_file}"
-}
-
-
-
-s16le_audio_is_zero() {
-  local temp_file=''
-  temp_file="$(temp_raw_s16le "${1}")"
-  local num_bytes="$(stat -c '%s' "${temp_file}")"
-  cmp --silent -n "$num_bytes" -- /dev/zero "${temp_file}"
-  local ret="$?"
-  rm -f -- "${temp_file}"
-  if [ "$ret" -eq 2 ]; then
-    printf '\e[0;31m==== Error:\e[0m Could not check if raw audio data is all zero\n\n' 1>&2
-    exit 2
-  fi
-  printf -- '%s\n' "$ret" 1>&2
-  exit "$ret"
-}
-
-
-
-zero_samples_at_beginning() {
-  local temp_file=''
-  temp_file="$(temp_raw_s16le "${1}")"
-  local num_bytes="$(stat -c '%s' "${temp_file}")"
-  if cmp --silent -n "$num_bytes" -- /dev/zero "${temp_file}"; then
-    printf 'audio is all zeros\n'
-    rm -f -- "${temp_file}"
-    exit 0
-  fi
+  local skip='0'
+  case "${2}" in
+    *.wav)
+      skip='0:44'
+      num_bytes="$(( "$num_bytes" - 44 ))"
+    ;;
+  esac
+  
+  cmp --silent "--ignore-initial=${skip}" -n "$num_bytes" -- /dev/zero "${2}"
+  case "$?" in
+    '2')
+      printf '\e[0;31m==== Error:\e[0m Could not check if raw audio data is all zero\n\n' 1>&2
+      exit 2
+    ;;
+    '1')
+      if [ "$1" = 'all' ]; then
+        printf -- '1\n' 1>&2
+        exit 1
+      fi
+    ;;
+    '0')
+      printf -- 'audio is all zeros\n' 1>&2
+      exit 0
+    ;;
+  esac
+  
   local byte=''
-  byte="$(cmp --verbose -n "$num_bytes" -- /dev/zero "${temp_file}" | sed --quiet -e '1s/^ *\([0-9]\+\) *[0-9]\+ *[0-9]\+$/\1/p' -- -)"
-  local ret="$?"
-  rm -f -- "${temp_file}"
-  if [ "$ret" -eq 2 ] || ! is_positive_integer "$byte"; then
+  case "$1" in
+    'beginning')
+      byte="$(cmp --verbose "--ignore-initial=${skip}" -n "$num_bytes" -- /dev/zero "${2}" | sed --quiet -e '1s/^ *\([0-9]\+\) *[0-9]\+ *[0-9]\+$/\1/p' -- -)"
+    ;;
+    'end')
+      byte="$(cmp --verbose "--ignore-initial=${skip}" -n "$num_bytes" -- /dev/zero "${2}" | sed --quiet -e '$s/^ *\([0-9]\+\) *[0-9]\+ *[0-9]\+$/\1/p' -- -)"
+    ;;
+  esac
+  if [ "$?" -eq 2 ] || ! is_positive_integer "$byte"; then
     printf '\e[0;31m==== Error:\e[0m Could not check for zero audio data\n\n' 1>&2
     exit 2
   fi
-  printf -- '%s\n' "$(( ( "$byte" - 1 ) / 4 ))"
+  
+  case "$1" in
+    'beginning') printf -- '%s\n' "$(( ( "$byte" - 1 ) / 4 ))" ;;
+    'end') printf -- '%s\n' "$(( ( "$num_bytes" - "$byte" ) / 4 ))" ;;
+  esac
 }
 
 
 
-zero_samples_at_end() {
-  local temp_file=''
-  temp_file="$(temp_raw_s16le "${1}")"
-  local num_bytes="$(stat -c '%s' "${temp_file}")"
-  if cmp --silent -n "$num_bytes" -- /dev/zero "${temp_file}"; then
-    printf 'audio is all zeros\n'
-    rm -f -- "${temp_file}"
-    exit 0
+test_raw() {
+  local operation="$1"
+  shift 1
+  case "$operation" in
+    'print-samples') print_samples "$@" ;;
+    'a0s') check_0_samples 'all' "$@" ;;
+    'b0s') check_0_samples 'beginning' "$@" ;;
+    'e0s') check_0_samples 'end' "$@" ;;
+  esac
+}
+
+
+
+# [operiation] [input file]
+test_audio() {
+  local audio="${2}"
+  case "${audio}" in
+    *.raw)
+      printf -- '==== File extension is .raw, assuming input is raw s16le 2 channel audio\n\n' 1>&2
+      test_raw "$@"
+    ;;
+    *.wav)
+      printf -- '==== File extension is .wav, assuming input is raw s16le 2 channel\n' 1>&2
+      printf -- '     uncompressed wav file with 44 byte header\n\n' 1>&2
+      test_raw "$@"
+    ;;
+    *)
+      local operation="$1"
+      local temp_file=''
+      temp_file="$(mktemp_raw "${2}")"
+      if [ "$?" -ne 0 ]; then
+        printf '\e[0;31m==== Error:\e[0m Could not convert to raw s16le data\n\n' 1>&2
+        exit 1
+      fi
+      shift 2
+      test_raw "$operation" "${temp_file}" "$@"
+      local ret="$?"
+      rm -f -- "${temp_file}"
+      exit "$ret"
+    ;;
+  esac
+}
+
+
+
+# arguments [ sample to split after ] [ preceeding wav ] [ reference wav ]
+trim_if_overlaps_at() {
+  local split_after="$1"
+  local in1="${2}"
+  local in2="${3}"
+  if ! is_positive_integer "$split_after" || [ "$split_after" -ne 11760 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Sample to split at should be 11760\n\n' 1>&2
+    exit 1
   fi
-  local byte=''
-  byte="$(cmp --verbose -n "$num_bytes" -- /dev/zero "${temp_file}" | sed --quiet -e '$s/^ *\([0-9]\+\) *[0-9]\+ *[0-9]\+$/\1/p' -- -)"
-  local ret="$?"
-  rm -f -- "${temp_file}"
-  if [ "$ret" -eq 2 ] || ! is_positive_integer "$byte"; then
-    printf '\e[0;31m==== Error:\e[0m Could not check for zero audio data\n\n' 1>&2
-    exit 2
+  case "${in2}" in
+    *.wav) : ;;
+    *)
+      printf '\n\e[0;31m==== Error:\e[0m Inputs must be s16le 2 channel wav files\n\n' 1>&2
+      exit 1
+    ;;
+  esac
+  local temp_base=''
+  temp_base="$(mktemp --dry-run "--suffix=.wav" "split_temp_XXXXXX")"
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Could not create temp file names\n\n' 1>&2
+    exit 1
   fi
-  printf -- '%s\n' "$(( ( "$num_bytes" - "$byte" ) / 4 ))"
+  local temp1="${temp_base%.wav}001.wav"
+  local temp2="${temp_base%.wav}002.wav"
+  
+  sox --no-clobber -- "${in1}" "${temp_base}" trim 0 "${split_after}s" ':' newfile
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Could not split preceeding wav file\n\n' 1>&2
+    exit 1
+  fi
+  
+  local temp1_samples=''
+  temp1_samples="$(sox --info -s -- "${temp1}")"
+  if ! [ "$temp1_samples" -eq "$split_after" ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Length of split 1 does not match expected samples\n\n' 1>&2
+    exit 1
+  fi
+  local temp2_samples=''
+  temp2_samples="$(sox --info -s -- "${temp2}")"
+  if ! is_positive_integer "$temp2_samples" || [ "$temp2_samples" -lt 1750000 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Length of split 2 does not match expected samples\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== Sample count for split input 1:\n'
+  printf -- '%s - %s\n' "$temp1_samples" "${temp1}"
+  
+  local temp_concat="${temp_base%.wav}-concat-test.wav"
+  sox --no-clobber --combine concatenate -- "${temp1}" "${temp2}" "${temp_concat}"
+  
+  cmp -- "${in1}" "${temp_concat}"
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Concat test failed to produce original wav\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== sha256sums of input 1 and concat test:\n'
+  sha256sum -- "${in1}" "${temp_concat}"
+  rm -f -- "${temp_concat}"
+  printf '\n==== Concat test passed\n\n'
+  
+  local overlap_bytes=''
+  overlap_bytes="$(stat -c '%s' "${temp2}")"
+  if [ "$?" -ne 0 ] || ! is_positive_integer "$overlap_bytes"; then
+    printf '\n\e[0;31m==== Error:\e[0m Could not get filesize of split 2\n\n' 1>&2
+    exit 1
+  fi
+  if [ "$(( ( "$temp2_samples" * 4 ) + 44 ))" -ne "$overlap_bytes" ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Mismatch between split 2 bytes and samples\n\n' 1>&2
+    exit 1
+  fi
+  cmp --ignore-initial=44 -n "$(( "$overlap_bytes" - 44 ))" -- "${temp2}" "${in2}"
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Overlap does not match input 2\n\n' 1>&2
+    exit 1
+  fi
+  cmp --ignore-initial=44 -- "${temp2}" "${in2}"
+  
+  printf '\n==== All good, replacing input 1 with split 1\n\n'
+  rm -f -- "${in1}" "${temp2}"
+  mv --no-target-directory "${temp1}" "${in1}"
 }
 
 
 
 rip_whipper() {
   exit 1
-  whipper --eject success cd --device /dev/cdrom rip --offset 6 --force-overread --unknown \
+  whipper --eject success cd --device /dev/sr0 rip --offset 6 --force-overread --unknown \
           --track-template 'disc_%N_track_%t.%x' \
           --disc-template '%d_%B' \
           --release-id 0000000
@@ -267,7 +461,7 @@ read_toc() {
     printf -- 'Arguments: [disc_audio_filename.wav] [output.toc]\n\n'
     exit 0
   fi
-  cdrdao read-toc --source-device /dev/cdrom --datafile "${1}" "${2}"
+  cdrdao read-toc --source-device /dev/sr0 --datafile "${1}" "${2}"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cdrdao reported an error\n\n' 1>&2
     exit 1
@@ -276,7 +470,7 @@ read_toc() {
 
 
 run_cd_paranoia() {
-  cd-paranoia --verbose --output-wav --force-cdrom-device /dev/cdrom --abort-on-skip "$@"
+  cd-paranoia --verbose --output-wav --force-cdrom-device /dev/sr0 --abort-on-skip "$@"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cd-paranoia reported an error\n\n' 1>&2
     exit 1
@@ -285,7 +479,7 @@ run_cd_paranoia() {
 
 
 run_cyanrip() {
-  cyanrip -d /dev/cdrom -s 6 -p 1=track -o flac \
+  cyanrip -d /dev/sr0 -s 6 -p 1=track -o flac \
           -D '{album}_{barcode}' \
           -F 'd{disc}-{track}' \
           -L 'log-cyanrip-d{disc}' \
@@ -339,35 +533,36 @@ rip_cyanrip() {
   run_cyanrip "$@"
   
   #sleep 5s
-  #run_cd_paranoia --sample-offset '-3522' --log-summary "${rip_dir}/d${disc_num}-underread-6-sectors.log" -- '-[.11]' \
-  #                                                      "${rip_dir}/d${disc_num}-underread-6-sectors.wav"
+  #run_cd_paranoia --sample-offset '-11754' --force-overread \
+  #                --log-summary "${rip_dir}/log-cd-paranoia-overread-lead_in-d${disc_num}.log" -- '-[40.00]' \
+  #                              "${rip_dir}/d${disc_num}-00-overread-lead_in.wav"
   
   cd -- "${rip_dir}"
   
   printf '\n==== Saving raw audio sha256sums to raw_audio_sha256sums-d%s.txt\n' "$disc_num"
-  #sha256audio -- "${rip_dir}/d${disc_num}-underread-6-sectors.wav" > "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
+  #sha256audio -- "${rip_dir}/d${disc_num}-00-overread-lead_in.wav" > "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
   #sha256audio -- "${tracks[@]}" >> "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
   sha256audio -- "${tracks[@]}" > "${rip_dir}/d${disc_num}-raw_audio_sha256sums.txt"
   
   printf '\n==== Checking beginning and end of rip\n'
-  local pregap_zero_samples_at_beginning=''
-  local t1_zero_samples_at_beginning=''
-  local last_track_zero_samples_at_end=''
+  local pregap_b0s=''
+  local t1_b0s=''
+  local last_track_e0s=''
   case "${tracks[0]}" in
     *0.flac)
-      pregap_zero_samples_at_beginning="$(zero_samples_at_beginning "${rip_dir}/${tracks[0]}")"
-      t1_zero_samples_at_beginning="$(zero_samples_at_beginning "${rip_dir}/${tracks[1]}")"
+      pregap_b0s="$(test_audio 'b0s' "${rip_dir}/${tracks[0]}")"
+      t1_b0s="$(test_audio 'b0s' "${rip_dir}/${tracks[1]}")"
     ;;
     *)
-      t1_zero_samples_at_beginning="$(zero_samples_at_beginning "${rip_dir}/${tracks[0]}")"
+      t1_b0s="$(test_audio 'b0s' "${rip_dir}/${tracks[0]}")"
     ;;
   esac
-  local last_track_zero_samples_at_end="$(zero_samples_at_end "${rip_dir}/${tracks[-1]}")"
-  if [ -n "$pregap_zero_samples_at_beginning" ]; then
-    printf -- 'pregap zero samples at beginning  : %s\n' "$pregap_zero_samples_at_beginning"
+  local last_track_e0s="$(test_audio 'e0s' "${rip_dir}/${tracks[-1]}")"
+  if [ -n "$pregap_b0s" ]; then
+    printf -- 'pregap zero samples at beginning  : %s\n' "$pregap_b0s"
   fi
-  printf -- 'track 1 zero samples at beginning : %s\n' "$t1_zero_samples_at_beginning"
-  printf -- 'last track zero samples at end    : %s\n\n' "$last_track_zero_samples_at_end"
+  printf -- 'track 1 zero samples at beginning : %s\n' "$t1_b0s"
+  printf -- 'last track zero samples at end    : %s\n\n' "$last_track_e0s"
   
   if [ "$disc_num" -eq "$total_discs" ]; then
     printf -- '\n==== All done, saving sha256sums of all files\n\n'
@@ -381,7 +576,7 @@ rip_cyanrip() {
 
 
 test_function() {
-  temp_raw_s16le "$@"
+  is_integer "$@"
 }
 
 
@@ -389,9 +584,10 @@ test_function() {
 if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf 'Arguments:\n'
   printf '  operation [ sha256audio | sha256audior | \n'
-  printf '              num-samples | contatenate | split-by-samples | \n'
-  printf '              audio-to-raw | raw-to-format | \n'
-  printf '              s16le-audio-is-zero | zero-samples-at-beginning | zero-samples-at-end | \n'
+  printf '              print-samples | num-samples | contatenate | split-by-samples | \n'
+  printf '              to-raw | raw-to-format | \n'
+  printf '              all-0-samples | beginning-0-samples | end-0-samples | \n'
+  printf '              trim-if-overlaps-at | \n'
   printf '              read-toc | run-cd-paranoia | \n'
   printf '              run-cyanrip | rip-cyanrip ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
@@ -401,17 +597,20 @@ fi
 declare operation="$1"
 shift 1
 case "$operation" in
+  'print-samples' | 'print_samples')
+    test_audio 'print-samples' "$@"
+  ;;
   'num-samples' | 'num_samples')
     num_samples "$@"
   ;;
   'concatenate')
     concatenate "$@"
   ;;
-  'split-by-samples' | 'split_by_samples')
+  'split-by-samples' | 'split_by_samples' | 'split')
     split_by_samples "$@"
   ;;
-  'audio-to-raw' | 'audio_to_raw')
-    audio_to_raw "$@"
+  'to-raw' | 'to_raw')
+    to_raw "$@"
   ;;
   'raw-to-format' | 'raw_to_format')
     raw_to_format "$@"
@@ -422,14 +621,17 @@ case "$operation" in
   'sha256audior')
     sha256audior "$@"
   ;;
-  's16le-audio-is-zero' | 's16le_audio_is_zero')
-    s16le_audio_is_zero "$@"
+  'all-0-samples' | 'all_0_samples' | 'a0s')
+    test_audio 'a0s' "$@"
   ;;
-  'zero-samples-at-beginning' | 'zero_samples_at_beginning')
-    zero_samples_at_beginning "$@"
+  'beginning-0-samples' | 'beginning_0_samples' | 'b0s')
+    test_audio 'b0s' "$@"
   ;;
-  'zero-samples-at-end' | 'zero_samples_at_end')
-    zero_samples_at_end "$@"
+  'end-0-samples' | 'end_0_samples' | 'e0s')
+    test_audio 'e0s' "$@"
+  ;;
+  'trim-if-overlaps-at' | 'trim_if_overlaps_at')
+    trim_if_overlaps_at "$@"
   ;;
   'read-toc' | 'read_toc')
     read_toc "$@"
@@ -452,4 +654,3 @@ case "$operation" in
   ;;
 esac
 
-exit 0

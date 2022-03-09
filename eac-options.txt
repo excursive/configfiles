@@ -1,0 +1,267 @@
+for EAC version 1.6
+
+Ripping procedure:
+ 0: Drive Options -> Offset=+6 , Disable Overread , Enable AccurateRip
+ 1: Delete Unknown CD Title and CD Artist default info
+ 2: Set Number of CDs and CD Number
+ 3: Action -> Detect Gaps
+ 4: Action -> ensure Append Gaps To Previous Track is checked
+ 5: Action -> Create CUE Sheet -> Multiple WAV Files With Gaps
+ 6:   Rename CUE Sheet to d#-multiple_wav_files_with_gaps.cue
+ 7: Action -> Test and Copy Image and Create CUE Sheet
+ 8:   Rename CUE Sheet to d#-single_wav_file.cue
+ 9: Drive Options -> Set offset to -11754 (-20 sectors) and enable overread
+10: Action -> Copy Range -> 0 to 3000 sectors (40 seconds)
+11:   Save as d1-00-overread-lead-in.wav
+12:   Repeat and compare results
+13: Drive Options -> Reset offset to +6, disable overread, enable AccurateRip
+
+
+
+## = differs from EAC 1.6 defaults
+
+  EAC Options:
+      Extraction:
+          @ Fill up missing offset samples with silence
+          @ Synchronize between tracks
+          ! Delete leading and trailing silent blocks
+##        @ Skip track extraction on read or sync errors
+          ! Skip track extractiion after duration longer than [4] times realtime
+          ! After each [60] mins of extraction, cool down the drive for [15] mins
+          @ Lock drive tray during extraction
+            Extraction and compression priority
+              [Normal]
+##          Error recovery quality
+##            [High]
+
+
+
+      General
+          @ Use alternate CD play routines
+##        @ Disable 'CD Autostart' for audio and data CD's while EAC running
+          ! On unknown CDs, open CD information dialog
+          
+          @ Display times using frames
+          @ Ask before overwriting files
+          @ Correct bug of wrong filename order in Windows multiple file dialog
+          @ Show status dialog after extraction
+          @ Beep after extraction finished
+          ! Eject CD after extraction finished
+        On extraction offer the possibility to
+            @ Wait for external compressors
+        EAC language selection
+            Use language [English]
+##          @ Create log files always in english language
+
+
+
+      Tools:
+##        @ Retrieve UPC / ISRC codes in CUE sheet generation
+          @ Use CD-Text information in CUE sheet generation
+          ! Create .m3u playlist on extraction
+              @ Write m3u playlist with extended information
+              @ Write m3u playlist as UTF8 file (compatible e.g. with Winamp)
+##        @ Automatically write status report after extraction
+##        @ Append checksum to status report
+##        ! Convert BMP image files automatically to JPG
+          ! On extraction, start external compressors queued in the background
+              Use [1] simultaneous external compressor threads(s)
+##        ! Do not open external compressor window
+##        ! Submit drive features after detection (but ask for permission)
+          ! Activate beginner mode, disable all advanced features
+
+
+
+      Normalize:
+          ! Normalize
+
+
+
+      Filename:
+            Naming scheme:
+##            d%cdnumber%-%tracknr2%
+          ! Use various artist naming scheme
+##        @ Replace spaces by underscores
+
+
+
+      Additional Filename
+##  Same as previous
+
+
+
+      Character Replacements
+##  All underscore
+
+
+
+      Catalog
+          [45] Catalog file length (in seconds)
+          [0]  Catalog start position (in seconds)
+          
+          [5] Fade in length (in seconds)
+          [5] Fade out length (in seconds)
+
+
+
+      Directories:
+##        @ Use this directory: C:\eac_rips
+
+
+
+      Write:
+##        ! Upper all characters (on writing)
+          ! Include artist in the CD-Text track title entry (on writing)
+##        # Disable copy protection flag on adding audio files to the layout editor by default
+
+
+
+      Interface:
+          @ Native Win32 interface for XP/Vista/Win 7
+
+
+
+      Audio Plugins:
+          None
+
+
+================================================================================
+
+
+  Drive Options (/dev/sr0):
+      Extraction Method:
+##        @ Secure mode with following drive features (recommended)
+              @ Drive has 'Accurate Stream' feature
+              @ Drive caches audio data
+              ! Drive is capable of retrieving C2 error information
+
+
+
+      Drive:
+          Drive read command
+##          [Read command MMC 1]
+          ! "Big Endian" byte order (Motorola)
+          ! Swap channels
+##        @ Spin up drive before extraction
+##        @ CD-Text Read capable drive
+
+
+
+      Offset / Speed:
+##        @ Use read sample offset correction
+            [+6]
+##       ?@ Overread into Lead-In and Lead-Out
+          @ Allow speed reduction during extraction
+##        @ Use AccurateRip with this drive
+
+
+
+      Gap Detection:
+          Gap/Index retrieval method:
+##          [Detection method A]
+          Detection accuracy:
+##          [Secure]
+
+
+
+      Writer:
+          [-] Write samples offset
+          After burning finished
+            @ reset drive by ejecting and loading CD-R
+          - Drive is able to write UPC/ISRC
+          - Drive is able to write CD-Text
+
+
+================================================================================
+
+
+  Compression Options:
+      Waveform:
+          Wave format
+##          [Wine PCM converter]
+          Sample format
+##          [44100 Hz, 16 bits; Stereo]
+          ! Add ID3 tag
+          ! Do not write WAV header to file
+          @ High quality
+          File extension for headerless files
+            [.raw]
+
+
+
+      External Compression:
+##        @ Use external program for compression
+##          Parameter passing scheme : [User Defined Encoder]
+##          Use file extension : [.flac]
+            Program, including path, used for compression
+##            C:\Program Files (x86)\Exact Audio Copy\Flac\flac.exe
+            Additional command-line options:
+##            -w -8 -e -p -V -T "ARTIST=%artist%" -T "TITLE=%title%" -T "ALBUM=%albumtitle%" -T "ALBUMARTIST=%albumartist%" -T "DATE=%year%" -T "TRACKNUMBER=%tracknr%" -T "TOTALTRACKS=%numtracks%" -T "DISCNUMBER=%cdnumber%" -T "TOTALDISCS=%totalcds%" -T "GENRE=%genre%" -T "COMPOSER=%composer%" -T "PERFORMER=%albuminterpret%" %haslyrics%-T "LYRICS=%lyrics%"%haslyrics% -T "COMMENT=%comment%" %hascover%"--picture={3|image/jpeg|||%coverfile%}"%hascover% "%source%" -o "%dest%"
+##          Bit rate : [1024 kBit/s]
+          @ High quality
+          @ Delete WAV after compression
+##        ! Use CRC check
+##        ! Add ID3 tag
+##        @ Check for external programs return code
+
+
+
+      Additional External Compression:
+          ! Use an additional external program for compression
+
+
+
+      Comment:
+          ! Use LAME command line encoder/decoder for decoding MP3 files
+          @ Write the comment text of the CD into ID3 tag comment field
+
+
+
+      ID3 Tag:
+##        ! Write ID3 V1 tags
+##        ! Write ID3 V2 tags, using a padding of [4kB]
+
+          @ Use ID3 V1.1 tags instead of ID3 V1.0 tags
+          ! Use ID3V2.4.0 tags instead of ID3V2.3.0 tags
+          @ Use track format xx/xx in ID3V2 tags (e.g. 01/16)
+          ! Use unsyncronization scheme on ID3V2 tags
+          ! Write ID3V2 tags using UTF16
+##        ! Add cover image to ID3V2 tag
+##        ! Write cover image into extraction folder
+##            cover-front
+
+
+================================================================================
+
+
+  Metadata Options:
+      Metadata Provider:
+##        Selected metadata provider [-]
+
+
+================================================================================
+
+
+  Wav Editor Options:
+      Editor:
+          @ Follow display while playing audio
+          ! Create waveform profile on hard disk
+          @ Double channels on mono playback
+##        @ Use main memory for storing temporary data
+              C:\users\user\Temp\
+          @ Use Undo
+              C:\users\user\Temp\
+
+
+
+      Compare:
+          @ Determine differences more exactly
+
+
+
+      Record:
+          ! Do not use dB level meter on recording
+          @ Try to free up memory before loop recording
+
+
+================================================================================
