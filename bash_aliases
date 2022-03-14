@@ -28,6 +28,11 @@ alias aadebug="apparmor_parser -Q --debug"
 
 
 
+
+add_flathub() {
+  flatpak remote-add --user --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
+}
+
 is_positive_integer() {
   local LC_ALL=C
   export LC_ALL
