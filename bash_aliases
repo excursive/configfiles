@@ -102,6 +102,14 @@ contains_nl_or_bs() {
   [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
 
+is_valid_ascii() {
+  iconv --silent --from-code=ASCII --to-code=ASCII --output=/dev/null -- "${1}" 2>/dev/null
+}
+
+is_valid_utf8() {
+  iconv --silent --from-code=UTF-8 --to-code=UTF-8 --output=/dev/null -- "${1}" 2>/dev/null
+}
+
 permcheck() {
   find . -perm -o=w -a \! -type l
 }
@@ -140,9 +148,9 @@ proton_wine() {
     printf '    wine: set wine env vars and run command with proton like normal wine\n'
     printf '    steam: set STEAM_COMPAT_DATA_PATH var and run command with proton\n'
     printf '  proton version\n'
-    printf '  wine prefix: [ (wine prefix path) | (steam app id) ]\n'
     printf '  start from: [ temp-dir | current-dir | executable-dir ]\n'
     printf '    (helpful for windows programs that only check current directory for dlls)\n'
+    printf '  wine prefix: [ (wine prefix path) | (steam app id) ]\n'
     printf '  command to run (or to be run with wine)\n'
     return 0
   fi
@@ -225,52 +233,24 @@ proton_wine() {
   cd -- "${orig_dir}"
 }
 
-grep_non_ascii() {
+grep_control_chars() {
   local LC_ALL=C
   export LC_ALL
   
-  local chars_start='[^'
-  local h_tab=''
-  local newline='\x0A'
-  local c_return=''
-  local chars_end='\x20-\x7E]'
-  local not_cr_lf=''
   local print_line_numbers=''
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-      '-h' | '--help')
-        printf 'Arguments:\n'
-        printf '  [ -h | --help ]\n'
-        printf '  [ -t | --horizontal-tabs ] allow horizontal tabs\n'
-        printf '  [ -cr | --windows-line-endings ] expect windows line endings\n'
-        printf '    (also match any CR or LF characters not paired in that order)\n'
-        printf '    (lines are numbered according to LF characters even when not preceeded\n'
-        printf '     by a CR character, because of how grep works)\n'
-        printf '  [ -n | --line-numbers ] print line numbers in a space separated list\n'
-        return 0
-      ;;
-      '-t' | '--horizontal-tabs')
-        h_tab='\x09'
-        shift 1
-      ;;
-      '-cr' | '--windows-line-endings')
-        c_return='\x0D'
-        # would like to handle line endings with \x0A rather than $, but perl's
-        # (?ms) modification doesn't seem to work in grep
-        not_cr_lf='|([\x0D][^\x0A])|([^\x0D]$)|(^$)'
-        shift 1
-      ;;
-      '-n' | '--line-numbers')
-        print_line_numbers='-n'
-        shift 1
-      ;;
-      *)
-        break
-      ;;
-    esac
-  done
-  local regex="${chars_start}${h_tab}${newline}${c_return}${chars_end}${not_cr_lf}"
-  #printf -- '  perl-regexp: %s\n' "$regex"
+  case "$1" in
+    'no') print_line_numbers='no' ;;
+    'yes') print_line_numbers='yes' ;;
+    *)
+      printf -- '\e[0;31m==== Error:\e[0m Invalid print-line-numbers setting\n' 1>&2
+      return 1
+    ;;
+  esac
+  local encoding_check="$2"
+  local regex="$3"
+  shift 3
+  
+  #printf -- '==== perl-regexp: %s\n' "$regex"
   
   for in_file in "$@"; do
     if [ ! -e "${in_file}" ]; then
@@ -278,7 +258,26 @@ grep_non_ascii() {
       continue
     fi
     
-    local total_lines="$(grep --color='auto' -c --binary --perl-regexp "$regex" -- "${in_file}")"
+    case "$encoding_check" in
+      'ASCII')
+        if ! is_valid_ascii "${in_file}"; then
+          printf -- '\e[0;31m%s: (not a valid ASCII file)\e[0m\n' "${in_file}"
+          continue
+        fi
+      ;;
+      'UTF-8')
+        if ! is_valid_utf8 "${in_file}"; then
+          printf -- '\e[0;31m%s: (not a valid UTF-8 file)\e[0m\n' "${in_file}"
+          continue
+        fi
+      ;;
+      *)
+        printf -- '\e[0;31m==== Error:\e[0m Invalid encoding specified\n' 1>&2
+        return 1
+      ;;
+    esac
+    
+    local total_lines="$(grep --color='auto' --binary-files=text -c --binary --perl-regexp "$regex" -- "${in_file}")"
     
     if [ "$total_lines" -gt 0 ]; then
       printf -- '\e[0;31m%s: %s\e[0m' "${in_file}" "$total_lines"
@@ -292,12 +291,104 @@ grep_non_ascii() {
     
     printf '\n'
     
-    if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = '-n' ]; then
+    if [ "$total_lines" -gt 0 ] && [ "$print_line_numbers" = 'yes' ]; then
       printf -- '\e[0;36m%s\e[0m\n' \
-        "$(grep --color='auto' -n --binary --perl-regexp "$regex" -- "${in_file}" | \
+        "$(grep --color='auto' -n --binary-files=text --binary --perl-regexp "$regex" -- "${in_file}" | \
              cut --fields=1 --delimiter=':' -- | tr '\n' ' ' )"
     fi
   done
+}
+
+grep_non_printable_ascii() {
+  local chars_start='[^'
+  local h_tab=''
+  local newline='\x0A'
+  local c_return=''
+  local chars_end='\x20-\x7E]'
+  local not_cr_lf=''
+  local print_line_numbers='no'
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '-h' | '--help')
+        printf 'Arguments:\n'
+        printf '  [ -h | --help ]\n'
+        printf '  [ -t | --horizontal-tabs ] allow (ignore) horizontal tabs\n'
+        printf '  [ --cr | --windows-line-endings ] expect windows line endings\n'
+        printf '    (also match any CR or LF characters not paired in that order)\n'
+        printf '    (lines are numbered according to LF characters even when not preceeded\n'
+        printf '     by a CR character, because of how grep works)\n'
+        printf '  [ -n | --line-numbers ] print line numbers in a space separated list\n'
+        return 0
+      ;;
+      '-t' | '--horizontal-tabs')
+        h_tab='\x09'
+        shift 1
+      ;;
+      '--cr' | '--windows-line-endings')
+        c_return='\x0D'
+        # would like to handle line endings with \x0A rather than $, but perl's
+        # (?ms) modification doesn't seem to work in grep
+        not_cr_lf='|([\x0D][^\x0A])|([^\x0D]$)|(^$)'
+        shift 1
+      ;;
+      '-n' | '--line-numbers')
+        print_line_numbers='yes'
+        shift 1
+      ;;
+      '--') shift 1 ; break ;;
+      *) break ;;
+    esac
+  done
+  local regex="${chars_start}${h_tab}${newline}${c_return}${chars_end}${not_cr_lf}"
+  
+  grep_control_chars "$print_line_numbers" 'ASCII' "$regex" "$@"
+}
+
+grep_utf8_control_chars() {
+  local c0_controls_start='[\x00-\x08'
+  local h_tab='\x09'
+  local newline=''
+  local vt_ff='\x0B-\x0C'
+  local c_return='\x0D'
+  local c0_controls_end='\x0E-\x1F\x7F]'
+  local c1_controls='|([\xC2][\x80-\x9F])'
+  local not_cr_lf=''
+  local print_line_numbers='no'
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '-h' | '--help')
+        printf 'Arguments:\n'
+        printf '  [ -h | --help ]\n'
+        printf '  [ -t | --horizontal-tabs ] allow (ignore) horizontal tabs\n'
+        printf '  [ --cr | --windows-line-endings ] expect windows line endings\n'
+        printf '    (also match any CR or LF characters not paired in that order)\n'
+        printf '    (lines are numbered according to LF characters even when not preceeded\n'
+        printf '     by a CR character, because of how grep works)\n'
+        printf '  [ -n | --line-numbers ] print line numbers in a space separated list\n'
+        return 0
+      ;;
+      '-t' | '--horizontal-tabs')
+        h_tab=''
+        shift 1
+      ;;
+      '--cr' | '--windows-line-endings')
+        c_return=''
+        # would like to handle line endings with \x0A rather than $, but perl's
+        # (?ms) modification doesn't seem to work in grep
+        not_cr_lf='|([\x0D][^\x0A])|([^\x0D]$)|(^$)'
+        shift 1
+      ;;
+      '-n' | '--line-numbers')
+        print_line_numbers='yes'
+        shift 1
+      ;;
+      '--') shift 1 ; break ;;
+      *) break ;;
+    esac
+  done
+  local regex="${c0_controls_start}${h_tab}${newline}${vt_ff}${c_return}${c0_controls_end}${c1_controls}${not_cr_lf}"
+  
+  grep_control_chars "$print_line_numbers" 'UTF-8' "$regex" "$@"
 }
 
 cmpimg() {
