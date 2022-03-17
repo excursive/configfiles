@@ -32,11 +32,131 @@ contains_nl_or_bs() {
   [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
 }
 
+contains_nl() {
+  local newline='
+'
+  case "$1" in
+    *"$newline"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_valid_utf8() {
+  iconv --silent --from-code=UTF-8 --to-code=UTF-8 --output=/dev/null -- "${1}" 2>/dev/null
+}
+
 mkdir_or_exit() {
   if contains_nl_or_bs "${1}" || [ ! -d "${1}" ] && ! mkdir -- "${1}"; then
     printf -- '\e[0;31mError:\e[0m Could not create directory:\n%s\n\n' "${1}" 1>&2
     exit 1
   fi
+}
+
+
+
+
+
+# arguments: [file to append to] [tag name] [contents]
+output_vorbis_tag() {
+  local LC_ALL=C
+  export LC_ALL
+  
+  if contains_nl "$3"; then
+    printf '\n\e[0;31m==== Error:\e[0m Tag contains newline character(s)\n\n' 1>&2
+    exit 1
+  fi
+  
+  printf -- '%s' "$3" | grep --binary-files=text -c --binary --perl-regexp '[\x00-\x1F\x7F]|([\xC2][\x80-\x9F])' -- >/dev/null
+  if [ "$?" -ne 1 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Tag contains invalid characters\n\n' 1>&2
+    exit 1
+  fi
+  
+  printf -- '%s=%s\n' "$2" "$3" >> "${1}"
+}
+
+parse_mb_request() {
+  # xmllint doesn't like namespace in xml response, so remove it
+  if ! is_valid_utf8 "${1}"; then
+    printf '\n\e[0;31m==== Error:\e[0m XML file is not valid UTF-8\n\n' 1>&2
+    exit 1
+  fi
+  local temp_file=''
+  temp_file="$(mktemp "--suffix=.xml" "mb_request_xml_temp_XXXXXX")" || exit 1
+  sed -e '2s/^<metadata xmlns="[^"]*"/<metadata/' -- "${1}" | xmllint --nonet --format - > "${temp_file}"
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Could not create parse xml file\n\n' 1>&2
+    exit 1
+  fi
+  rm -f -- "${1}"
+  mv --no-target-directory -- "${temp_file}" "${1}"
+  local xml="${1}"
+  
+  local release_title="$(xmllint --nonet --xpath 'string((/metadata/release/title)[1])' "${xml}")"
+  
+  local num_album_artists="$(xmllint --nonet --xpath 'count(/metadata/release/artist-credit/name-credit/artist/name)' "${xml}")"
+  [ "$num_album_artists" -ne 0 ] || exit 1
+  local -a album_artists=()
+  local current_album_artist=1
+  while [ "$current_album_artist" -le "$num_album_artists" ]; do
+    album_artists+=( "$(xmllint --nonet --xpath "string((/metadata/release/artist-credit/name-credit/artist/name)[${current_album_artist}])" "${xml}")" )
+    current_album_artist="$(( "$current_album_artist" + 1 ))"
+  done
+  
+  local total_discs="$(xmllint --nonet --xpath 'string((/metadata/release/medium-list/@count)[1])' "${xml}")"
+  [ "$total_discs" -ne 0 ] || exit 1
+  local current_disc=1
+  while [ "$current_disc" -le "$total_discs" ]; do
+    
+    #local disc_subtitle="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/title)[1])" "${xml}")"
+    
+    local total_tracks="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/track-list/@count)[1])" "${xml}")"
+    [ "$total_tracks" -ne 0 ] || exit 1
+    local current_track=1
+    while [ "$current_track" -le "$total_tracks" ]; do
+      
+      local track_title="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/track-list/track[position=${current_track}]/recording/title)[1])" "${xml}")"
+      
+      local num_track_artists="$(xmllint --nonet --xpath "count(/metadata/release/medium-list/medium[position=${current_disc}]/track-list/track[position=${current_track}]/recording/artist-credit/name-credit/artist/name)" "${xml}")"
+      [ "$num_track_artists" -ne 0 ] || exit 1
+      local -a track_artists=()
+      local current_track_artist=1
+      while [ "$current_track_artist" -le "$num_track_artists" ]; do
+        track_artists+=( "$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/track-list/track[position=${current_track}]/recording/artist-credit/name-credit/artist/name)[${current_track_artist}])" "${xml}")" )
+        current_track_artist="$(( "$current_track_artist" + 1 ))"
+      done
+      
+      local track_date="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/track-list/track[position=${current_track}]/recording/first-release-date)[1])" "${xml}")"
+      
+      # output vorbis style tags for this track to text file
+      local track_num_02d="$(printf -- '%02d' "$current_track")"
+      local track_out_file="d${current_disc}-${track_num_02d}-metadata.txt"
+      if [ -e "${track_out_file}" ]; then
+        printf -- '\e[0;31m==== Error:\e[0m Output file %s already exists\n\n' "${track_out_file}" 1>&2
+        exit 1
+      fi
+      output_vorbis_tag "${track_out_file}" 'TITLE' "$track_title"
+      output_vorbis_tag "${track_out_file}" 'ALBUM' "$release_title"
+      local album_artist=''
+      for album_artist in "${album_artists[@]}"; do
+        output_vorbis_tag "${track_out_file}" 'ALBUMARTIST' "$album_artist"
+      done
+      output_vorbis_tag "${track_out_file}" 'DISCNUMBER' "$current_disc"
+      #output_vorbis_tag "${track_out_file}" 'DISCSUBTITLE' "$disc_subtitle"
+      output_vorbis_tag "${track_out_file}" 'TOTALDISCS' "$total_discs"
+      output_vorbis_tag "${track_out_file}" 'TRACKNUMBER' "$current_track"
+      output_vorbis_tag "${track_out_file}" 'TOTALTRACKS' "$total_tracks"
+      local track_artist=''
+      for track_artist in "${track_artists[@]}"; do
+        output_vorbis_tag "${track_out_file}" 'ARTIST' "$track_artist"
+      done
+      output_vorbis_tag "${track_out_file}" 'DATE' "$track_date"
+      
+      current_track="$(( "$current_track" + 1 ))"
+    done
+    
+    current_disc="$(( "$current_disc" + 1 ))"
+  done
 }
 
 
@@ -576,7 +696,7 @@ rip_cyanrip() {
 
 
 test_function() {
-  is_integer "$@"
+  contains_nl "$@"
 }
 
 
@@ -589,7 +709,8 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              all-0-samples | beginning-0-samples | end-0-samples | \n'
   printf '              trim-if-overlaps-at | \n'
   printf '              read-toc | run-cd-paranoia | \n'
-  printf '              run-cyanrip | rip-cyanrip ]\n'
+  printf '              run-cyanrip | rip-cyanrip |'
+  printf '              parse-mb-request ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
@@ -644,6 +765,9 @@ case "$operation" in
   ;;
   'rip-cyanrip' | 'rip_cyanrip')
     rip_cyanrip "$@"
+  ;;
+  'parse-mb-request' | 'parse_mb_request')
+    parse_mb_request "$@"
   ;;
   'test' | 'test-function' | 'test_function')
     test_function "$@"
