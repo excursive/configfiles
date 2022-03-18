@@ -210,7 +210,7 @@ mktemp_raw() {
   local temp_file=''
   temp_file="$(mktemp "--suffix=.raw" "raw_audio_temp_XXXXXX")" || exit 1
   #if ! ffmpeg -loglevel quiet -i "${1}" -y -map '0:a' -f s16le '-c:a' pcm_s16le "${temp_file}"; then
-  if ! sox --no-clobber --show-progress -- "${1}" --type raw "${output}"; then
+  if ! sox -V0 -- "${1}" --type raw "${temp_file}"; then
     rm -f -- "${temp_file}"
     exit 2
   fi
@@ -615,7 +615,7 @@ cleanup_split_tracks() {
   
   local -a tracks=()
   readarray -d '' -t tracks < \
-      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap|00-overread-lead-in)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
+      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
   
   local temp_concat=''
   temp_concat="$(mktemp "--suffix=.wav" "concat_temp_XXXXXX")" || exit 1
@@ -630,6 +630,11 @@ cleanup_split_tracks() {
   sha256sum -- "d${disc_number}.wav" "${temp_concat}"
   
   printf -- '\n==== Processing tracks:\n'
+  if [ -e "d${disc_number}-00-overread-lead-in.flac" ]; then
+    tracks=( "d${disc_number}-00-overread-lead-in.flac" "${tracks[@]}" )
+  elif [ -e "d${disc_number}-00-overread-lead-in.wav" ]; then
+    tracks=( "d${disc_number}-00-overread-lead-in.wav" "${tracks[@]}" )
+  fi
   local track=''
   for track in "${tracks[@]}"; do
     local track_out_name=''
@@ -655,10 +660,10 @@ cleanup_split_tracks() {
     metaflac --dont-use-padding --remove-all -- "${track_temp}"
     
     if ! [ -e "${metadata}" ]; then
-      if ! before_first_track "${track}"; then
-        printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
+      if before_first_track "${track}"; then
+        printf ' (no metadata for pregap/lead-in)'
       else
-        printf ' (no metadata for pregap)'
+        printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
       fi
       metaflac --dont-use-padding --add-seekpoint=1s --add-padding=1024 -- "${track_temp}" || exit 1
     else
@@ -666,7 +671,7 @@ cleanup_split_tracks() {
       rm -f -- "${metadata}"
     fi
     
-    mv --no-target-directory "${track_temp}" "${track}"
+    mv --no-target-directory "${track_temp}" "${track_out_name}"
     printf '\n'
   done
   
