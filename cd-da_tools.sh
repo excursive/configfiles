@@ -44,6 +44,12 @@ contains_bs() {
   esac
 }
 
+before_first_track() {
+  local LC_ALL=C
+  export LC_ALL
+  printf -- '%s' "$1" | grep --binary-files=text -c --binary '^d[0-9]\+-00\([^0-9].*\)*\.\(wav\|flac\)$' -- >/dev/null
+}
+
 is_valid_utf8() {
   iconv --silent --from-code=UTF-8 --to-code=UTF-8 --output=/dev/null -- "${1}" 2>/dev/null
 }
@@ -98,7 +104,7 @@ check_tag_file() {
     exit 1
   fi
   
-  grep --binary-files=text -c --binary --invert-match '^\(TITLE\|ALBUM\|ALBUMARTIST\|DISCNUMBER\|DISCSUBTITLE\|TOTALDISCS\|TRACKNUMBER\|TOTALTRACKS\|ARTIST\|DATE\)=.\+$' -- "${1}" >/dev/null
+  grep --binary-files=text -c --binary --invert-match '^\(TITLE\|ALBUM\|ALBUMARTIST\|DISCNUMBER\|DISCSUBTITLE\|DISCTOTAL\|TRACKNUMBER\|TRACKTOTAL\|ARTIST\|DATE\)=.\+$' -- "${1}" >/dev/null
   if [ "$?" -ne 1 ]; then
     printf -- '\n\e[0;31m==== Error:\e[0m Tag file is improperly formatted: %s\n' "${1}" 1>&2
     exit 1
@@ -173,9 +179,9 @@ parse_mb_request() {
       done
       output_vorbis_tag "${track_out_file}" 'DISCNUMBER' "$current_disc"
       output_vorbis_tag "${track_out_file}" 'DISCSUBTITLE' "$disc_subtitle"
-      output_vorbis_tag "${track_out_file}" 'TOTALDISCS' "$total_discs"
+      output_vorbis_tag "${track_out_file}" 'DISCTOTAL' "$total_discs"
       output_vorbis_tag "${track_out_file}" 'TRACKNUMBER' "$current_track"
-      output_vorbis_tag "${track_out_file}" 'TOTALTRACKS' "$total_tracks"
+      output_vorbis_tag "${track_out_file}" 'TRACKTOTAL' "$total_tracks"
       local track_artist=''
       for track_artist in "${track_artists[@]}"; do
         output_vorbis_tag "${track_out_file}" 'ARTIST' "$track_artist"
@@ -601,9 +607,6 @@ trim_if_overlaps_at() {
 # and putting disc image to check against in same directory
 # arguments: [disc number]
 cleanup_split_tracks() {
-  local LC_ALL=C
-  export LC_ALL
-  
   local disc_number="$1"
   if ! is_positive_integer "$disc_number"; then
     printf -- '\e[0;31m==== Error:\e[0m Disc number must be a positive integer\n\n' 1>&2
@@ -612,7 +615,7 @@ cleanup_split_tracks() {
   
   local -a tracks=()
   readarray -d '' -t tracks < \
-      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[1-9]|[1-9][0-9]|00-pregap)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
+      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap|00-overread-lead-in)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
   
   local temp_concat=''
   temp_concat="$(mktemp "--suffix=.wav" "concat_temp_XXXXXX")" || exit 1
@@ -626,28 +629,59 @@ cleanup_split_tracks() {
   printf -- '\n==== sha256sums of entire disc image and concat test:\n'
   sha256sum -- "d${disc_number}.wav" "${temp_concat}"
   
+  printf -- '\n==== Processing tracks:\n'
   local track=''
   for track in "${tracks[@]}"; do
+    local track_out_name=''
     local metadata=''
     case "${track}" in
-      *'.wav') metadata="${track%.wav}-metadata.txt" ;;
-      *'.flac') metadata="${track%.flac}-metadata.txt" ;;
-    esac
-    printf '%s\n' "$metadata"
-    if ! [ -e "${metadata}" ]; then
-      printf '\n\e[0;31m==== Error:\e[0m Metadata not found for track %s\n\n' "${track}" 1>&2
-      exit 1
-    fi
-    case "${track}" in
-      *'.flac')
-        metaflac --dont-use-padding --remove-all-tags --import-tags-from="${metadata}"
-      ;;
       *'.wav')
+        track_out_name="${track%.wav}.flac"
+        metadata="${track%.wav}-metadata.txt"
+      ;;
+      *'.flac')
+        track_out_name="${track}"
+        metadata="${track%.flac}-metadata.txt"
+        metaflac --remove-all -- "${track}"
       ;;
     esac
+    printf '%s' "${track}"
+    
+    local track_temp=''
+    track_temp="$(mktemp --dry-run "--suffix=.flac" "track_temp_XXXXXX")" || exit 1
+    flac --silent --no-padding --warnings-as-errors --delete-input-file --verify \
+         --compression-level-8 --exhaustive-model-search --qlp-coeff-precision-search \
+         --output-name="${track_temp}" -- "${track}" || exit 1
+    metaflac --dont-use-padding --remove-all -- "${track_temp}"
+    
+    if ! [ -e "${metadata}" ]; then
+      if ! before_first_track "${track}"; then
+        printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
+      else
+        printf ' (no metadata for pregap)'
+      fi
+      metaflac --dont-use-padding --add-seekpoint=1s --add-padding=1024 -- "${track_temp}" || exit 1
+    else
+      metaflac --dont-use-padding --add-seekpoint=1s --import-tags-from="${metadata}" --add-padding=1024 -- "${track_temp}" || exit 1
+      rm -f -- "${metadata}"
+    fi
+    
+    mv --no-target-directory "${track_temp}" "${track}"
+    printf '\n'
   done
   
   rm -f -- "d${disc_number}.wav" "${temp_concat}"
+  printf '\n==== All done!\n\n'
+}
+
+
+
+
+cleanup_discs() {
+  local disc=''
+  for disc in "$@"; do
+    cleanup_split_tracks "$disc"
+  done
 }
 
 
@@ -786,7 +820,7 @@ rip_cyanrip() {
 
 
 test_function() {
-  check_tag_file "$@"
+  before_first_track "$@"
 }
 
 
@@ -800,7 +834,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              trim-if-overlaps-at | \n'
   printf '              read-toc | run-cd-paranoia | \n'
   printf '              run-cyanrip | rip-cyanrip |'
-  printf '              parse-mb-request | cleanup-split-tracks ]\n'
+  printf '              parse-mb-request | cleanup-split-tracks | cleanup-discs ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
@@ -861,6 +895,9 @@ case "$operation" in
   ;;
   'cleanup-split-tracks' | 'cleanup_split_tracks')
     cleanup_split_tracks "$@"
+  ;;
+  'cleanup-discs' | 'cleanup_discs')
+    cleanup_discs "$@"
   ;;
   'test' | 'test-function' | 'test_function')
     test_function "$@"
