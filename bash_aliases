@@ -436,7 +436,7 @@ sha256audio() {
       '-h' | '--help')
         printf 'Like sha256sum, but decodes and computes checksum of only audio streams\n'
         printf 'Will fail for raw audio data, but sha256sum can be used for that\n\n'
-        exit 0
+        return 0
       ;;
       '--') shift 1 ; break ;;
       *) break ;;
@@ -447,14 +447,14 @@ sha256audio() {
   for in_file in "$@"; do
     if [ ! -e "${in_file}" ]; then
       printf -- '\e[0;31m==== Error:\e[0m File does not exist:\n%s\n\n' "${in_file}" 1>&2
-      exit 1
+      return 1
     fi
     
     local ffmpeg_output=''
     ffmpeg_output="$(ffmpeg -loglevel quiet -i "${in_file}" -map '0:a' -f hash -hash SHA256 -)"
     if [ "$?" -ne 0 ]; then
       printf -- '\e[0;31m==== Error:\e[0m Could not calculate sha256 of decoded audio streams in file:\n%s\n\n' "${in_file}" 1>&2
-      exit 1
+      return 1
     fi
     local audio_sha256="$(printf -- '%s\n' "$ffmpeg_output" | cut -d '=' --fields='2-' --)"
     
