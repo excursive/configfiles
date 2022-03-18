@@ -28,10 +28,6 @@ is_integer() {
   is_whole_number "${1#-}"
 }
 
-contains_nl_or_bs() {
-  [[ "$1" =~ $'\n' ]] || [[ "$1" =~ $'\\' ]]
-}
-
 contains_nl() {
   local newline='
 '
@@ -41,12 +37,19 @@ contains_nl() {
   esac
 }
 
+contains_bs() {
+  case "$1" in
+    *'\'*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 is_valid_utf8() {
   iconv --silent --from-code=UTF-8 --to-code=UTF-8 --output=/dev/null -- "${1}" 2>/dev/null
 }
 
 mkdir_or_exit() {
-  if contains_nl_or_bs "${1}" || [ ! -d "${1}" ] && ! mkdir -- "${1}"; then
+  if contains_nl "${1}" || contains_bs "${1}" || [ ! -d "${1}" ] && ! mkdir -- "${1}"; then
     printf -- '\e[0;31mError:\e[0m Could not create directory:\n%s\n\n' "${1}" 1>&2
     exit 1
   fi
@@ -61,6 +64,11 @@ output_vorbis_tag() {
   local LC_ALL=C
   export LC_ALL
   
+  if [ -z "$3" ]; then
+    printf -- '== Empty tag %s, not writing to %s\n' "$2" "${1}" 1>&2
+    return 1
+  fi
+  
   if contains_nl "$3"; then
     printf '\n\e[0;31m==== Error:\e[0m Tag contains newline character(s)\n\n' 1>&2
     exit 1
@@ -73,6 +81,28 @@ output_vorbis_tag() {
   fi
   
   printf -- '%s=%s\n' "$2" "$3" >> "${1}"
+}
+
+check_tag_file() {
+  local LC_ALL=C
+  export LC_ALL
+  
+  if ! is_valid_utf8 "${1}"; then
+    printf '\n\e[0;31m==== Error:\e[0m Tag file is not valid UTF-8\n\n' 1>&2
+    exit 1
+  fi
+  
+  grep --binary-files=text -c --binary --perl-regexp '[\x00-\x1F\x7F]|([\xC2][\x80-\x9F])' -- "${1}" >/dev/null
+  if [ "$?" -ne 1 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Tag file contains invalid characters: %s\n' "${1}" 1>&2
+    exit 1
+  fi
+  
+  grep --binary-files=text -c --binary --invert-match '^\(TITLE\|ALBUM\|ALBUMARTIST\|DISCNUMBER\|DISCSUBTITLE\|TOTALDISCS\|TRACKNUMBER\|TOTALTRACKS\|ARTIST\|DATE\)=.\+$' -- "${1}" >/dev/null
+  if [ "$?" -ne 1 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Tag file is improperly formatted: %s\n' "${1}" 1>&2
+    exit 1
+  fi
 }
 
 parse_mb_request() {
@@ -108,7 +138,7 @@ parse_mb_request() {
   local current_disc=1
   while [ "$current_disc" -le "$total_discs" ]; do
     
-    #local disc_subtitle="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/title)[1])" "${xml}")"
+    local disc_subtitle="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/title)[1])" "${xml}")"
     
     local total_tracks="$(xmllint --nonet --xpath "string((/metadata/release/medium-list/medium[position=${current_disc}]/track-list/@count)[1])" "${xml}")"
     [ "$total_tracks" -ne 0 ] || exit 1
@@ -142,7 +172,7 @@ parse_mb_request() {
         output_vorbis_tag "${track_out_file}" 'ALBUMARTIST' "$album_artist"
       done
       output_vorbis_tag "${track_out_file}" 'DISCNUMBER' "$current_disc"
-      #output_vorbis_tag "${track_out_file}" 'DISCSUBTITLE' "$disc_subtitle"
+      output_vorbis_tag "${track_out_file}" 'DISCSUBTITLE' "$disc_subtitle"
       output_vorbis_tag "${track_out_file}" 'TOTALDISCS' "$total_discs"
       output_vorbis_tag "${track_out_file}" 'TRACKNUMBER' "$current_track"
       output_vorbis_tag "${track_out_file}" 'TOTALTRACKS' "$total_tracks"
@@ -152,11 +182,16 @@ parse_mb_request() {
       done
       output_vorbis_tag "${track_out_file}" 'DATE' "$track_date"
       
+      check_tag_file "${track_out_file}"
+      
       current_track="$(( "$current_track" + 1 ))"
     done
     
     current_disc="$(( "$current_disc" + 1 ))"
   done
+  
+  rm -f -- "${xml}"
+  printf '\n==== All done!\n\n'
 }
 
 
@@ -328,7 +363,7 @@ sha256audio() {
     fi
     local audio_sha256="$(printf -- '%s\n' "$ffmpeg_output" | cut -d '=' --fields='2-' --)"
     
-    if contains_nl_or_bs "${in_file}"; then
+    if contains_nl "${in_file}" || contains_bs "${in_file}"; then
       local escaped_filename="$(printf -- '%s' "${in_file}" | sed -z -e 's/\\/\\\\/g' -e 's/\n/\\n/g' -- -)"
       printf -- '\\%s  %s\n' "$audio_sha256" "$escaped_filename"
     else
@@ -345,7 +380,7 @@ sha256audior() {
   #exit 1
   #gonna use it anyway though i guess
   if [ -n "${1}" ]; then
-    local output="$(sha256r)"
+    local output="$(sha256audior)"
     if [ -e "${1}" ]; then
       printf -- '\e[0;31mError:\e[0m Output file already exists\n\n' 1>&2
       return 1
@@ -353,7 +388,7 @@ sha256audior() {
     printf -- '%s\n' "$output" > "${1}"
   else
     (
-    export -f contains_nl_or_bs sha256audio
+    export -f contains_nl contains_bs sha256audio
     # ??????
     find . -type f \( -iname '*.flac' -o -iname '*.wav' -o -iname '*.raw' \) -printf '%P\0' | \
         sort -z -- | xargs -0 --no-run-if-empty -I '{}' -- bash -c 'sha256audio "$@"' _ '{}'
@@ -562,6 +597,61 @@ trim_if_overlaps_at() {
 
 
 
+# run in directory with individual tracks after parisng metadata
+# and putting disc image to check against in same directory
+# arguments: [disc number]
+cleanup_split_tracks() {
+  local LC_ALL=C
+  export LC_ALL
+  
+  local disc_number="$1"
+  if ! is_positive_integer "$disc_number"; then
+    printf -- '\e[0;31m==== Error:\e[0m Disc number must be a positive integer\n\n' 1>&2
+    exit 1
+  fi
+  
+  local -a tracks=()
+  readarray -d '' -t tracks < \
+      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[1-9]|[1-9][0-9]|00-pregap)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
+  
+  local temp_concat=''
+  temp_concat="$(mktemp "--suffix=.wav" "concat_temp_XXXXXX")" || exit 1
+  sox --combine concatenate -- "${tracks[@]}" "${temp_concat}"
+  
+  cmp -- "d${disc_number}.wav" "${temp_concat}"
+  if [ "$?" -ne 0 ]; then
+    printf '\n\e[0;31m==== Error:\e[0m Concat test failed to produce given disc image\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== sha256sums of entire disc image and concat test:\n'
+  sha256sum -- "d${disc_number}.wav" "${temp_concat}"
+  
+  local track=''
+  for track in "${tracks[@]}"; do
+    local metadata=''
+    case "${track}" in
+      *'.wav') metadata="${track%.wav}-metadata.txt" ;;
+      *'.flac') metadata="${track%.flac}-metadata.txt" ;;
+    esac
+    printf '%s\n' "$metadata"
+    if ! [ -e "${metadata}" ]; then
+      printf '\n\e[0;31m==== Error:\e[0m Metadata not found for track %s\n\n' "${track}" 1>&2
+      exit 1
+    fi
+    case "${track}" in
+      *'.flac')
+        metaflac --dont-use-padding --remove-all-tags --import-tags-from="${metadata}"
+      ;;
+      *'.wav')
+      ;;
+    esac
+  done
+  
+  rm -f -- "d${disc_number}.wav" "${temp_concat}"
+}
+
+
+
 rip_whipper() {
   exit 1
   whipper --eject success cd --device /dev/sr0 rip --offset 6 --force-overread --unknown \
@@ -696,7 +786,7 @@ rip_cyanrip() {
 
 
 test_function() {
-  contains_nl "$@"
+  check_tag_file "$@"
 }
 
 
@@ -710,7 +800,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              trim-if-overlaps-at | \n'
   printf '              read-toc | run-cd-paranoia | \n'
   printf '              run-cyanrip | rip-cyanrip |'
-  printf '              parse-mb-request ]\n'
+  printf '              parse-mb-request | cleanup-split-tracks ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
@@ -768,6 +858,9 @@ case "$operation" in
   ;;
   'parse-mb-request' | 'parse_mb_request')
     parse_mb_request "$@"
+  ;;
+  'cleanup-split-tracks' | 'cleanup_split_tracks')
+    cleanup_split_tracks "$@"
   ;;
   'test' | 'test-function' | 'test_function')
     test_function "$@"
