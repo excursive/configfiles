@@ -116,8 +116,8 @@ permcheck() {
 
 delete_if_identical_to() {
   #if [ "${1}" -ef "${2}" ] || [ -L "${1}" ] || [ -L "${2}" ]; then
-  if [ -L "${1}" ] || [ -L "${2}" ]; then
-    printf 'Error: Files should not be links\n' 1>&2
+  if [ -L "${1}" ] || [ -L "${2}" ] || ! [ -f "${1}" ] || ! [ -f "${2}" ]; then
+    printf 'Error: Files should regular files (and not links)\n' 1>&2
     return 2
   fi
   cmp -- "${1}" "${2}" && rm -f -- "${1}"
