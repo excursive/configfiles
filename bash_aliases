@@ -114,6 +114,15 @@ permcheck() {
   find . -perm -o=w -a \! -type l
 }
 
+delete_if_identical_to() {
+  #if [ "${1}" -ef "${2}" ] || [ -L "${1}" ] || [ -L "${2}" ]; then
+  if [ -L "${1}" ] || [ -L "${2}" ]; then
+    printf 'Error: Files should not be links\n' 1>&2
+    return 2
+  fi
+  cmp -- "${1}" "${2}" && rm -f -- "${1}"
+}
+
 md5r() {
   if [ -n "${1}" ]; then
     local output="$(md5r)"
@@ -147,7 +156,7 @@ proton_wine() {
     printf '    env: set WINE and WINEPREFIX environment variables and run command\n'
     printf '    wine: set wine env vars and run command with proton like normal wine\n'
     printf '    steam: set STEAM_COMPAT_DATA_PATH var and run command with proton\n'
-    printf '  proton version\n'
+    printf '  proton version [ version number | experimental ]\n'
     printf '  start from: [ temp-dir | current-dir | executable-dir ]\n'
     printf '    (helpful for windows programs that only check current directory for dlls)\n'
     printf '  wine prefix: [ (wine prefix path) | (steam app id) ]\n'
@@ -155,12 +164,17 @@ proton_wine() {
     return 0
   fi
   local action="$1"
-  local proton_version="$2"
-  local command_to_run="${5}"
-  if [ ! -x "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" ]; then
-    printf -- 'Error: Could not find specified proton version: %s\n' "$proton_version" 1>&2
+  local proton_install="${HOME}/.steam/debian-installation/steamapps/common/Proton ${2}"
+  local wine_executable="${proton_install}/dist/bin/wine"
+  if [ "$2" = 'experimental' ]; then
+    proton_install="${HOME}/.steam/debian-installation/steamapps/common/Proton - Experimental"
+    wine_executable="${proton_install}/files/bin/wine"
+  fi
+  if [ ! -x "${wine_executable}" ]; then
+    printf -- 'Error: Could not find specified proton version: %s\n' "$2" 1>&2
     return 1
   fi
+  local command_to_run="${5}"
   local orig_dir="${PWD}"
   local start_dir=''
   case "${3}" in
@@ -206,22 +220,22 @@ proton_wine() {
   fi
   case "$action" in
     'env')
-      env WINE="${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+      env WINE="${wine_executable}" \
           WINEPREFIX="${prefix}" \
           "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
           "$@"
     ;;
     'wine')
-      env WINE="${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+      env WINE="${wine_executable}" \
           WINEPREFIX="${prefix}" \
           "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-          "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/dist/bin/wine" \
+          "${wine_executable}" \
           "$@"
     ;;
     'steam')
       env STEAM_COMPAT_DATA_PATH="${prefix}" \
           "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-          "${HOME}/.steam/debian-installation/steamapps/common/Proton ${proton_version}/proton" run \
+          "${proton_install}/proton" run \
           "$@"
     ;;
     *)
