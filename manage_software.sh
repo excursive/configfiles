@@ -142,7 +142,7 @@ dl_and_verify_file() {
   printf '\n==== Downloaded file checksum is:\n'
   sha256sum "${filename}"
   
-  printf '%s  %s\n' "$checksum" "${filename}" | sha256sum --check
+  printf -- '%s  %s\n' "$checksum" "${filename}" | sha256sum --check
   if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Download does not match checksum\n'
     rm -f -- "${filename}"
@@ -152,7 +152,7 @@ dl_and_verify_file() {
 
 # backslashes, spaces, newlines, tabs, and carriage returns must be escaped in desktop entry paths
 escape_desktop_entry_path() {
-  printf '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
+  printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
 }
 
 # writes a desktop entry with the given contents to ~/.local/share/applications
@@ -645,8 +645,8 @@ python3 '"${escaped_youtube_dl_path}"' "$@"'
 manage_winetricks() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to winetricks version 20210206 from Feb 6, 2021\n'
-      local winetricks_version='49e7f00aa889030aea7d10bd533a4b1922b466b1'
+      printf '\n======== Defaulting to winetricks release from 2021-08-15\n'
+      local winetricks_version='fa11b11a91a984666bf83b42e09be33ec0d6b294'
     ;;
     *)
       # sed deletion is by line number, so must stick to a specific commit
@@ -665,7 +665,7 @@ manage_winetricks() {
                   'https://github.com/Winetricks/winetricks.git'
   
   printf '\n==== Deleting checksum skip for downloads over 500 MB (lines 1318 to 1326)\n'
-  sed -i -e '1318,1326d' "${winetricks_dir}/src/winetricks"
+  sed -i -e '1321,1329d' "${winetricks_dir}/src/winetricks"
   
   create_symlinks "${winetricks_dir}/src/winetricks"
 }
