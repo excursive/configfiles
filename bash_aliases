@@ -115,11 +115,12 @@ permcheck() {
 }
 
 delete_if_identical_to() {
-  if [ -L "${1}" ] || [ -L "${2}" ] || ! [ -f "${1}" ] || ! [ -f "${2}" ]; then
-    printf 'Error: Files should regular files (and not links)\n' 1>&2
+  if [ -f "${1}" ] && [ -f "${2}" ] && ! [ -L "${1}" ] && ! [ -L "${2}" ]; then
+    cmp -- "${1}" "${2}" && rm -f -- "${1}"
+  else
+    printf 'Error: Files should be regular files (and not symlinks)\n' 1>&2
     return 2
   fi
-  cmp -- "${1}" "${2}" && rm -f -- "${1}"
 }
 
 md5r() {
