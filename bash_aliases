@@ -115,7 +115,7 @@ permcheck() {
 }
 
 delete_if_identical_to() {
-  if [ -f "${1}" ] && [ -f "${2}" ] && ! [ -L "${1}" ] && ! [ -L "${2}" ]; then
+  if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ]; then
     cmp -- "${1}" "${2}" && rm -f -- "${1}"
   else
     printf 'Error: Files should be regular files (and not symlinks)\n' 1>&2
