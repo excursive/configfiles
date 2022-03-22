@@ -1,0 +1,8 @@
+Standard Mode
+Color:
+  Brightness: 60-73
+  Contrast: 80
+  Color Temp: User Mode
+    R: 95
+    G: 100
+    B: 95
