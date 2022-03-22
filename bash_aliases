@@ -115,6 +115,10 @@ permcheck() {
 }
 
 delete_if_identical_to() {
+  if [ "${1}" = "${2}" ]; then
+    printf 'Error: Specified files are the same file\n' 1>&2
+    return 2
+  fi
   if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ]; then
     cmp -- "${1}" "${2}" && rm -f -- "${1}"
   else
