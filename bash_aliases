@@ -194,7 +194,7 @@ save_desktop_entry() {
   fi
 }
 
-proton_wine_temp() {
+proton_wine() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'
     printf '    [ launcher ] (optional, make launcher for wine/steam action)\n'
