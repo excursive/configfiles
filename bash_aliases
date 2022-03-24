@@ -70,20 +70,6 @@ is_alphanumeric() {
   [[ "$1" =~ $regex ]]
 }
 
-is_domain() {
-  local LC_ALL=C
-  export LC_ALL
-  local regex='^\.?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z0-9-]+$'
-  [[ "$1" =~ $regex ]]
-}
-
-is_domain_list() {
-  local LC_ALL=C
-  export LC_ALL
-  local regex='^(\.?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z0-9-]+,)*\.?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z0-9-]+,?$'
-  [[ "$1" =~ $regex ]]
-}
-
 is_printable_ascii() {
   local LC_ALL=C
   export LC_ALL
