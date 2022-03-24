@@ -153,20 +153,77 @@ sha256r() {
   fi
 }
 
-proton_wine() {
+# backslashes, spaces, newlines, tabs, and carriage returns can require escaping
+escape_desktop_entry_string() {
+  printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
+}
+
+# arguments/commands to be quoted require escaping the following characters:
+# backslash, double quote, backtick, dollar sign
+# backslash string escape rule is also applied before quoting rule, so escape it twice
+escape_desktop_entry_argument() {
+  printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/`/\\`/g' -e 's/\$/\\$/g' -z -e 's/\\/\\\\/g' -- -
+}
+
+# writes a desktop entry with the given contents to ~/.local/share/applications
+save_desktop_entry() {
+  local filename="${1}"
+  local contents="$2"
+  local path="${HOME}/.local/share/applications/${filename}"
+  if [ -e "${path}" ]; then
+    if [ -f "${path}" ] \
+    && [ "$(head --lines=1 "${path}")" = '[Desktop Entry]' ]; then
+      if printf -- '%s\n' "$contents" > "${path}"; then
+        printf -- '\n==== Replaced old launcher for %s in applications\n' "${filename}"
+      else
+        printf -- '\n==== Error: Could not overwrite desktop entry at: %s\n' "${path}" 1>&2
+        return 1
+      fi
+    else
+      printf -- '\n==== Warning: launcher not created for %s\n' "${filename}"
+      printf   '====   unknown file with that name exists in ~/.local/share/applications\n'
+      return 1
+    fi
+  else
+    if printf -- '%s\n' "$contents" > "${path}"; then
+      printf -- '\n==== Created launcher for %s in applications\n' "${filename}"
+    else
+      printf -- '\n==== Error: Could not save desktop entry to: %s\n' "${path}" 1>&2
+      return 1
+    fi
+  fi
+}
+
+proton_wine_temp() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'
-    printf '  action: [ env | wine | steam ]\n'
+    printf '    [ launcher ] (optional, make launcher for wine/steam action)\n'
+    printf '  action: [ env | wine | steam | launcher ]\n'
     printf '    env: set WINE and WINEPREFIX environment variables and run command\n'
     printf '    wine: set wine env vars and run command with proton like normal wine\n'
     printf '    steam: set STEAM_COMPAT_DATA_PATH var and run command with proton\n'
+    printf '    launcher: create .desktop entry for launching windows application\n'
     printf '  proton version [ version number | experimental ]\n'
     printf '  start from: [ temp-dir | current-dir | executable-dir ]\n'
     printf '    (helpful for windows programs that only check current directory for dlls)\n'
     printf '  wine prefix: [ (wine prefix path) | (steam app id) ]\n'
     printf '  command to run (or to be run with wine)\n'
+    printf '    command args, OR, if making launcher:\n'
+    printf '      .desktop file name\n'
+    printf '      launcher name\n'
+    printf '      launcher comment\n'
+    printf '      launcher categories (Audio;Video;Development;Game;Graphics;Utility;etc;)\n'
+    printf '      launcher icon path (optional)\n'
     return 0
   fi
+  
+  printf '\n'
+  local launcher='no'
+  if [ "$1" = 'launcher' ]; then
+    launcher='yes'
+    shift 1
+  fi
+  
   local action="$1"
   local proton_install="${HOME}/.steam/debian-installation/steamapps/common/Proton ${2}"
   local wine_executable="${proton_install}/dist/bin/wine"
@@ -178,30 +235,30 @@ proton_wine() {
     printf -- 'Error: Could not find specified proton version: %s\n' "$2" 1>&2
     return 1
   fi
-  local command_to_run="${5}"
+  local steam_runtime="${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh"
+  
+  local executable_path=''
+  if [ "$(type -f -t "${5}")" = 'file' ]; then
+    executable_path="$(realpath -e "$(type -f -p "${5}")")"
+  else
+    executable_path="$(realpath -e "${5}")"
+  fi
+  if [ "$?" -ne 0 ]; then
+    printf -- '\nError: Could not get path of executable:\n%s\n' "${5}" 1>&2
+    return 1
+  fi
   local orig_dir="${PWD}"
   local start_dir=''
   case "${3}" in
-    'temp-dir' | 'tmp-dir')
-      start_dir='/tmp'
-    ;;
-    'current-dir')
-      start_dir="${orig_dir}"
-    ;;
-    'executable-dir')
-      local executable_path=''
-      executable_path="$(realpath -e "${command_to_run}")"
-      if [ "$?" -ne 0 ]; then
-        printf -- 'Error: Could not get path of executable: %s\n' "${command_to_run}" 1>&2
-        return 1
-      fi
-      start_dir="$(dirname "${executable_path}")"
-    ;;
+    'temp-dir' | 'tmp-dir') start_dir='/tmp' ;;
+    'current-dir') start_dir="${orig_dir}" ;;
+    'executable-dir') start_dir="$(dirname "${executable_path}")" ;;
     *)
       printf 'Error: Invalid start directory, see --help\n' 1>&2
       return 1
     ;;
   esac
+  
   local prefix=''
   if is_positive_integer "${4}"; then
     if [ ! -d "${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx" ]; then
@@ -214,34 +271,56 @@ proton_wine() {
       prefix="${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx"
     fi
   else
-    prefix="${4}"
+    prefix="$(realpath "${4}")" || return 1
   fi
   shift 4
+  
+  if [ "$launcher" = 'yes' ]; then
+    local desktop_file_name="${2}"
+    local escaped_name="$(escape_desktop_entry_string "$3")"
+    local escaped_comment="$(escape_desktop_entry_string "$4")"
+    local escaped_categories="$(escape_desktop_entry_string "$5")"
+    local escaped_icon_pair='#Icon='
+    [ -n "${6}" ] && escaped_icon_pair='Icon='"$(escape_desktop_entry_string "${6}")"
+    local escaped_wine_executable="$(escape_desktop_entry_argument "${wine_executable}")"
+    local escaped_prefix="$(escape_desktop_entry_argument "${prefix}")"
+    local escaped_steam_runtime="$(escape_desktop_entry_argument "${steam_runtime}")"
+    local escaped_proton_install="$(escape_desktop_entry_argument "${proton_install}")"
+    local escaped_executable_path="$(escape_desktop_entry_argument "${executable_path}")"
+    local escaped_command=''
+    case "$action" in
+      'env') escaped_command='env "WINE='"${escaped_wine_executable}"'" "WINEPREFIX='"${escaped_prefix}"'" "'"${escaped_steam_runtime}"'" "'"${escaped_executable_path}"\" ;;
+      'wine') escaped_command='env "WINE='"${escaped_wine_executable}"'" "WINEPREFIX='"${escaped_prefix}"'" "'"${escaped_steam_runtime}"'" "'"${escaped_wine_executable}"'" "'"${escaped_executable_path}"\" ;;
+      'steam') escaped_command='env "STEAM_COMPAT_DATA_PATH='"${escaped_prefix}"'" "'"${escaped_steam_runtime}"'" "'"${escaped_proton_install}/proton"'" run "'"${escaped_executable_path}"\" ;;
+      *)
+        printf 'Error: Invalid action, see --help\n' 1>&2
+        return 1
+      ;;
+    esac
+    local escaped_start_dir="$(escape_desktop_entry_string "${start_dir}")"
+    local launcher_text="[Desktop Entry]
+Type=Application
+Name=${escaped_name}
+Comment=${escaped_comment}
+${escaped_icon_pair}
+Exec=${escaped_command}
+Path=${escaped_start_dir}
+Terminal=false
+Category=${escaped_categories}"
+    
+    printf -- 'Writing the following to %s\n\n%s\n\n' "${desktop_file_name}" "$launcher_text"
+    save_desktop_entry "${desktop_file_name}" "$launcher_text"
+    return
+  fi
   
   if ! cd -- "${start_dir}"; then
     printf 'Error: Could not change to start directory\n' 1>&2
     return 1
   fi
   case "$action" in
-    'env')
-      env WINE="${wine_executable}" \
-          WINEPREFIX="${prefix}" \
-          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-          "$@"
-    ;;
-    'wine')
-      env WINE="${wine_executable}" \
-          WINEPREFIX="${prefix}" \
-          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-          "${wine_executable}" \
-          "$@"
-    ;;
-    'steam')
-      env STEAM_COMPAT_DATA_PATH="${prefix}" \
-          "${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh" \
-          "${proton_install}/proton" run \
-          "$@"
-    ;;
+    'env') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "$@" ;;
+    'wine') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "${wine_executable}" "$@" ;;
+    'steam') env STEAM_COMPAT_DATA_PATH="${prefix}" "${steam_runtime}" "${proton_install}/proton" run "$@" ;;
     *)
       printf 'Error: Invalid action, see --help\n' 1>&2
       cd -- "${orig_dir}"
