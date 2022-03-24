@@ -150,9 +150,16 @@ dl_and_verify_file() {
   fi
 }
 
-# backslashes, spaces, newlines, tabs, and carriage returns must be escaped in desktop entry paths
-escape_desktop_entry_path() {
+# backslashes, spaces, newlines, tabs, and carriage returns can require escaping
+escape_desktop_entry_string() {
   printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
+}
+
+# arguments/commands to be quoted require escaping the following characters:
+# backslash, double quote, backtick, dollar sign
+# backslash string escape rule is also applied before quoting rule, so escape it twice
+escape_desktop_entry_argument() {
+  printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/`/\\`/g' -e 's/\$/\\$/g' -z -e 's/\\/\\\\/g' -- -
 }
 
 # writes a desktop entry with the given contents to ~/.local/share/applications
@@ -163,16 +170,24 @@ save_desktop_entry() {
   if [ -e "${path}" ]; then
     if [ -f "${path}" ] \
     && [ "$(head --lines=1 "${path}")" = '[Desktop Entry]' ]; then
-      printf -- '%s\n' "$contents" > "${path}"
-      printf -- '\n==== Replaced old launcher for %s in applications\n' "${filename}"
+      if printf -- '%s\n' "$contents" > "${path}"; then
+        printf -- '\n==== Replaced old launcher for %s in applications\n' "${filename}"
+      else
+        printf -- '\n==== Error: Could not overwrite desktop entry at: %s\n' "${path}" 1>&2
+        return 1
+      fi
     else
       printf -- '\n==== Warning: launcher not created for %s\n' "${filename}"
       printf   '====   unknown file with that name exists in ~/.local/share/applications\n'
       return 1
     fi
   else
-    printf -- '%s\n' "$contents" > "${path}"
-    printf -- '\n==== Created launcher for %s in applications\n' "${filename}"
+    if printf -- '%s\n' "$contents" > "${path}"; then
+      printf -- '\n==== Created launcher for %s in applications\n' "${filename}"
+    else
+      printf -- '\n==== Error: Could not save desktop entry to: %s\n' "${path}" 1>&2
+      return 1
+    fi
   fi
 }
 
@@ -295,13 +310,14 @@ manage_blender() {
   rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
   
   
-  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
+  local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
+  local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/blender")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Blender
 Comment=Free and open source 3D creation suite
 Icon=${escaped_install_dir}/blender.svg
-Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${escaped_install_dir}/blender
+Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${escaped_executable_path}
 Path=${escaped_install_dir}
 Terminal=false
 Category=Video;Graphics;"
@@ -373,13 +389,14 @@ manage_lmms() {
   chmod +x "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage"
   
   
-  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
+  local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
+  local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=LMMS
 Comment=Free, open source, multiplatform digital audio workstation
 Icon=${escaped_install_dir}/icon.png
-Exec=${escaped_install_dir}/lmms-${lmms_version}-linux-x86_64.AppImage
+Exec=${escaped_executable_path}
 Path=${escaped_install_dir}
 Terminal=false
 Category=Audio;"
@@ -451,13 +468,14 @@ manage_krita() {
   chmod +x "${install_dir}/krita-${krita_version}-x86_64.appimage"
   
   
-  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
+  local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
+  local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/krita-${krita_version}-x86_64.appimage")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Krita
 Comment=Free and open source painting and drawing program
 Icon=${escaped_install_dir}/icon.png
-Exec=${escaped_install_dir}/krita-${krita_version}-x86_64.appimage
+Exec=${escaped_executable_path}
 Path=${escaped_install_dir}
 Terminal=false
 Category=Graphics;"
@@ -1377,13 +1395,14 @@ manage_godot() {
   fi
   
   
-  local escaped_install_dir="$(escape_desktop_entry_path "${install_dir}")"
+  local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
+  local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/godot.x11.opt.tools.64")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Godot Engine
 Comment=2D and 3D cross-platform game engine
 Icon=${escaped_install_dir}/app_icon.png
-Exec=${escaped_install_dir}/godot.x11.opt.tools.64
+Exec=${escaped_executable_path}
 Path=${escaped_install_dir}
 Terminal=false
 Category=Development;Game;Graphics;"
@@ -1602,13 +1621,14 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   fi
   
   
-  local escaped_ase_install_dir="$(escape_desktop_entry_path "${ase_install_dir}")"
+  local escaped_ase_install_dir="$(escape_desktop_entry_string "${ase_install_dir}")"
+  local escaped_ase_executable_path=\""$(escape_desktop_entry_argument "${ase_install_dir}/bin/aseprite")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
 Name=Aseprite
 Comment=Animated Sprite Editor & Pixel Art Tool
 Icon=${escaped_ase_install_dir}/bin/data/icons/ase256.png
-Exec=${escaped_ase_install_dir}/bin/aseprite
+Exec=${escaped_ase_executable_path}
 Path=${escaped_ase_install_dir}
 Terminal=false
 Category=Graphics;"
