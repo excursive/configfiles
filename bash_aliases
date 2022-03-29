@@ -101,14 +101,11 @@ permcheck() {
 }
 
 delete_if_identical_to() {
-  if [ "${1}" = "${2}" ]; then
-    printf 'Error: Specified files are the same file\n' 1>&2
-    return 2
-  fi
-  if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ]; then
+  if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
+     [ "$(readlink -f "${1}")" != "$(readlink -f "${2}")" ]; then
     cmp -- "${1}" "${2}" && rm -f -- "${1}"
   else
-    printf 'Error: Files should be regular files (and not symlinks)\n' 1>&2
+    printf 'Error: Files must be different regular files (and not symlinks)\n' 1>&2
     return 2
   fi
 }
@@ -184,7 +181,7 @@ proton_wine() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf 'Arguments:\n'
     printf '    [ launcher ] (optional, make launcher for wine/steam action)\n'
-    printf '  action: [ env | wine | steam | launcher ]\n'
+    printf '  action: [ env | wine | steam ]\n'
     printf '    env: set WINE and WINEPREFIX environment variables and run command\n'
     printf '    wine: set wine env vars and run command with proton like normal wine\n'
     printf '    steam: set STEAM_COMPAT_DATA_PATH var and run command with proton\n'
@@ -259,15 +256,15 @@ proton_wine() {
   else
     prefix="$(realpath "${4}")" || return 1
   fi
-  shift 4
+  shift 5
   
   if [ "$launcher" = 'yes' ]; then
-    local desktop_file_name="${2}"
-    local escaped_name="$(escape_desktop_entry_string "$3")"
-    local escaped_comment="$(escape_desktop_entry_string "$4")"
-    local escaped_categories="$(escape_desktop_entry_string "$5")"
+    local desktop_file_name="${1}"
+    local escaped_name="$(escape_desktop_entry_string "$2")"
+    local escaped_comment="$(escape_desktop_entry_string "$3")"
+    local escaped_categories="$(escape_desktop_entry_string "$4")"
     local escaped_icon_pair='#Icon='
-    [ -n "${6}" ] && escaped_icon_pair='Icon='"$(escape_desktop_entry_string "${6}")"
+    [ -n "${5}" ] && escaped_icon_pair='Icon='"$(escape_desktop_entry_string "${5}")"
     local escaped_wine_executable="$(escape_desktop_entry_argument "${wine_executable}")"
     local escaped_prefix="$(escape_desktop_entry_argument "${prefix}")"
     local escaped_steam_runtime="$(escape_desktop_entry_argument "${steam_runtime}")"
@@ -304,9 +301,9 @@ Category=${escaped_categories}"
     return 1
   fi
   case "$action" in
-    'env') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "$@" ;;
-    'wine') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "${wine_executable}" "$@" ;;
-    'steam') env STEAM_COMPAT_DATA_PATH="${prefix}" "${steam_runtime}" "${proton_install}/proton" run "$@" ;;
+    'env') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "${executable_path}" "$@" ;;
+    'wine') env WINE="${wine_executable}" WINEPREFIX="${prefix}" "${steam_runtime}" "${wine_executable}" "${executable_path}" "$@" ;;
+    'steam') env STEAM_COMPAT_DATA_PATH="${prefix}" "${steam_runtime}" "${proton_install}/proton" run "${executable_path}" "$@" ;;
     *)
       printf 'Error: Invalid action, see --help\n' 1>&2
       cd -- "${orig_dir}"
@@ -552,6 +549,13 @@ sha256audio() {
 
 sha256video() {
   ffmpeg -loglevel error -i "$1" -map 0:v -f hash -
+}
+
+tablet_calibration() {
+  # adjusted for viewing angle and hand positioning
+  xinput set-float-prop 'HID 256c:006d Pen Pen (0)' 'Coordinate Transformation Matrix' \
+         1.005000 -0.004000 0.001000 -0.001500 0.501500 0.500500 0.000000 0.000000 1.000000
+  #      h-stretch  h-diff  h-offset  v-diff  v-stretch v-offset
 }
 
 ffmpeg_bitexact() {
