@@ -14,8 +14,10 @@ sudo apt-get dist-upgrade
 
 sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib g++ autoconf automake cmake valgrind
 sudo apt-get install flatpak sqlite3 brasero vim git ffmpeg flac vlc steam gimp audacity
-sudo apt-get install cd-paranoia cdrdao mkcue libcue-dev cue2toc libxml2-utils libbluray2 libaacs0 libbdplus0
 sudo apt-get install libdvd-pkg
+sudo dpkg-reconfigure libdvd-pkg
+sudo apt-get install cd-paranoia libcdio-utils cdrdao mkcue libcue-dev cue2toc libxml2-utils dvdbackup libbluray2 libaacs0 libbdplus0
+
 
 #sudo apt-get --no-install-recommends install mpv python3-pyxattr
 
