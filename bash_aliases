@@ -136,6 +136,12 @@ sha256r() {
   fi
 }
 
+wget_ff() {
+  wget --no-verbose --no-clobber --wait=0.5 --random-wait --max-redirect 0 \
+       --user-agent='Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0' \
+       --secure-protocol=auto --https-only "$@"
+}
+
 # backslashes, spaces, newlines, tabs, and carriage returns can require escaping
 escape_desktop_entry_string() {
   printf -- '%s' "${1}" | sed -z -e 's/\\/\\\\/g' -e 's/ /\\s/g' -e 's/\n/\\n/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g' -- -
