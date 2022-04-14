@@ -10,13 +10,13 @@ Color:
   Panel Uniformity: Off
   Gamma: Off
   Temperature: User
-    R: 127
-    G: 123
-    B: 123
+    R: 128
+    G: 124
+    B: 124
   Color Effect: User
-    R:  52   44
+    R:  51   45
     Y: [43] [42]
     G: [45]  43
     C:  53   42
-    B: [51] [51]
+    B: [50] [51]
     M:  47   41
