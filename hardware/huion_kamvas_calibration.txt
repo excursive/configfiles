@@ -1,3 +1,5 @@
+brackets=good
+
 Picture:
   Backlight: 75
   Brightness: 29
@@ -8,13 +10,13 @@ Color:
   Panel Uniformity: Off
   Gamma: Off
   Temperature: User
-    R: 128
+    R: 127
     G: 123
-    B: 122
+    B: 123
   Color Effect: User
-    R: 51 44
-    Y: 43 42
-    G: 45 41
-    C: 56 44
-    B: 52 52
-    M: 46 40
+    R:  52   44
+    Y: [43] [42]
+    G: [45]  43
+    C:  53   42
+    B: [51] [51]
+    M:  47   41
