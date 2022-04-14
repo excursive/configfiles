@@ -631,8 +631,8 @@ python3 '"${escaped_yt_dlp_path}"' "$@"'
 manage_youtube_dl() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to youtube-dl version 2021.06.06\n'
-      local youtube_dl_version='b224cf39d53bd16bcfda2ac493712c3ff449ecb8'
+      printf '\n======== Defaulting to youtube-dl version 2022.04.08\n'
+      local youtube_dl_version='7884ade65e6599e53d1a449e6548f87b09668e0d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
