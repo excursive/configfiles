@@ -560,8 +560,12 @@ sha256video() {
 tablet_calibration() {
   # adjusted for viewing angle and hand positioning
   xinput set-float-prop 'HID 256c:006d Pen Pen (0)' 'Coordinate Transformation Matrix' \
-         1.005000 -0.004000 0.001000 -0.001500 0.501500 0.500500 0.000000 0.000000 1.000000
-  #      h-stretch  h-diff  h-offset  v-diff  v-stretch v-offset
+         1.005000 -0.001500 -0.000500 0.000000 0.499500 0.500500 0.000000 0.000000 1.000000
+  #      h-stretch h-off-diff h-off  v-off-diff v-stretch v-off      A        B        C
+  
+  # A - keep along left edge, lag h at top edge (of all monitors), lag h+v at bottom right
+  # B - keep along top edge, lag v at left edge (of all monitors), lag h+v at bottom right
+  # C - keep at top left corner (of all monitors), stretch v at left edge, stretch h at top edge, stretch h+v at bottom right corner
 }
 
 ffmpeg_bitexact() {
