@@ -1,4 +1,24 @@
+[equalizer] # Equalizer with 10 bands
+
+# Equalizer preset (string)
+#equalizer-preset=flat
+
+# Bands gain (string)
+equalizer-bands=1.5 2 2.3 2.1 1.8 0.4 0.1 0.0000000 0.0000000 0.0000000
+
+# Two pass (boolean)
+#equalizer-2pass=0
+
+# Use VLC frequency bands (boolean)
+#equalizer-vlcfreqs=1
+
+# Global gain (float)
+equalizer-preamp=10.500000
+
 [core] # core program
+
+# Audio filters (string)
+audio-filter=equalizer
 
 # Video Auto Scaling (boolean)
 autoscale=0
