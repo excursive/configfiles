@@ -1,3 +1,8 @@
+[qt] # Qt interface
+
+# Ask for network policy at start (boolean)
+qt-privacy-ask=0
+
 [equalizer] # Equalizer with 10 bands
 
 # Equalizer preset (string)
