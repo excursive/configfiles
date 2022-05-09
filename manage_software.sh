@@ -263,10 +263,10 @@ create_symlinks() {
 manage_blender() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to Blender version 2.92.0\n'
-      local blender_version='2.92.0'
-      local blender_sha256='2cd17ad6e9d6c241ac14b84ad6e72b507aeec979da3d926b1a146e88e0eb3eb4'
-      local blender_dl_url='Blender2.92/blender-2.92.0-linux64.tar.xz'
+      printf '\n======== Defaulting to Blender version 3.1.2\n'
+      local blender_version='3.1.2'
+      local blender_sha256='c1d345b25c6f83708b2681d354d70a3e6023c04bb73cc7943366c0c19e542958'
+      local blender_dl_url='Blender3.1/blender-3.1.2-linux-x64.tar.xz'
     ;;
     *)
       printf '\n======== Error: Unknown Blender version number\n'
@@ -599,8 +599,8 @@ manage_vim_lightline() {
 manage_yt_dlp() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to yt-dlp version 2022.02.04\n'
-      local yt_dlp_version='c1653e9efba2768910e6a5f62c88c7a95317b431'
+      printf '\n======== Defaulting to yt-dlp version 2022.04.08\n'
+      local yt_dlp_version='7884ade65e6599e53d1a449e6548f87b09668e0d'
     ;;
     *)
       if is_valid_sha1 "$1"; then
@@ -631,8 +631,8 @@ python3 '"${escaped_yt_dlp_path}"' "$@"'
 manage_youtube_dl() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to youtube-dl version 2022.04.08\n'
-      local youtube_dl_version='7884ade65e6599e53d1a449e6548f87b09668e0d'
+      printf '\n======== Defaulting to youtube-dl version 2021.12.17\n'
+      local youtube_dl_version='5014bd67c22b421207b2650d4dc874b95b36dda1'
     ;;
     *)
       if is_valid_sha1 "$1"; then
