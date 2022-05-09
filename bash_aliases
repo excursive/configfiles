@@ -29,16 +29,16 @@ alias aadebug="apparmor_parser -Q --debug"
 
 
 
-add_flathub() {
+fp_add_flathub() {
   flatpak remote-add --user --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
 }
 
 fp_install_kdenlive() {
-  flatpak install flathub org.kde.kdenlive
+  flatpak install --user flathub org.kde.kdenlive
 }
 
 fp_install_natron() {
-  flatpak install flathub fr.natron.Natron
+  flatpak install --user flathub fr.natron.Natron
 }
 
 is_positive_integer() {
