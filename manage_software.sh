@@ -276,7 +276,7 @@ manage_blender() {
   
   printf '\n======== Checking directories\n'
   local blender_dir="${PWD}/blender"
-  local install_dir="${blender_dir}/blender-${blender_version}-linux64"
+  local install_dir="${blender_dir}/blender-${blender_version}-linux-x64"
   
   if [ ! -d "${blender_dir}" ] && ! mkdir "${blender_dir}"; then
     printf '\n==== Error: Could not create blender directory\n'
@@ -291,7 +291,7 @@ manage_blender() {
   
   printf '\n======== Downloading Blender\n'
   cd -- "${blender_dir}"
-  dl_and_verify_file "$blender_sha256" "blender-${blender_version}-linux64.tar.xz" \
+  dl_and_verify_file "$blender_sha256" "blender-${blender_version}-linux-x64.tar.xz" \
                      "https://download.blender.org/release/${blender_dl_url}"
   if [ "$?" -ne 0 ]; then
     printf '\n==== Error: Could not download Blender\n'
@@ -299,15 +299,15 @@ manage_blender() {
   fi
   
   printf '\n======== Extracting Blender:\n'
-  tar --extract --keep-old-files --one-top-level="blender-${blender_version}-linux64" --restrict \
-      --file="blender-${blender_version}-linux64.tar.xz"
+  tar --extract --keep-old-files --one-top-level="blender-${blender_version}-linux-x64" --restrict \
+      --file="blender-${blender_version}-linux-x64.tar.xz"
   
   printf '\n======== Generating checksums\n'
   cd -- "${install_dir}"
-  sha256r "blender-${blender_version}-linux64-sha256sums.txt"
+  sha256r "${blender_dir}/blender-${blender_version}-linux-x64-sha256sums.txt"
   
   printf '\n======== Cleaning up\n'
-  rm -f -- "${blender_dir}/blender-${blender_version}-linux64.tar.xz"
+  rm -f -- "${blender_dir}/blender-${blender_version}-linux-x64.tar.xz"
   
   
   local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
