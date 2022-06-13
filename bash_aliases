@@ -643,6 +643,48 @@ ffmpeg_screenrec() {
   ffmpeg "${ffmpeg_args[@]}"
 }
 
+video_snapshot() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Arguments:\n'
+    printf '  (frames/)output(-%03d).png\n'
+    printf '  (bluray:)input.mp4\n'
+    printf '  bt709 | smpte170m (SD NTSC) video colorspace\n'
+    printf '  00:00:00.00   start timestamp\n'
+    printf '  00s / 1f      duration / 1f for single frame\n'
+    printf '  (playlist number if bluray)\n'
+    return 0
+  fi
+  
+  local out_file="${1}"
+  local in_file="${2}"
+  local colorspace="$3"
+  local start="$4"
+  local duration="$5"
+  local playlist="$6"
+  
+  if [ "$colorspace" != 'bt709' ] && [ "$colorspace" != 'smpte170m' ]; then
+    printf 'Error: colorspace not bt709 or smpte170m\n' 1>&2
+    return 1
+  fi
+  
+  [ "$duration" = '1f' ] && duration='0.00001s'
+  
+  local -a ffmpeg_args=( '-loglevel' 'warning' \
+                         '-ss' "$start" )
+  
+  [ -n "$playlist" ] && ffmpeg_args+=( '-playlist' "$playlist" )
+  
+  ffmpeg_args+=( '-i' "${in_file}" \
+                 '-t' "$duration" \
+                 '-sws_flags' '+full_chroma_inp+full_chroma_int+accurate_rnd+bitexact' \
+                 '-vf' "setparams=range=limited:color_primaries=${colorspace}:color_trc=${colorspace}:colorspace=${colorspace}" \
+                 '-map_metadata' '-1' '-flags' 'bitexact' '-flags:v' 'bitexact' '-flags:a' 'bitexact' '-fflags' 'bitexact' \
+                 "${out_file}" )
+  ffmpeg "${ffmpeg_args[@]}"
+  
+  printf '\n\n\n==== Must also remove gAMA chunk from pngs! (pngqoptimstripall) ====\n\n'
+}
+
 ytdl_options() {
   yt-dlp --no-overwrites --no-continue --no-mtime --no-call-home \
              --no-post-overwrites --fixup never "$@"
@@ -723,6 +765,12 @@ batch_optimize_files() {
       'pngmstrip')
         zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
       ;;
+      'pngmstripall')
+        zopflipng -m -y --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
+      ;;
+      'pngqstripall')
+        zopflipng -q --iterations=1 --filters=e -y --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
+      ;;
       'gif')
         gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3 \
                  "${in_file}" > "${temp_file}"
@@ -790,6 +838,14 @@ pngoptimstrip() {
 
 pngmoptimstrip() {
   batch_optimize_files 'pngmstrip' "$@"
+}
+
+pngmoptimstripall() {
+  batch_optimize_files 'pngmstripall' "$@"
+}
+
+pngqoptimstripall() {
+  batch_optimize_files 'pngqstripall' "$@"
 }
 
 gifoptim() {
