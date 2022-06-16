@@ -37,6 +37,10 @@ fp_install_kdenlive() {
   flatpak install --user flathub org.kde.kdenlive
 }
 
+fp_install_displaycal() {
+  flatpak install --user flathub net.displaycal.DisplayCAL
+}
+
 fp_install_natron() {
   flatpak install --user flathub fr.natron.Natron
 }
