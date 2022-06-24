@@ -815,8 +815,8 @@ python3 '"${escaped_whipper_path}"' "$@"'
 manage_zopflipng() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to zopflipng version 1.03 from November 2019\n'
-      local zopflipng_version='bd64b2f0553d4f1ef4e6627647c5d9fc8c71ffc0'
+      printf '\n======== Defaulting to zopflipng commit from 2021-06-14\n'
+      local zopflipng_version='831773bc28e318b91a3255fa12c9fcde1606058b'
     ;;
     *)
       if is_valid_sha1 "$1"; then
