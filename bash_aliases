@@ -769,6 +769,9 @@ batch_optimize_files() {
       'pngmstrip')
         zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
       ;;
+      'pngmncstripall')
+        zopflipng -m -y --keepcolortype --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
+      ;;
       'pngmstripall')
         zopflipng -m -y --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
       ;;
@@ -842,6 +845,10 @@ pngoptimstrip() {
 
 pngmoptimstrip() {
   batch_optimize_files 'pngmstrip' "$@"
+}
+
+pngmoptimncstripall() {
+  batch_optimize_files 'pngmncstripall' "$@"
 }
 
 pngmoptimstripall() {
