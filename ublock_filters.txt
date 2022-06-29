@@ -37,4 +37,6 @@ netflix.com##.top-left-controls
 netflix.com##.visually-hidden
 netflix.com##.screenReaderMessage
 
+instagram.com##body > div > div > div > div.rq0escxv.l9j0dhe7.du4w35lb > div:not(:first-of-type)
+
 
