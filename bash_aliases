@@ -755,6 +755,12 @@ batch_optimize_files() {
     
     case "$filetype" in
       'jpg' | 'jpeg')
+        mozjpegtran -copy all -optimize -perfect "${in_file}" > "${temp_file}"
+      ;;
+      'jpgstrip' | 'jpegstrip')
+        mozjpegtran -copy icc -optimize -perfect "${in_file}" > "${temp_file}"
+      ;;
+      'jpgstripall' | 'jpegstripall')
         mozjpegtran -copy none -optimize -perfect "${in_file}" > "${temp_file}"
       ;;
       'png')
@@ -829,6 +835,14 @@ batch_optimize_files() {
 
 jpgoptim() {
   batch_optimize_files 'jpeg' "$@"
+}
+
+jpgoptimstrip() {
+  batch_optimize_files 'jpegstrip' "$@"
+}
+
+jpgoptimstripall() {
+  batch_optimize_files 'jpegstripall' "$@"
 }
 
 pngoptim() {
