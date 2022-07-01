@@ -784,6 +784,9 @@ batch_optimize_files() {
       'pngqstripall')
         zopflipng -q --iterations=1 --filters=e -y --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
       ;;
+      'imagemagick')
+        convert "${in_file}" -strip "${temp_file}"
+      ;;
       'gif')
         gifsicle --merge --no-app-extensions --no-names --no-comments --no-extensions -O3 \
                  "${in_file}" > "${temp_file}"
@@ -871,6 +874,10 @@ pngmoptimstripall() {
 
 pngqoptimstripall() {
   batch_optimize_files 'pngqstripall' "$@"
+}
+
+imoptim() {
+  batch_optimize_files 'imagemagick' "$@"
 }
 
 gifoptim() {
