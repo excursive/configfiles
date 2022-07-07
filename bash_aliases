@@ -2,8 +2,6 @@
 
 PATH="${PATH}:${HOME}/bin"
 
-alias srm="rm -I"
-
 alias ddsafe="dd conv=excl bs=65536 iflag=skip_bytes"
 
 alias md5c="md5sum -c --quiet"
@@ -28,6 +26,14 @@ alias aadebug="apparmor_parser -Q --debug"
 
 
 
+
+srm() {
+  rm -I --verbose "$@"
+}
+
+smv() {
+  mv --no-clobber --verbose "$@"
+}
 
 fp_add_flathub() {
   flatpak remote-add --user --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
