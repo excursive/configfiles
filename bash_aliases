@@ -717,6 +717,10 @@ youtube_backup() {
   youtube_output --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' "$@"
 }
 
+youtube_backup_mp4() {
+  youtube_output --format 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' "$@"
+}
+
 youtube_backup_video_only() {
   youtube_output --format 'bestvideo[ext=mp4],bestvideo[ext=webm]' "$@"
 }
