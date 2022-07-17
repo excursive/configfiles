@@ -263,10 +263,10 @@ create_symlinks() {
 manage_blender() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to Blender version 3.1.2\n'
-      local blender_version='3.1.2'
-      local blender_sha256='c1d345b25c6f83708b2681d354d70a3e6023c04bb73cc7943366c0c19e542958'
-      local blender_dl_url='Blender3.1/blender-3.1.2-linux-x64.tar.xz'
+      printf '\n======== Defaulting to Blender version 3.2.1\n'
+      local blender_version='3.2.1'
+      local blender_sha256='d363a836d03a2462341d7f5cac98be2024120e648258f9ae8e7b69c9f88d6ac1'
+      local blender_dl_url='Blender3.2/blender-3.2.1-linux-x64.tar.xz'
     ;;
     *)
       printf '\n======== Error: Unknown Blender version number\n'
