@@ -599,8 +599,8 @@ manage_vim_lightline() {
 manage_yt_dlp() {
   case "$1" in
     'default')
-      printf '\n======== Defaulting to yt-dlp version 2022.06.29\n'
-      local yt_dlp_version='9d339c41e25b1a77495cebe3fbdc95e2cb837776'
+      printf '\n======== Defaulting to yt-dlp version 2022.07.18\n'
+      local yt_dlp_version='135f05ef667851869756ad3bf892726e376db27c'
     ;;
     *)
       if is_valid_sha1 "$1"; then
