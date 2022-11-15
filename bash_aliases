@@ -114,8 +114,12 @@ is_valid_utf8() {
   iconv --silent --from-code=UTF-8 --to-code=UTF-8 --output=/dev/null -- "${1}" 2>/dev/null
 }
 
-permcheck() {
+permcheck_ow() {
   find . -perm -o=w -a \! -type l
+}
+
+permcheck_ouser() {
+  find . \! -user "$1"
 }
 
 delete_if_identical_to() {
@@ -232,17 +236,17 @@ proton_wine() {
   fi
   
   local action="$1"
-  local proton_install="${HOME}/.steam/debian-installation/steamapps/common/Proton ${2}"
+  local proton_install="${HOME}/.steam/steam/steamapps/common/Proton ${2}"
   local wine_executable="${proton_install}/dist/bin/wine"
   if [ "$2" = 'experimental' ]; then
-    proton_install="${HOME}/.steam/debian-installation/steamapps/common/Proton - Experimental"
+    proton_install="${HOME}/.steam/steam/steamapps/common/Proton - Experimental"
     wine_executable="${proton_install}/files/bin/wine"
   fi
   if [ ! -x "${wine_executable}" ]; then
     printf -- 'Error: Could not find specified proton version: %s\n' "$2" 1>&2
     return 1
   fi
-  local steam_runtime="${HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/run.sh"
+  local steam_runtime="${HOME}/.steam/steam/ubuntu12_32/steam-runtime/run.sh"
   
   local executable_path=''
   if [ "$(type -f -t "${5}")" = 'file' ]; then
@@ -268,14 +272,14 @@ proton_wine() {
   
   local prefix=''
   if is_positive_integer "${4}"; then
-    if [ ! -d "${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx" ]; then
+    if [ ! -d "${HOME}/.steam/steam/steamapps/compatdata/${4}/pfx" ]; then
       printf -- 'Error: Could not find prefix for specified steam app id: %s\n' "${4}" 1>&2
       return 1
     fi
     if [ "$action" = 'steam' ]; then
-      prefix="${HOME}/.steam/debian-installation/steamapps/compatdata/${4}"
+      prefix="${HOME}/.steam/steam/steamapps/compatdata/${4}"
     else
-      prefix="${HOME}/.steam/debian-installation/steamapps/compatdata/${4}/pfx"
+      prefix="${HOME}/.steam/steam/steamapps/compatdata/${4}/pfx"
     fi
   else
     prefix="$(realpath "${4}")" || return 1
