@@ -5,7 +5,7 @@ patch_steam_quake_2() {
   export LC_ALL
   
   # make sure we have an unmodified steam quake2 version 3.20 exe
-  local q2_exe="${HOME}/.steam/debian-installation/steamapps/common/Quake 2/quake2.exe"
+  local q2_exe="${HOME}/.steam/steam/steamapps/common/Quake 2/quake2.exe"
   if [ ! -w "${q2_exe}" ]; then
     printf 'Error: Steam quake 2 v3.20 exe does not exist or is not writable\n' 1>&2
     exit 1
@@ -26,6 +26,7 @@ patch_steam_quake_2() {
   # replace 32 bit integer 1600x1200 resolution (gl_mode 9)
   # 1920x1080 (big endian) = 80 07 00 00   38 04 00 00
   # 1848x1016 (big endian) = 38 07 00 00   F8 03 00 00
+  # 1280x800  (big endian) = 00 05 00 00   20 03 00 00
   printf '\x38\x07\x00\x00' | dd "of=${q2_exe}" bs=1 seek=345188 count=4 conv=notrunc
   printf '\xF8\x03\x00\x00' | dd "of=${q2_exe}" bs=1 seek=345192 count=4 conv=notrunc
 }
