@@ -1,0 +1,361 @@
+{
+    "extractor":
+    {
+        "base-directory": "./gallery-dl/",
+        "parent-directory": false,
+        "postprocessors": ["identical", "writemetadata"],
+        "archive": "./gallery-dl/{category}.sqlite3",
+        "cookies": null,
+        "cookies-update": true,
+        "proxy": null,
+        "skip": false,
+
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0",
+        "retries": 4,
+        "timeout": 30.0,
+        "verify": true,
+        "fallback": false,
+
+        "sleep": 0,
+        "sleep-request": 0,
+        "sleep-extractor": 0,
+
+        "path-restrict": "auto",
+        "path-replace": "_",
+        "path-remove": "\\u0000-\\u001f\\u007f\\u0080-\\u009f",
+        "path-strip": "auto",
+        "path-extended": true,
+
+        "url-metadata": "gdl_file_url",
+        "path-metadata": "gdl_path",
+        "http-metadata": "gdl_http",
+
+
+        "artstation":
+        {
+            "external": false,
+            "max-posts": null,
+            "pro-first": false
+        },
+        "danbooru":
+        {
+            "external": false,
+            "metadata": true,
+            "ugoira": true
+        },
+        "derpibooru":
+        {
+            "api-key": null,
+            "filter": 56027
+        },
+        "deviantart":
+        {
+            "filename": "{index}_{title}.{extension}",
+            "directory": ["{category}", "{author[userid]}"],
+            "folder": {
+                "directory": ["{category}", "{author[userid]}", "{folder[title]}"]
+            },
+            "favorite": {
+                "directory": ["{category}", "{author[userid]}", "Favourites"]
+            },
+            "collection": {
+                "directory": ["{category}", "{author[userid]}", "Favourites", "{collection[title]}"]
+            },
+            "journal": {
+                "directory": ["{category}", "{author[userid]}", "Journal"]
+            },
+            "scraps": {
+                "directory": ["{category}", "{author[userid]}", "Scraps"]
+            },
+            "client-id": null,
+            "client-secret": null,
+            "refresh-token": null,
+            "auto-watch": true,
+            "auto-unwatch": false,
+            "comments": true,
+            "extra": true,
+            "flat": true,
+            "folders": false,
+            "group": true,
+            "include": ["gallery", "scraps", "journal"],
+            "journals": "html",
+            "mature": true,
+            "metadata": true,
+            "original": true,
+            "pagination": "manual",
+            "wait-min": 1
+        },
+        "e621":
+        {
+            "username": null,
+            "password": null
+        },
+        "furaffinity":
+        {
+            "descriptions": "html",
+            "external": false,
+            "include": ["gallery", "scraps"],
+            "layout": "auto"
+        },
+        "gelbooru":
+        {
+            "api-key": null,
+            "user-id": null
+        },
+        "gfycat":
+        {
+            "format": ["mp4", "webm", "mobile", "webp", "gif"]
+        },
+        "imgur":
+        {
+            "mp4": true
+        },
+        "inkbunny":
+        {
+            "username": null,
+            "password": null,
+            "orderby": "create_datetime"
+        },
+        "instagram":
+        {
+            "api": "rest",
+            "cookies": null,
+            "include": ["posts", "reels", "channel", "tagged", "stories", "highlights", "avatar"],
+            "previews": true,
+            "sleep-request": [6.0, 12.0],
+            "videos": true
+        },
+        "mangadex":
+        {
+            "api-parameters": null,
+            "lang": null,
+            "ratings": ["safe", "suggestive", "erotica", "pornographic"]
+        },
+        "mastodon":
+        {
+            "reblogs": false,
+            "replies": true,
+            "text-posts": true
+        },
+        "newgrounds":
+        {
+            "username": null,
+            "password": null,
+            "flash": true,
+            "format": "original",
+            "include": "all"
+        },
+        "oauth":
+        {
+            "browser": false,
+            "cache": true,
+            "host": "localhost"
+        },
+        "paheal":
+        {
+            "metadata": true
+        },
+        "patreon":
+        {
+            "files": ["postfile", "images", "image_large", "attachments", "content"]
+        },
+        "photobucket":
+        {
+            "subalbums": true
+        },
+        "pillowfort":
+        {
+            "external": false,
+            "inline": true,
+            "reblogs": true
+        },
+        "pinterest":
+        {
+            "directory": ["{category}", "{domain}"],
+            "sections": true,
+            "videos": true
+        },
+        "pixiv":
+        {
+            "refresh-token": null,
+            "include": ["avatar", "background", "artworks"],
+            "metadata": true,
+            "tags": "original",
+            "ugoira": true
+        },
+        "reddit":
+        {
+            "refresh-token": null,
+            "comments": 500,
+            "morecomments": false,
+            "date-min": 0,
+            "date-max": 253402210800,
+            "id-min": null,
+            "id-max": null,
+            "recursion": 0,
+            "videos": true
+        },
+        "redgifs":
+        {
+            "format": ["hd", "sd", "gif"]
+        },
+        "subscribestar":
+        {
+            "username": null,
+            "password": null
+        },
+        "tumblr":
+        {
+            "avatar": true,
+            "external": true,
+            "inline": true,
+            "posts": "all",
+            "offset": 0,
+            "original": true,
+            "ratelimit": "abort",
+            "reblogs": true
+        },
+        "twitter":
+        {
+            "directory": ["{category}", "{author[id]}"],
+            "username": null,
+            "password": null,
+            "cards": "ytdl",
+            "conversations": true,
+            "logout": true,
+            "pinned": true,
+            "quoted": true,
+            "replies": true,
+            "retweets": "original",
+            "strategy": null,
+            "syndication": true,
+            "text-tweets": true,
+            "timeline": {
+                    "strategy": "with_replies"
+            },
+            "twitpic": true,
+            "videos": true
+        },
+        "weibo":
+        {
+            "include": "all",
+            "livephoto": true,
+            "retweets": "original",
+            "videos": true
+        },
+        "ytdl":
+        {
+            "enabled": false,
+            "format": "bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]",
+            "logging": true,
+            "module": "yt_dlp",
+            "raw-options":
+            {
+                "nooverwrites": true,
+                "call_home": false,
+                "fixup": "never"
+            },
+            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites --fixup never"
+        },
+        "zerochan":
+        {
+            "username": null,
+            "password": null,
+            "metadata": true
+        },
+        "booru":
+        {
+            "tags": true,
+            "notes": true
+        }
+    },
+
+    "downloader":
+    {
+        "filesize-min": null,
+        "filesize-max": null,
+        "mtime": false,
+        "part": true,
+        "part-directory": "./gallery-dl/partial-downloads/",
+        "rate": null,
+        "retries": 4,
+        "timeout": 30.0,
+        "verify": true,
+
+        "http":
+        {
+            "adjust-extensions": false
+        },
+
+        "ytdl":
+        {
+            "format": null,
+            "forward-cookies": false,
+            "logging": true,
+            "module": null,
+            "outtmpl": null,
+            "raw-options":
+            {
+                "nooverwrites": true,
+                "call_home": false,
+                "fixup": "never"
+            },
+            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites --fixup never"
+        }
+    },
+
+    "output":
+    {
+        "mode": "auto",
+        "progress": true,
+        "shorten": false,
+        "skip": true,
+        "log": {
+            "level": "warning",
+            "format": "{asctime} [{name}][{levelname}] {message}",
+            "format-date": "%Y-%m-%d %H:%M:%S"
+        },
+        "logfile": {
+            "path": "./gallery-dl/log.txt",
+            "mode": "a",
+            "level": "warning",
+            "format": "{asctime} [{name}][{levelname}] {message}",
+            "format-date": "%Y-%m-%d %H:%M:%S"
+        },
+        "unsupportedfile": {
+            "path": "./gallery-dl/unsupported.txt",
+            "mode": "a",
+            "format": "{asctime} {message}",
+            "format-date": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+
+    "postprocessor":
+    {
+        "identical":
+        {
+            "name" : "compare",
+            "action": "enumerate",
+            "shallow": false
+        },
+
+        "writemetadata":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "extension": "json",
+            "event": "after",
+            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "mtime": false
+        },
+
+        "compress":
+        {
+            "name" : "zip",
+            "mode": "safe"
+        }
+    },
+
+    "netrc": false
+}
