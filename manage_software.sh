@@ -585,7 +585,7 @@ manage_discimagecreator() {
                             "${dic_src_dir}/DiscImageCreator/DiscImageCreator"
   cp --no-clobber --verbose "--target-directory=${install_dir}/share/DiscImageCreator" -- \
                             "${dic_src_dir}/Release_ANSI/default.dat" \
-                            "${dic_src_dir}/Release_ANSI/driveOffsets.txt"
+                            "${dic_src_dir}/Release_ANSI/driveOffset.txt"
   
   strip --strip-all --verbose -- "${install_dir}/bin/DiscImageCreator"
   
