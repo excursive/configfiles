@@ -593,6 +593,37 @@ manage_discimagecreator() {
 
 
 
+manage_bchunk() {
+  local bchunk_version='2d57a4b2477f1f4098d640a089e97fae4cf5abcf'
+  
+  local bchunk_dir="${PWD}/bchunk"
+  
+  local install_dir="${bchunk_dir}/bchunk-${bchunk_version}"
+  local build_dir="${bchunk_dir}/build"
+  local src_dir="${bchunk_dir}/src"
+  
+  local bchunk_src_dir="${src_dir}/bchunk"
+  
+  install_dir_check "${install_dir}"
+  build_dir_check "${build_dir}"
+  mkdir --verbose --parents -- "${src_dir}" "${build_dir}" "${install_dir}"
+  
+  checkout_commit "${bchunk_src_dir}" "$bchunk_version" \
+                  'https://github.com/hessu/bchunk.git'
+  
+  exit 0
+  
+  cd -- "${install_dir}"
+  sha256r "${install_dir}-sha256sums.txt"
+  
+  rm -R -f -- "${build_dir}"
+  cd -- "${bchunk_src_dir}"
+  clean_and_update_repo "$bchunk_version" 'skip_update'
+}
+
+
+
+
 manage_cc65() {
   local cc65_version='555282497c3ecf8b313d87d5973093af19c35bd5'
   
@@ -1233,6 +1264,7 @@ case "$1" in
   'whipper') manage_whipper ;;
   'cyanrip') manage_cyanrip ;;
   'cc65') manage_cc65 ;;
+  'bchunk') manage_bchunk ;;
   'discimagecreator') manage_discimagecreator ;;
   'qt5-deb') manage_qt5_deb ;;
   'winetricks') manage_winetricks ;;
