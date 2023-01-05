@@ -122,6 +122,28 @@ permcheck_ouser() {
   find . \! -user "$1"
 }
 
+tar_deterministic() {
+  if [ -e "${1}" ]; then
+    printf 'Error: Output file already exists\n' 1>&2
+    return 1
+  fi
+  tar --restrict --create --verify --mtime='@0' --no-same-owner --no-same-permissions \
+      --numeric-owner --owner=0 --group=0 --sort=name \
+      --no-acls --no-selinux --no-xattrs \
+      --pax-option='exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime' \
+      --file="${1}" -- "${2}"
+}
+
+gzip_deterministic() {
+  touch --no-create --date='@0' -- "${1}"
+  gzip --no-name --best -- "${1}"
+}
+
+tar_gzip_deterministic() {
+  tar_deterministic "${1}.tar" "${1}"
+  gzip_deterministic "${1}.tar"
+}
+
 delete_if_identical_to() {
   if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
      [ "$(readlink -f "${1}")" != "$(readlink -f "${2}")" ]; then
