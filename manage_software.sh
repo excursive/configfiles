@@ -480,6 +480,25 @@ manage_vim_lightline() {
 
 
 
+manage_gallery_dl() {
+  local gallery_dl_version='2d7d80d3025d42d5c0186525c8c54f85d1d03232'
+  
+  local gallery_dl_dir="${PWD}/gallery-dl"
+  
+  checkout_commit "${gallery_dl_dir}" "$gallery_dl_version" \
+                  'https://github.com/mikf/gallery-dl.git'
+  
+  local escaped_gallery_dl_path="$(escape_shell_path "${gallery_dl_dir}/gallery_dl/__main__.py")"
+  local launcher_text='#!/bin/bash
+
+python3 '"${escaped_gallery_dl_path}"' "$@"'
+  
+  save_launcher_script 'gallery-dl' "$launcher_text"
+}
+
+
+
+
 manage_yt_dlp() {
   local yt_dlp_version='8b644025b1de710339fe317661d71691c115e249'
   
@@ -538,6 +557,72 @@ manage_winetricks() {
 
 manage_qt5_deb() {
   printf '\n======== unfinished\n'
+}
+
+
+
+
+manage_cc65() {
+  local cc65_version='555282497c3ecf8b313d87d5973093af19c35bd5'
+  
+  local cc65_dir="${PWD}/cc65"
+  
+  local install_dir="${cc65_dir}/cc65-${cc65_version}"
+  local src_dir="${cc65_dir}/src"
+  
+  local cc65_src_dir="${src_dir}/cc65"
+  
+  install_dir_check "${install_dir}"
+  mkdir --verbose --parents -- "${src_dir}" "${install_dir}"
+  
+  checkout_commit "${cc65_src_dir}" "$cc65_version" \
+                  'https://github.com/cc65/cc65.git'
+  
+  cd -- "${cc65_src_dir}"
+  make -j2
+  
+  mkdir --verbose --parents -- "${install_dir}/share/cc65"
+  mv --no-clobber "--target-directory=${install_dir}" -- \
+                  "${cc65_src_dir}/bin"
+  cp --no-clobber -R "--target-directory=${install_dir}/share/cc65" -- \
+                     "${cc65_src_dir}/asminc" \
+                     "${cc65_src_dir}/cfg" \
+                     "${cc65_src_dir}/include" \
+                     "${cc65_src_dir}/lib" \
+                     "${cc65_src_dir}/samples" \
+                     "${cc65_src_dir}/target"
+  
+  strip --strip-all -- "${install_dir}/bin/ar65" \
+                       "${install_dir}/bin/ca65" \
+                       "${install_dir}/bin/cc65" \
+                       "${install_dir}/bin/chrcvt65" \
+                       "${install_dir}/bin/cl65" \
+                       "${install_dir}/bin/co65" \
+                       "${install_dir}/bin/da65" \
+                       "${install_dir}/bin/grc65" \
+                       "${install_dir}/bin/ld65" \
+                       "${install_dir}/bin/od65" \
+                       "${install_dir}/bin/sim65" \
+                       "${install_dir}/bin/sp65"
+  
+  cd -- "${install_dir}"
+  sha256r "${install_dir}-sha256sums.txt"
+  
+  create_symlinks "${install_dir}/bin/ar65" \
+                  "${install_dir}/bin/ca65" \
+                  "${install_dir}/bin/cc65" \
+                  "${install_dir}/bin/chrcvt65" \
+                  "${install_dir}/bin/cl65" \
+                  "${install_dir}/bin/co65" \
+                  "${install_dir}/bin/da65" \
+                  "${install_dir}/bin/grc65" \
+                  "${install_dir}/bin/ld65" \
+                  "${install_dir}/bin/od65" \
+                  "${install_dir}/bin/sim65" \
+                  "${install_dir}/bin/sp65"
+  
+  cd -- "${cc65_src_dir}"
+  clean_and_update_repo "$cc65_version" 'skip_update'
 }
 
 
@@ -1116,10 +1201,12 @@ case "$1" in
   'pngquant') manage_pngquant ;;
   'whipper') manage_whipper ;;
   'cyanrip') manage_cyanrip ;;
+  'cc65') manage_cc65 ;;
   'qt5-deb') manage_qt5_deb ;;
   'winetricks') manage_winetricks ;;
   'youtube-dl') manage_youtube_dl ;;
   'yt-dlp') manage_yt_dlp ;;
+  'gallery-dl') manage_gallery_dl ;;
   'vim-lightline') manage_vim_lightline ;;
   'vim-two-firewatch') manage_vim_two_firewatch ;;
   'vim-gruvbox') manage_vim_gruvbox ;;
