@@ -127,7 +127,7 @@ tar_deterministic() {
     printf 'Error: Output file already exists\n' 1>&2
     return 1
   fi
-  tar --restrict --create --verify --mtime='@0' --no-same-owner --no-same-permissions \
+  tar --restrict --create --mtime='@0' --no-same-owner --no-same-permissions \
       --numeric-owner --owner=0 --group=0 --sort=name \
       --no-acls --no-selinux --no-xattrs \
       --pax-option='exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime' \
