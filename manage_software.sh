@@ -562,6 +562,37 @@ manage_qt5_deb() {
 
 
 
+manage_discimagecreator() {
+  local dic_version='7375cb4ae3d7dce78d02c3734a0974cf61eb34a0'
+  
+  local dic_dir="${PWD}/dic"
+  
+  local install_dir="${dic_dir}/dic-${dic_version}"
+  local build_dir="${dic_dir}/build"
+  local src_dir="${dic_dir}/src"
+  
+  local dic_src_dir="${src_dir}/DiscImageCreator"
+  
+  install_dir_check "${install_dir}"
+  build_dir_check "${build_dir}"
+  mkdir --verbose --parents -- "${src_dir}" "${build_dir}" "${install_dir}"
+  
+  checkout_commit "${dic_src_dir}" "$dic_version" \
+                  'https://github.com/saramibreak/DiscImageCreator.git'
+  
+  exit 0
+  
+  cd -- "${install_dir}"
+  sha256r "${install_dir}-sha256sums.txt"
+  
+  rm -R -f -- "${build_dir}"
+  cd -- "${dic_src_dir}"
+  clean_and_update_repo "$dic_version" 'skip_update'
+}
+
+
+
+
 manage_cc65() {
   local cc65_version='555282497c3ecf8b313d87d5973093af19c35bd5'
   
@@ -1202,6 +1233,7 @@ case "$1" in
   'whipper') manage_whipper ;;
   'cyanrip') manage_cyanrip ;;
   'cc65') manage_cc65 ;;
+  'discimagecreator') manage_discimagecreator ;;
   'qt5-deb') manage_qt5_deb ;;
   'winetricks') manage_winetricks ;;
   'youtube-dl') manage_youtube_dl ;;
