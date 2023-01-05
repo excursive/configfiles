@@ -123,15 +123,24 @@ permcheck_ouser() {
 }
 
 tar_deterministic() {
-  if [ -e "${1}" ]; then
+  local target=''
+  target="$(readlink -e -- "${1}")"
+  if [ "$?" -ne 0 ]; then
+    printf 'Error: Could not get target name\n' 1>&2
+    return 1
+  fi
+  if [ -e "${target}.tar" ]; then
     printf 'Error: Output file already exists\n' 1>&2
     return 1
   fi
+  
   tar --restrict --create --mtime='@0' --no-same-owner --no-same-permissions \
       --numeric-owner --owner=0 --group=0 --sort=name \
       --no-acls --no-selinux --no-xattrs \
       --pax-option='exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime' \
-      --file="${1}" -- "${2}"
+      --file="${target}.tar" -- "${target}"
+  
+  [ "$2" = 'gzip' ] && gzip_deterministic "${target}.tar"
 }
 
 gzip_deterministic() {
@@ -139,14 +148,9 @@ gzip_deterministic() {
   gzip --no-name --best -- "${1}"
 }
 
-tar_gzip_deterministic() {
-  tar_deterministic "${1}.tar" "${1}"
-  gzip_deterministic "${1}.tar"
-}
-
 delete_if_identical_to() {
   if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
-     [ "$(readlink -f "${1}")" != "$(readlink -f "${2}")" ]; then
+     [ "$(readlink -f -- "${1}")" != "$(readlink -f -- "${2}")" ]; then
     cmp -- "${1}" "${2}" && rm -f -- "${1}"
   else
     printf 'Error: Files must be different regular files (and not symlinks)\n' 1>&2
