@@ -167,7 +167,7 @@ tar_deterministic() {
       --pax-option='exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime' \
       --file="${output}" --directory="${target_location}" -- "${target_name}"
   
-  [ "$?" -ne 0 ] && [ "$2" = 'gzip' ] && gzip_deterministic "${output}"
+  [ "$?" -eq 0 ] && [ "$2" = 'gzip' ] && gzip_deterministic "${output}"
 }
 
 delete_if_identical_to() {
