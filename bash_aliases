@@ -122,35 +122,58 @@ permcheck_ouser() {
   find . \! -user "$1"
 }
 
+gzip_deterministic() {
+  touch --no-create --date='@0' -- "${1}"
+  gzip --no-name --best -- "${1}"
+}
+
 tar_deterministic() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf 'Arguments: target [ output.tar ] [ "gzip" ]\n'
+    return 0
+  fi
+  
   local target=''
   target="$(readlink -e -- "${1}")"
   if [ "$?" -ne 0 ]; then
-    printf 'Error: Could not get target name\n' 1>&2
+    printf 'Error: Could not get target\n' 1>&2
     return 1
   fi
-  if [ -e "${target}.tar" ]; then
-    printf 'Error: Output file already exists\n' 1>&2
+  local target_location=''
+  target_location="$(dirname -- "${target}")"
+  if [ "$?" -ne 0 ]; then
+    printf 'Error: Could not get target location\n' 1>&2
     return 1
+  fi
+  local target_name=''
+  target_name="$(basename -- "${target}")"
+  if [ "$?" -ne 0 ]; then
+    printf 'Error: Could not get target filename\n' 1>&2
+    return 1
+  fi
+  local output="${target}.tar"
+  if [ -n "${2}" ] && [ "${2}" != 'gzip' ]; then
+    output="${2}"
+    shift 1
+  fi
+  if [ -e "${output}" ]; then
+    printf 'Error: Output file already exists\n' 1>&2
+    return 2
   fi
   
   tar --restrict --create --mtime='@0' --no-same-owner --no-same-permissions \
       --numeric-owner --owner=0 --group=0 --sort=name \
       --no-acls --no-selinux --no-xattrs \
       --pax-option='exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime' \
-      --file="${target}.tar" -- "${target}"
+      --file="${output}" --directory="${target_location}" -- "${target_name}"
   
-  [ "$2" = 'gzip' ] && gzip_deterministic "${target}.tar"
-}
-
-gzip_deterministic() {
-  touch --no-create --date='@0' -- "${1}"
-  gzip --no-name --best -- "${1}"
+  [ "$?" -ne 0 ] && [ "$2" = 'gzip' ] && gzip_deterministic "${output}"
 }
 
 delete_if_identical_to() {
   if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
-     [ "$(readlink -f -- "${1}")" != "$(readlink -f -- "${2}")" ]; then
+     [ "$(readlink -e -- "${1}")" != "$(readlink -e -- "${2}")" ] && \
+     ! [ "$(readlink -e -- "${1}")" -ef "$(readlink -e -- "${2}")" ]; then
     cmp -- "${1}" "${2}" && rm -f -- "${1}"
   else
     printf 'Error: Files must be different regular files (and not symlinks)\n' 1>&2
