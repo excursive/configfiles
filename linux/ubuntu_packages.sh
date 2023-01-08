@@ -12,7 +12,7 @@ sudo apt-get purge unattended-upgrades
 
 sudo apt-get dist-upgrade
 
-sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib g++ autoconf automake cmake valgrind
+sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib g++ autoconf automake cmake valgrind curl
 sudo apt-get install flatpak sqlite3 brasero vim git ffmpeg flac vlc steam gimp audacity
 sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
@@ -169,6 +169,20 @@ printf       '     cyanrip    \n'
 printf       '================\n\n'
 
 sudo apt-get install meson ninja-build libavcodec-dev libswresample-dev libavutil-dev libavformat-dev libavfilter-dev libcdio-paranoia-dev libmusicbrainz5-dev libcurl4-openssl-dev
+
+
+
+
+printf '\n\n\n================\n'
+printf       '      FCEUX     \n'
+printf       '================\n\n'
+
+sudo apt-get install cmake qtbase5-dev libqt5widgets5 libqt5opengl5-dev liblua5.3-dev minizip zlib1g-dev libopengl-dev
+sudo apt-get install libsdl2-dev
+#sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev
+#sudo apt-get install libx264-dev libx265-dev
+
+
 
 
 printf '\n\n\n================\n'
