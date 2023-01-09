@@ -166,7 +166,7 @@ printf '\n\n\n================\n'
 printf       '      FCEUX     \n'
 printf       '================\n\n'
 
-sudo apt-get install cmake qtbase5-dev libqt5widgets5 libqt5opengl5-dev liblua5.3-dev minizip zlib1g-dev libopengl-dev
+sudo apt-get install cmake qtbase5-dev libqt5widgets5 libqt5opengl5-dev liblua5.3-dev libminizip-dev zlib1g-dev libopengl-dev
 sudo apt-get install libsdl2-dev
 #sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev
 #sudo apt-get install libx264-dev libx265-dev
