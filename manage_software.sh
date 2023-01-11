@@ -562,6 +562,74 @@ manage_qt5_deb() {
 
 
 
+manage_fceux() {
+  local fceux_version='2b8c61802029721229a26592e4578f92efe814fb'
+  
+  local fceux_dir="${PWD}/fceux"
+  
+  local install_dir="${fceux_dir}/fceux-${fceux_version}"
+  local build_dir="${fceux_dir}/build"
+  local src_dir="${fceux_dir}/src"
+  
+  local fceux_src_dir="${src_dir}/fceux"
+  
+  install_dir_check "${install_dir}"
+  build_dir_check "${build_dir}"
+  mkdir --verbose --parents -- "${src_dir}" "${build_dir}" "${install_dir}"
+  
+  checkout_commit "${fceux_src_dir}" "$fceux_version" \
+                  'https://github.com/TASEmulators/fceux.git'
+  
+  cmake -S "${fceux_src_dir}" -B "${build_dir}" -DCMAKE_INSTALL_PREFIX="${install_dir}" -DCMAKE_BUILD_TYPE=Release
+  make --directory="${build_dir}" -j2
+  
+  strip --strip-all --verbose -- "${build_dir}/src/fceux"
+  
+  mkdir --parents -- "${install_dir}/bin" \
+                     "${install_dir}/share/applications" \
+                     "${install_dir}/share/man/man6" \
+                     "${install_dir}/share/pixmaps"
+  mv --no-clobber "--target-directory=${install_dir}/bin" -- \
+                  "${build_dir}/src/fceux"
+  cp --no-clobber "--target-directory=${install_dir}/share/applications" -- \
+                  "${fceux_src_dir}/fceux.desktop"
+  cp --no-clobber -R --no-target-directory -- \
+     "${fceux_src_dir}/output" "${install_dir}/share/fceux"
+  cp --no-clobber "--target-directory=${install_dir}/share/fceux/luaScripts" -- \
+                  "${fceux_src_dir}/src/auxlib.lua"
+  cp --no-clobber "--target-directory=${install_dir}/share/man/man6" -- \
+                  "${fceux_src_dir}/documentation/fceux.6" \
+                  "${fceux_src_dir}/documentation/fceux-net-server.6"
+  cp --no-clobber "--target-directory=${install_dir}/share/pixmaps" -- \
+                  "${fceux_src_dir}/fceux1.png"
+  
+  cd -- "${install_dir}"
+  sha256r "${install_dir}-sha256sums.txt"
+  
+  rm -R -f -- "${build_dir}"
+  cd -- "${fceux_src_dir}"
+  clean_and_update_repo "$fceux_version" 'skip_update'
+  
+  create_symlinks "${install_dir}/bin/fceux"
+  
+  local escaped_install_dir="$(escape_desktop_entry_string "${install_dir}")"
+  local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/bin/fceux")"\"
+  local launcher_text="[Desktop Entry]
+Type=Application
+Name=FCEUX
+Comment=NES/Famicom Emulator and Debugger
+Icon=${escaped_install_dir}/share/pixmaps/fceux1.png
+Exec=${escaped_executable_path}
+Path=${escaped_install_dir}
+Terminal=false
+Category=Game;Development;"
+  
+  save_desktop_entry 'com.fceux.desktop' "$launcher_text"
+}
+
+
+
+
 manage_discimagecreator() {
   local dic_version='7375cb4ae3d7dce78d02c3734a0974cf61eb34a0'
   
@@ -1282,6 +1350,7 @@ case "$1" in
   'cc65') manage_cc65 ;;
   'bchunk') manage_bchunk ;;
   'discimagecreator') manage_discimagecreator ;;
+  'fceux') manage_fceux ;;
   'qt5-deb') manage_qt5_deb ;;
   'winetricks') manage_winetricks ;;
   'youtube-dl') manage_youtube_dl ;;
