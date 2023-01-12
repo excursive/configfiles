@@ -96,7 +96,7 @@ fp_install_obs() {
 }
 
 fp_install_kdenlive() {
-  flatpak install --user flathub org.kde.kdenlive
+  flatpak install flathub org.kde.kdenlive
 }
 
 fp_install_displaycal() {
@@ -104,7 +104,7 @@ fp_install_displaycal() {
 }
 
 fp_install_natron() {
-  flatpak install --user flathub fr.natron.Natron
+  flatpak install flathub fr.natron.Natron
 }
 
 fp_install_godot() {
@@ -112,15 +112,15 @@ fp_install_godot() {
 }
 
 fp_install_libresprite() {
-  flatpak install --user flathub com.github.libresprite.LibreSprite
+  flatpak install flathub com.github.libresprite.LibreSprite
 }
 
 fp_install_vscode() {
-  flatpak install --user flathub com.visualstudio.code
+  flatpak install flathub com.visualstudio.code
 }
 
 fp_install_famistudio() {
-  flatpak install --user flathub org.famistudio.FamiStudio
+  flatpak install flathub org.famistudio.FamiStudio
 }
 
 fp_install_dolphin() {
@@ -184,11 +184,11 @@ fp_install_scummvm() {
 }
 
 fp_install_lutris() {
-  flatpak install --user flathub net.lutris.Lutris
+  flatpak install flathub net.lutris.Lutris
 }
 
 fp_install_bottles() {
-  flatpak install --user flathub com.usebottles.bottles
+  flatpak install flathub com.usebottles.bottles
 }
 
 is_positive_integer() {
