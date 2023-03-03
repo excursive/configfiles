@@ -43,6 +43,10 @@ fp_add_flathub_system() {
   flatpak remote-add --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
 }
 
+fp_install_adwaita_dark() {
+  flatpak install flathub org.gtk.Gtk3theme.Adwaita-dark
+}
+
 fp_install_flatseal() {
   flatpak install flathub com.github.tchx84.Flatseal
 }
@@ -57,6 +61,10 @@ fp_install_chrome() {
 
 fp_install_vlc() {
   flatpak install flathub org.videolan.VLC
+}
+
+fp_install_rhythmbox() {
+  flatpak install flathub org.gnome.Rhythmbox3
 }
 
 fp_install_steam() {
