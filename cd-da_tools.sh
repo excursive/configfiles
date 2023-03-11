@@ -14,11 +14,19 @@ is_whole_number() {
 }
 
 is_positive_integer() {
-  is_whole_number "${1}"
+  local LC_ALL=C
+  export LC_ALL
+  case "$1" in
+    '0') return 1 ;;
+    *) is_whole_number "$1" ;;
+  esac
 }
 
 is_negative_integer() {
-  case "${1}" in
+  local LC_ALL=C
+  export LC_ALL
+  case "$1" in
+    '-0') return 1 ;;
     -*) is_whole_number "${1#-}" ;;
     *) return 1 ;;
   esac
@@ -44,10 +52,33 @@ contains_bs() {
   esac
 }
 
-before_first_track() {
+delete_if_identical_to() {
+  if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
+     [ "$(readlink -e -- "${1}")" != "$(readlink -e -- "${2}")" ] && \
+     ! [ "$(readlink -e -- "${1}")" -ef "$(readlink -e -- "${2}")" ]; then
+    cmp -- "${1}" "${2}" && rm -f -- "${1}"
+  else
+    printf 'Error: Files must be different regular files (and not symlinks)\n' 1>&2
+    return 2
+  fi
+}
+
+is_listed_track() {
   local LC_ALL=C
   export LC_ALL
-  printf -- '%s' "$1" | grep --binary-files=text -c --binary '^d[0-9]\+-00\([^0-9].*\)*\.\(wav\|flac\)$' -- >/dev/null
+  printf -- '%s' "$1" | grep --binary-files=text -c --binary '^d[0-9]\+-[0-9]\{2\}\.\(wav\|flac\)$' -- >/dev/null
+}
+
+verify_cdda_wav() {
+  local file=''
+  for file in "$@"; do
+    [ "$(sox --info -t -- "${file}")" = 'wav' ] && \
+    [ "$(sox --info -r -- "${file}")" = '44100' ] && \
+    [ "$(sox --info -c -- "${file}")" = '2' ] && \
+    [ "$(sox --info -b -- "${file}")" = '16' ] && continue
+    printf '\n\e[0;31m==== Error:\e[0m Not a s16le 2 channel wav: %s\n\n' "${file}" 1>&2
+    exit 1
+  done
 }
 
 is_valid_utf8() {
@@ -125,7 +156,7 @@ parse_mb_request() {
     exit 1
   fi
   rm -f -- "${1}"
-  mv --no-target-directory -- "${temp_file}" "${1}"
+  mv --no-clobber --no-target-directory -- "${temp_file}" "${1}"
   local xml="${1}"
   
   local release_title="$(xmllint --nonet --xpath 'string((/metadata/release/title)[1])' "${xml}")"
@@ -219,23 +250,41 @@ mktemp_raw() {
 
 # input file must be headerless s16le 2 channel raw audio data
 # if extension is .wav, assume actual audio format is correct and header is 44 bytes
-# negative starting samples are relative to to the end of input
 print_samples() {
-  if { [ -n "$2" ] && ! [ "$2" -ne 0 ] ; } || { [ -n "$3" ] && ! [ "$3" -gt 0 ] ; } ; then
-    printf -- '\e[0;31m==== Error:\e[0m Invalid start and/or length samples\n\n' 1>&2
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- 'Arguments: [ input ] [ start (1 based index) ] [ length ]\n'
+    printf -- '  negative starting samples are relative to end of input\n\n'
+    exit 0
+  fi
+  if ! [ -z "$2" ] && ! is_negative_integer "$2" && ! is_positive_integer "$2"; then
+    printf -- '\e[0;31m==== Error:\e[0m Invalid start sample\n\n' 1>&2
     exit 1
   fi
+  if ! [ -z "$3" ] && ! is_positive_integer "$3"; then
+    printf -- '\e[0;31m==== Error:\e[0m Invalid length\n\n' 1>&2
+    exit 1
+  fi
+  local input="${1}"
+  local start='1'
+  [ -n "$2" ] && start="$2"
+  local length="$3"
   local wav_header='0'
-  case "${1}" in
-    *.wav) wav_header='44' ;;
+  case "${input}" in
+    *.wav)
+      verify_cdda_wav "${input}"
+      wav_header='44'
+    ;;
   esac
-  local num_bytes="$(stat -c '%s' "${1}")"
+  local num_bytes="$(stat -c '%s' "${input}")"
   local num_samples="$(( ( "${num_bytes}" - "$wav_header" ) / 4 ))"
-  local -a args=()
-  is_negative_integer "$2" && args+=( "--skip-bytes=$(( ( ( "${num_samples}" + "${2}" ) * 4 ) + "$wav_header" ))" )
-  is_positive_integer "$2" && args+=( "--skip-bytes=$(( ( ( "${2}" * 4 ) - 4 ) + "$wav_header" ))" )
-  is_positive_integer "$3" && args+=( "--read-bytes=$(( "${3}" * 4 ))" )
-  od --output-duplicates --address-radix=n --endian=little --format=d2 --width=4 "${args[@]}" -- "${1}"
+  is_negative_integer "$start" && start="$(( "$num_samples" + "$start" + 1 ))"
+  if ! is_positive_integer "$start" || [ "$start" -gt "$num_samples" ]; then
+    printf -- '\e[0;31m==== Error:\e[0m Invalid start sample\n\n' 1>&2
+    exit 1
+  fi
+  local -a args=( "--skip-bytes=$(( ( ( "$start" * 4 ) - 4 ) + "$wav_header" ))" )
+  is_positive_integer "$length" && args+=( "--read-bytes=$(( "$length" * 4 ))" )
+  od --output-duplicates --address-radix=n --endian=little --format=d2 --width=4 "${args[@]}" -- "${input}"
 }
 
 num_samples() {
@@ -261,7 +310,7 @@ concatenate() {
 # splits an audio file by lengths in samples, or sample timestamps in original file
 split_by_samples() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [ lengths | timestamps ] [input.flac] [output.flac] [ samples ]...\n\n'
+    printf -- 'Arguments: [ lengths | timestamps ] [ input ] [ output ] [ samples ] ...\n\n'
     exit 0
   fi
   
@@ -313,6 +362,47 @@ split_by_samples() {
     args+=( ':' 'newfile' ':' 'trim' '0' "${samples_remaining}s" )
   fi
   sox --no-clobber --show-progress -- "${args[@]}"
+  
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not split audio file\n\n' 1>&2
+    exit 1
+  fi
+}
+
+
+
+concat_wav_test() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- 'Arguments: [ input.wav ] [ part1.wav ] [ part2.wav ] ...\n\n'
+    printf -- 'Checks if input matches the concatenation of part 1 + 2 + ...\n'
+    exit 0
+  fi
+  verify_cdda_wav "$@"
+  local input="${1}"
+  shift 1
+  
+  local temp_concat=''
+  temp_concat="$(mktemp --dry-run --suffix='.wav' 'concat-test-XXXXXX')"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not get temp file names\n\n' 1>&2
+    exit 1
+  fi
+  
+  sox --no-clobber --combine concatenate -- "$@" "${temp_concat}"
+  
+  cmp -- "${input}" "${temp_concat}"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Concat test failed to produce original wav\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== sha256sums of input and concat test:\n'
+  sha256sum -- "${input}" "${temp_concat}"
+  delete_if_identical_to "${temp_concat}" "${input}"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Concat test failed to produce original wav\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== Concat test passed\n\n'
 }
 
 
@@ -371,9 +461,9 @@ sha256audio() {
     
     if contains_nl "${in_file}" || contains_bs "${in_file}"; then
       local escaped_filename="$(printf -- '%s' "${in_file}" | sed -z -e 's/\\/\\\\/g' -e 's/\n/\\n/g' -- -)"
-      printf -- '\\%s  %s\n' "$audio_sha256" "$escaped_filename"
+      printf -- '\\%s  %s\n' "$audio_sha256" "${escaped_filename%.*}.raw"
     else
-      printf -- '%s  %s\n' "$audio_sha256" "$in_file"
+      printf -- '%s  %s\n' "$audio_sha256" "${in_file%.*}.raw"
     fi
   done
 }
@@ -499,6 +589,7 @@ test_audio() {
     *.wav)
       printf -- '==== File extension is .wav, assuming input is raw s16le 2 channel\n' 1>&2
       printf -- '     uncompressed wav file with 44 byte header\n\n' 1>&2
+      verify_cdda_wav "${2}"
       test_raw "$@"
     ;;
     *)
@@ -520,93 +611,133 @@ test_audio() {
 
 
 
-# arguments [ sample to split after ] [ preceeding wav ] [ reference wav ]
-trim_if_overlaps_at() {
-  local split_after="$1"
-  local in1="${2}"
-  local in2="${3}"
-  if ! is_positive_integer "$split_after" || [ "$split_after" -ne 11760 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Sample to split at should be 11760\n\n' 1>&2
+trim_overreads() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- 'Arguments: [ disc number ]\n'
+    printf -- '  Expects to find in current directory:\n'
+    printf -- '    d#-overread-lead-in.wav\n'
+    printf -- '      20 sectors (11760s) followed by 2981 sectors (1752828s) matching d#.wav\n'
+    printf -- '    d#.wav\n'
+    printf -- '    d#-overread-lead-out.wav\n'
+    printf -- '      2982 sectors (1753416s) matching d#.wav followed by 19 sectors (11172s)\n'
+    exit 0
+  fi
+  
+  local lead_in="d${1}-overread-lead-in.wav"
+  local disc="d${1}.wav"
+  local lead_out="d${1}-overread-lead-out.wav"
+  verify_cdda_wav "${lead_in}" "${disc}" "${lead_out}"
+  
+  local disc_samples="$(sox --info -s -- "${disc}")"
+  local disc_bytes="$(stat -c '%s' "${disc}")"
+  if [ "$(( ( "$disc_samples" * 4 ) + 44 ))" -ne "$disc_bytes" ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Disc not expected number of bytes\n\n' 1>&2
     exit 1
   fi
-  case "${in2}" in
-    *.wav) : ;;
-    *)
-      printf '\n\e[0;31m==== Error:\e[0m Inputs must be s16le 2 channel wav files\n\n' 1>&2
-      exit 1
-    ;;
-  esac
+  
   local temp_base=''
-  temp_base="$(mktemp --dry-run "--suffix=.wav" "split_temp_XXXXXX")"
+  temp_base="$(mktemp --dry-run --suffix='.wav' 'split_temp_XXXXXX')"
   if [ "$?" -ne 0 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Could not create temp file names\n\n' 1>&2
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not create temp file names\n\n' 1>&2
     exit 1
   fi
   local temp1="${temp_base%.wav}001.wav"
   local temp2="${temp_base%.wav}002.wav"
-  
-  sox --no-clobber -- "${in1}" "${temp_base}" trim 0 "${split_after}s" ':' newfile
-  if [ "$?" -ne 0 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Could not split preceeding wav file\n\n' 1>&2
-    exit 1
-  fi
-  
   local temp1_samples=''
-  temp1_samples="$(sox --info -s -- "${temp1}")"
-  if ! [ "$temp1_samples" -eq "$split_after" ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Length of split 1 does not match expected samples\n\n' 1>&2
-    exit 1
-  fi
   local temp2_samples=''
-  temp2_samples="$(sox --info -s -- "${temp2}")"
-  if ! is_positive_integer "$temp2_samples" || [ "$temp2_samples" -lt 1750000 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Length of split 2 does not match expected samples\n\n' 1>&2
+  local overlap_bytes=''
+  
+  # ======== lead-in ========
+  
+  split_by_samples 'lengths' "${lead_in}" "${temp_base}" 11760
+  
+  temp1_samples="$(sox --info -s -- "${temp1}")"
+  if ! [ "$temp1_samples" -eq 11760 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Length of lead-in split 1 is not 11760 (20 sectors)\n\n' 1>&2
     exit 1
   fi
-  printf -- '\n==== Sample count for split input 1:\n'
+  temp2_samples="$(sox --info -s -- "${temp2}")"
+  if ! [ "$temp2_samples" -eq 1752828 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Length of lead-in split 2 is not 1752828 (2981 sectors)\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== Sample count for lead-in split 1:\n'
   printf -- '%s - %s\n' "$temp1_samples" "${temp1}"
   
-  local temp_concat="${temp_base%.wav}-concat-test.wav"
-  sox --no-clobber --combine concatenate -- "${temp1}" "${temp2}" "${temp_concat}"
+  concat_wav_test "${lead_in}" "${temp1}" "${temp2}"
   
-  cmp -- "${in1}" "${temp_concat}"
-  if [ "$?" -ne 0 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Concat test failed to produce original wav\n\n' 1>&2
-    exit 1
-  fi
-  printf -- '\n==== sha256sums of input 1 and concat test:\n'
-  sha256sum -- "${in1}" "${temp_concat}"
-  rm -f -- "${temp_concat}"
-  printf '\n==== Concat test passed\n\n'
-  
-  local overlap_bytes=''
   overlap_bytes="$(stat -c '%s' "${temp2}")"
   if [ "$?" -ne 0 ] || ! is_positive_integer "$overlap_bytes"; then
-    printf '\n\e[0;31m==== Error:\e[0m Could not get filesize of split 2\n\n' 1>&2
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not get filesize of lead-in split 2\n\n' 1>&2
     exit 1
   fi
   if [ "$(( ( "$temp2_samples" * 4 ) + 44 ))" -ne "$overlap_bytes" ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Mismatch between split 2 bytes and samples\n\n' 1>&2
+    printf -- '\n\e[0;31m==== Error:\e[0m Lead-in split 2 not expected number of bytes\n\n' 1>&2
     exit 1
   fi
-  cmp --ignore-initial=44 -n "$(( "$overlap_bytes" - 44 ))" -- "${temp2}" "${in2}"
+  cmp --ignore-initial=44 -n "$(( "$overlap_bytes" - 44 ))" -- "${temp2}" "${disc}"
   if [ "$?" -ne 0 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Overlap does not match input 2\n\n' 1>&2
+    printf -- '\n\e[0;31m==== Error:\e[0m Lead-in overlap does not match disc image\n\n' 1>&2
     exit 1
   fi
-  cmp --ignore-initial=44 -- "${temp2}" "${in2}"
+  cmp --ignore-initial=44 -- "${temp2}" "${disc}"
   
-  printf '\n==== All good, replacing input 1 with split 1\n\n'
-  rm -f -- "${in1}" "${temp2}"
-  mv --no-target-directory "${temp1}" "${in1}"
+  printf '\n==== All good, replacing lead-in with split 1\n\n'
+  rm -f -- "${lead_in}" "${temp2}"
+  mv --no-clobber --no-target-directory "${temp1}" "${lead_in}"
+  
+  # ======== lead-out ========
+  
+  split_by_samples 'lengths' "${lead_out}" "${temp_base}" 1753416
+  
+  temp1_samples="$(sox --info -s -- "${temp1}")"
+  if ! [ "$temp1_samples" -eq 1753416 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Length of lead-out split 1 is not 1753416 (2982 sectors)\n\n' 1>&2
+    exit 1
+  fi
+  temp2_samples="$(sox --info -s -- "${temp2}")"
+  if ! [ "$temp2_samples" -eq 11172 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Length of lead-out split 2 is not 11172 (19 sectors)\n\n' 1>&2
+    exit 1
+  fi
+  printf -- '\n==== Sample count for lead-out split 2:\n'
+  printf -- '%s - %s\n' "$temp2_samples" "${temp2}"
+  
+  concat_wav_test "${lead_out}" "${temp1}" "${temp2}"
+  
+  overlap_bytes="$(stat -c '%s' "${temp1}")"
+  if [ "$?" -ne 0 ] || ! is_positive_integer "$overlap_bytes"; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not get filesize of lead-out split 1\n\n' 1>&2
+    exit 1
+  fi
+  if [ "$(( ( "$temp1_samples" * 4 ) + 44 ))" -ne "$overlap_bytes" ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Lead-out split 1 not expected number of bytes\n\n' 1>&2
+    exit 1
+  fi
+  cmp --ignore-initial="$(( "$disc_bytes" - "$overlap_bytes" + 44 ))"':44' -- "${disc}" "${temp1}"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Lead-out overlap does not match disc image\n\n' 1>&2
+    exit 1
+  fi
+  
+  printf -- '==== All good, replacing lead-out with split 2\n\n'
+  rm -f -- "${lead_out}" "${temp1}"
+  mv --no-clobber --no-target-directory "${temp2}" "${lead_out}"
+  
+  printf -- '==== Appending sha256sums to sha256sums-wav.txt\n\n'
+  printf -- '%s\n' "$(sha256sum "${lead_in}" "${disc}" "${lead_out}")" >> 'sha256sums-wav.txt'
 }
 
 
 
-# run in directory with individual tracks after parisng metadata
-# and putting disc image to check against in same directory
-# arguments: [disc number]
 cleanup_split_tracks() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- 'Arguments: [ disc number ]\n'
+    printf -- '  run in directory with individual tracks after trimming overreads,\n'
+    printf -- '  parsing metadata, and putting disc image to check against in same directory\n'
+    exit 0
+  fi
+  
   local disc_number="$1"
   if ! is_positive_integer "$disc_number"; then
     printf -- '\e[0;31m==== Error:\e[0m Disc number must be a positive integer\n\n' 1>&2
@@ -617,24 +748,29 @@ cleanup_split_tracks() {
   readarray -d '' -t tracks < \
       <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
   
-  local temp_concat=''
-  temp_concat="$(mktemp "--suffix=.wav" "concat_temp_XXXXXX")" || exit 1
-  sox --combine concatenate -- "${tracks[@]}" "${temp_concat}"
+  concat_wav_test "d${disc_number}.wav" "${tracks[@]}"
   
-  cmp -- "d${disc_number}.wav" "${temp_concat}"
-  if [ "$?" -ne 0 ]; then
-    printf '\n\e[0;31m==== Error:\e[0m Concat test failed to produce given disc image\n\n' 1>&2
+  if [ -e "d${disc_number}-overread-lead-in.wav" ]; then
+    tracks=( "d${disc_number}-overread-lead-in.wav" "${tracks[@]}" )
+  elif [ -e "d${disc_number}-overread-lead-in.flac" ]; then
+    tracks=( "d${disc_number}-overread-lead-in.flac" "${tracks[@]}" )
+  else
+    printf '\n\e[0;31m==== Error:\e[0m Could not find d%s-overread-lead-in.wav\n\n' "${disc_number}" 1>&2
     exit 1
   fi
-  printf -- '\n==== sha256sums of entire disc image and concat test:\n'
-  sha256sum -- "d${disc_number}.wav" "${temp_concat}"
+  if [ -e "d${disc_number}-overread-lead-out.wav" ]; then
+    tracks+=( "d${disc_number}-overread-lead-out.wav" )
+  elif [ -e "d${disc_number}-overread-lead-out.flac" ]; then
+    tracks+=( "d${disc_number}-overread-lead-out.flac" )
+  else
+    printf '\n\e[0;31m==== Error:\e[0m Could not find d%s-overread-lead-out.wav\n\n' "${disc_number}" 1>&2
+    exit 1
+  fi
+  
+  printf '==== Appending track raw audio sha256sums to sha256sums-raw.txt\n\n'
+  sha256audio "${tracks[@]}" >> 'sha256sums-raw.txt'
   
   printf -- '\n==== Processing tracks:\n'
-  if [ -e "d${disc_number}-00-overread-lead-in.flac" ]; then
-    tracks=( "d${disc_number}-00-overread-lead-in.flac" "${tracks[@]}" )
-  elif [ -e "d${disc_number}-00-overread-lead-in.wav" ]; then
-    tracks=( "d${disc_number}-00-overread-lead-in.wav" "${tracks[@]}" )
-  fi
   local track=''
   for track in "${tracks[@]}"; do
     local track_out_name=''
@@ -660,8 +796,8 @@ cleanup_split_tracks() {
     metaflac --dont-use-padding --remove-all -- "${track_temp}"
     
     if ! [ -e "${metadata}" ]; then
-      if before_first_track "${track}"; then
-        printf ' (no metadata for pregap/lead-in)'
+      if ! is_listed_track "${track}"; then
+        printf ' (no metadata for pregap/lead-in/lead-out)'
       else
         printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
       fi
@@ -671,29 +807,44 @@ cleanup_split_tracks() {
       rm -f -- "${metadata}"
     fi
     
-    mv --no-target-directory "${track_temp}" "${track_out_name}"
+    mv --no-clobber --no-target-directory "${track_temp}" "${track_out_name}"
     printf '\n'
   done
   
-  rm -f -- "d${disc_number}.wav" "${temp_concat}"
-  printf '\n==== All done!\n\n'
+  rm -f -- "d${disc_number}.wav"
+  printf '\n==== Disc %s complete!\n\n' "$disc_number"
 }
 
 
 
 
-cleanup_discs() {
+process_rip() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- 'Arguments: [ disc number(s) ]...\n'
+    printf -- '  Trims overreads, verifies split tracks, converts to flac, etc.\n'
+    printf -- '  Run in rip folder after parsing mb data.\n'
+    exit 0
+  fi
   local disc=''
+  for disc in "$@"; do
+    trim_overreads "$disc"
+  done
+  printf -- '\n======================================\n'
+  printf -- '==== Trimming overreads completed ====\n'
+  printf -- '======================================\n\n'
+  disc=''
   for disc in "$@"; do
     cleanup_split_tracks "$disc"
   done
+  printf -- '\n==== Saving sha256sums of all files to sha256sums.txt\n'
+  sha256r 'sha256sums.txt'
 }
 
 
 
 rip_whipper() {
   exit 1
-  whipper --eject success cd --device /dev/sr0 rip --offset 6 --force-overread --unknown \
+  whipper --eject success cd --device /dev/sr1 rip --offset 30 --force-overread --unknown \
           --track-template 'disc_%N_track_%t.%x' \
           --disc-template '%d_%B' \
           --release-id 0000000
@@ -719,7 +870,7 @@ read_toc() {
 
 
 run_cd_paranoia() {
-  cd-paranoia --verbose --output-wav --force-cdrom-device /dev/sr0 --abort-on-skip "$@"
+  cd-paranoia --verbose --output-wav --force-cdrom-device /dev/sr1 --abort-on-skip "$@"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cd-paranoia reported an error\n\n' 1>&2
     exit 1
@@ -728,7 +879,7 @@ run_cd_paranoia() {
 
 
 run_cyanrip() {
-  cyanrip -d /dev/sr0 -s 6 -p 1=track -o flac \
+  cyanrip -d /dev/sr1 -s 30 -p 1=track -O -o flac \
           -D '{album}_{barcode}' \
           -F 'd{disc}-{track}' \
           -L 'log-cyanrip-d{disc}' \
@@ -825,7 +976,7 @@ rip_cyanrip() {
 
 
 test_function() {
-  before_first_track "$@"
+  verify_cdda_wav "$@"
 }
 
 
@@ -836,10 +987,10 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              print-samples | num-samples | contatenate | split-by-samples | \n'
   printf '              to-raw | raw-to-format | \n'
   printf '              all-0-samples | beginning-0-samples | end-0-samples | \n'
-  printf '              trim-if-overlaps-at | \n'
+  printf '              trim-overreads | cleanup-split-tracks | \n'
   printf '              read-toc | run-cd-paranoia | \n'
   printf '              run-cyanrip | rip-cyanrip |'
-  printf '              parse-mb-request | cleanup-split-tracks | cleanup-discs ]\n'
+  printf '              parse-mb-request | process_rip ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
 fi
@@ -880,8 +1031,8 @@ case "$operation" in
   'end-0-samples' | 'end_0_samples' | 'e0s')
     test_audio 'e0s' "$@"
   ;;
-  'trim-if-overlaps-at' | 'trim_if_overlaps_at')
-    trim_if_overlaps_at "$@"
+  'trim-overreads' | 'trim_overreads')
+    trim_overreads "$@"
   ;;
   'read-toc' | 'read_toc')
     read_toc "$@"
@@ -901,8 +1052,8 @@ case "$operation" in
   'cleanup-split-tracks' | 'cleanup_split_tracks')
     cleanup_split_tracks "$@"
   ;;
-  'cleanup-discs' | 'cleanup_discs')
-    cleanup_discs "$@"
+  'process-rip' | 'process_rip')
+    process_rip "$@"
   ;;
   'test' | 'test-function' | 'test_function')
     test_function "$@"

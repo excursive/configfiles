@@ -43,12 +43,12 @@ fp_add_flathub_system() {
   flatpak remote-add --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
 }
 
-fp_install_adwaita_dark() {
-  flatpak install flathub org.gtk.Gtk3theme.Adwaita-dark
-}
-
 fp_install_flatseal() {
   flatpak install flathub com.github.tchx84.Flatseal
+}
+
+fp_install_adwaita_dark() {
+  flatpak install flathub org.gtk.Gtk3theme.Adwaita-dark
 }
 
 fp_install_firefox() {
@@ -327,6 +327,31 @@ delete_if_identical_to() {
     printf 'Error: Files must be different regular files (and not symlinks)\n' 1>&2
     return 2
   fi
+}
+
+delete_identical_recursive() {
+  local tbd_dir="$(readlink -e -- "${1}")"
+  local ref_dir="$(readlink -e -- "${2}")"
+  local -a files=()
+  readarray -d '' -t files < \
+      <(find "${ref_dir}" -type f -printf '%P\0' | sort -z --)
+  local -a directories=()
+  readarray -d '' -t directories < \
+      <(find "${ref_dir}" -type d -printf '%P\0' | sort -z --reverse --)
+  local count='0'
+  local file=''
+  for file in "${files[@]}"; do
+    if delete_if_identical_to "${tbd_dir}/${file}" "${ref_dir}/${file}"; then
+      count="$(( "$count" + 1 ))"
+    else
+      printf '==== Error deleting \e[0;31m%s\e[0m\n' "${file}" 1>&2
+    fi
+  done
+  local directory=''
+  for directory in "${directories[@]}"; do
+    rmdir -- "${tbd_dir}/${directory}"
+  done
+  printf '\nDeleted %s of %s files listed in ref dir\n' "$count" "${#files[@]}"
 }
 
 md5r() {
