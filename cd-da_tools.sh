@@ -515,7 +515,7 @@ check_0_samples() {
   num_bytes="$(stat -c '%s' "${2}")"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m Could not get size of input file\n\n' 1>&2
-    exit 1
+    exit 2
   fi
   local skip='0'
   case "${2}" in
@@ -534,12 +534,12 @@ check_0_samples() {
     '1')
       if [ "$1" = 'all' ]; then
         printf -- '1\n' 1>&2
-        exit 1
+        return 1
       fi
     ;;
     '0')
       printf -- 'audio is all zeros\n' 1>&2
-      exit 0
+      return 0
     ;;
   esac
   
@@ -827,6 +827,7 @@ process_rip() {
   fi
   local disc=''
   for disc in "$@"; do
+    printf -- '\n======== Trimming overreads: Disc %s\n\n' "$disc"
     trim_overreads "$disc"
   done
   printf -- '\n======================================\n'
@@ -836,8 +837,11 @@ process_rip() {
   for disc in "$@"; do
     cleanup_split_tracks "$disc"
   done
-  printf -- '\n==== Saving sha256sums of all files to sha256sums.txt\n'
+  printf -- '\n==== Saving sha256sums of all files to sha256sums.txt\n\n'
   sha256r 'sha256sums.txt'
+  printf -- '\n===========================\n'
+  printf -- '======== All done! ========\n'
+  printf -- '===========================\n\n'
 }
 
 
@@ -989,7 +993,7 @@ if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
   printf '              all-0-samples | beginning-0-samples | end-0-samples | \n'
   printf '              trim-overreads | cleanup-split-tracks | \n'
   printf '              read-toc | run-cd-paranoia | \n'
-  printf '              run-cyanrip | rip-cyanrip |'
+  printf '              run-cyanrip | rip-cyanrip | \n'
   printf '              parse-mb-request | process_rip ]\n'
   printf '    (see (operation) --help for operation arguments)\n'
   exit 0
