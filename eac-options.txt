@@ -1,20 +1,37 @@
 for EAC version 1.6
 
 Ripping procedure:
- 0: Drive Options -> Offset=+6 , Disable Overread , Enable AccurateRip
+ 0: ==== Drive Options -> Offset=+30, Enable Overread, Enable AccurateRip
  1: Delete Unknown CD Title and CD Artist default info
  2: Set Number of CDs and CD Number
  3: Action -> Detect Gaps
  4: Action -> ensure Append Gaps To Previous Track is checked
+
  5: Action -> Create CUE Sheet -> Multiple WAV Files With Gaps
  6:   Rename CUE Sheet to d#-multiple_wav_files_with_gaps.cue
- 7: Action -> Test and Copy Image and Create CUE Sheet
- 8:   Rename CUE Sheet to d#-single_wav_file.cue
- 9: Drive Options -> Set offset to -11754 (-20 sectors) and enable overread
-10: Action -> Copy Range -> 0 to 3000 sectors (40 seconds)
-11:   Save as d1-00-overread-lead-in.wav
-12:   Repeat and compare results
-13: Drive Options -> Reset offset to +6, disable overread, enable AccurateRip
+ 7:   Copy .cue to final rip directory
+
+ 8: Action -> Test and Copy Image and Create CUE Sheet
+ 9:   Rename CUE Sheet to d#-single_wav_file.cue
+10:   Copy .log, .wav, and .cue to final rip directory
+
+11: ==== Drive Options -> Set offset to -11730 (-20 sectors)
+12: Action -> Copy Range -> 0 to 3000 sectors (40 seconds)
+13:   Save as d1-overread-lead-in.wav
+14:   Repeat and compare results
+15:   Copy .log and .wav to final rip directory
+
+16: ==== Drive Options -> Set offset to +11202 (+19 sectors)
+17: Action -> Copy Range -> [end-3000] to [end] sectors (40 seconds)
+18:   Save as d1-overread-lead-out.wav
+19:   Repeat and compare results
+20:   Copy .log and .wav to final rip directory
+
+21: ==== Drive Options -> Reset offset to +30, Reenable AccurateRip
+22: Copy d#.wav and d#-single_wav_file.cue back to working directory
+23:   Tools -> Split WAV By CUE Sheet -> With Gaps
+24:   Correct track names and move tracks to final rip directory
+13: Clean out working directory
 
 
 
@@ -128,7 +145,7 @@ Ripping procedure:
 ================================================================================
 
 
-  Drive Options (/dev/sr0):
+  Drive Options:
       Extraction Method:
 ##        @ Secure mode with following drive features (recommended)
               @ Drive has 'Accurate Stream' feature
@@ -149,8 +166,8 @@ Ripping procedure:
 
       Offset / Speed:
 ##        @ Use read sample offset correction
-            [+6]
-##       ?@ Overread into Lead-In and Lead-Out
+            [+30]
+##        @ Overread into Lead-In and Lead-Out
           @ Allow speed reduction during extraction
 ##        @ Use AccurateRip with this drive
 
@@ -158,7 +175,7 @@ Ripping procedure:
 
       Gap Detection:
           Gap/Index retrieval method:
-##          [Detection method A]
+##          [Detection method B]
           Detection accuracy:
 ##          [Secure]
 
