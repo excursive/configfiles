@@ -860,14 +860,19 @@ rip_whipper() {
 
 
 
-read_toc() {
+read_metadata() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
-    printf -- 'Arguments: [disc_audio_filename.wav] [output.toc]\n\n'
+    printf -- 'Arguments: [ disc_number ]\n\n'
     exit 0
   fi
-  cdrdao read-toc --source-device /dev/sr0 --datafile "${1}" "${2}"
+  cdrdao read-toc --source-device /dev/sr0 --datafile "d${1}.wav" "d${1}.toc" 2> "d${1}.toc.log"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cdrdao reported an error\n\n' 1>&2
+    exit 1
+  fi
+  cd-info --iso9660 --cdrom-device=/dev/sr0 > "d${1}-cd-info.txt"
+  if [ "$?" -ne 0 ]; then
+    printf '\e[0;31m==== Error:\e[0m cd-info reported an error\n\n' 1>&2
     exit 1
   fi
 }
@@ -1038,8 +1043,8 @@ case "$operation" in
   'trim-overreads' | 'trim_overreads')
     trim_overreads "$@"
   ;;
-  'read-toc' | 'read_toc')
-    read_toc "$@"
+  'read-metadata' | 'read_metadata')
+    read_metadata "$@"
   ;;
   'run-cd-paranoia' | 'run_cd_paranoia')
     run_cd_paranoia "$@"
