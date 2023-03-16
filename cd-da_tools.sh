@@ -871,9 +871,23 @@ read_metadata() {
     exit 1
   fi
   sleep 5s
+  cdrdao read-toc --source-device /dev/sr0 --datafile "d${1}.wav" "d${1}-verify.toc" || exit 1
+  delete_if_identical_to "d${1}-verify.toc" "d${1}.toc"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not accurately read toc\n\n' 1>&2
+    exit 1
+  fi
+  sleep 5s
   cd-info --iso9660 --cdrom-device=/dev/sr0 > "d${1}-cd-info.txt"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cd-info reported an error\n\n' 1>&2
+    exit 1
+  fi
+  sleep 5s
+  cd-info --iso9660 --cdrom-device=/dev/sr0 > "d${1}-cd-info-verify.txt" || exit 1
+  delete_if_identical_to "d${1}-cd-info-verify.txt" "d${1}-cd-info.txt"
+  if [ "$?" -ne 0 ]; then
+    printf -- '\n\e[0;31m==== Error:\e[0m Could not accurately read cd-info\n\n' 1>&2
     exit 1
   fi
   printf -- '\n===========================\n'
