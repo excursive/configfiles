@@ -388,7 +388,7 @@ concat_wav_test() {
     exit 1
   fi
   
-  sox --no-clobber --combine concatenate -- "$@" "${temp_concat}"
+  sox --no-clobber --combine concatenate -- "$@" "${temp_concat}" || exit 1
   
   cmp -- "${input}" "${temp_concat}"
   if [ "$?" -ne 0 ]; then
@@ -683,8 +683,8 @@ trim_overreads() {
   cmp --ignore-initial=44 -- "${temp2}" "${disc}"
   
   printf '\n==== All good, replacing lead-in with split 1\n\n'
-  rm -f -- "${lead_in}" "${temp2}"
-  mv --no-clobber --no-target-directory "${temp1}" "${lead_in}"
+  rm -f -- "${lead_in}" "${temp2}" || exit 1
+  mv --no-clobber --no-target-directory "${temp1}" "${lead_in}" || exit 1
   
   # ======== lead-out ========
   
@@ -721,8 +721,8 @@ trim_overreads() {
   fi
   
   printf -- '==== All good, replacing lead-out with split 2\n\n'
-  rm -f -- "${lead_out}" "${temp1}"
-  mv --no-clobber --no-target-directory "${temp2}" "${lead_out}"
+  rm -f -- "${lead_out}" "${temp1}" || exit 1
+  mv --no-clobber --no-target-directory "${temp2}" "${lead_out}" || exit 1
   
   printf -- '==== Appending sha256sums to sha256sums-wav.txt\n\n'
   printf -- '%s\n' "$(sha256sum "${lead_in}" "${disc}" "${lead_out}")" >> 'sha256sums-wav.txt'
@@ -783,7 +783,7 @@ cleanup_split_tracks() {
       *'.flac')
         track_out_name="${track}"
         metadata="${track%.flac}-metadata.txt"
-        metaflac --remove-all -- "${track}"
+        metaflac --remove-all -- "${track}" || exit 1
       ;;
     esac
     printf '%s' "${track}"
@@ -793,7 +793,7 @@ cleanup_split_tracks() {
     flac --silent --no-padding --warnings-as-errors --delete-input-file --verify \
          --compression-level-8 --exhaustive-model-search --qlp-coeff-precision-search \
          --output-name="${track_temp}" -- "${track}" || exit 1
-    metaflac --dont-use-padding --remove-all -- "${track_temp}"
+    metaflac --dont-use-padding --remove-all -- "${track_temp}" || exit 1
     
     if ! [ -e "${metadata}" ]; then
       if ! is_listed_track "${track}"; then
@@ -807,11 +807,11 @@ cleanup_split_tracks() {
       rm -f -- "${metadata}"
     fi
     
-    mv --no-clobber --no-target-directory "${track_temp}" "${track_out_name}"
+    mv --no-clobber --no-target-directory "${track_temp}" "${track_out_name}" || exit 1
     printf '\n'
   done
   
-  rm -f -- "d${disc_number}.wav"
+  rm -f -- "d${disc_number}.wav" || exit 1
   printf '\n==== Disc %s complete!\n\n' "$disc_number"
 }
 
