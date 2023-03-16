@@ -870,11 +870,15 @@ read_metadata() {
     printf '\e[0;31m==== Error:\e[0m cdrdao reported an error\n\n' 1>&2
     exit 1
   fi
+  sleep 5s
   cd-info --iso9660 --cdrom-device=/dev/sr0 > "d${1}-cd-info.txt"
   if [ "$?" -ne 0 ]; then
     printf '\e[0;31m==== Error:\e[0m cd-info reported an error\n\n' 1>&2
     exit 1
   fi
+  printf -- '\n===========================\n'
+  printf -- '======== All done! ========\n'
+  printf -- '===========================\n\n'
 }
 
 
