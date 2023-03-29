@@ -60,7 +60,7 @@
         "§:dmcdn.net",
         "§:dreamwidth.org",
         "§:dropbox.com",
-        "§:dropboxstatic.com"
+        "§:dropboxstatic.com",
         "§:duckduckgo.com",
         "§:fandom.com",
         "§:fanfiction.net",
