@@ -1000,7 +1000,7 @@ manage_gifsicle() {
 
 
 manage_mozjpeg() {
-  local mozjpeg_version='ed21c3ba6fff72ed9ca0b2cf03bcc6f41ac5271d'
+  local mozjpeg_version='a2d2907ff023227e80c1e4efa809812410275a12'
   
   local mozjpeg_dir="${PWD}/mozjpeg"
   
@@ -1021,22 +1021,45 @@ manage_mozjpeg() {
   cmake -G "Unix Makefiles" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_BUILD_RPATH_USE_ORIGIN='TRUE' \
+        -DCMAKE_INSTALL_PREFIX="${install_dir}" \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH='TRUE' \
         "${mozjpeg_src_dir}"
-  #      -DCMAKE_INSTALL_RPATH_USE_LINK_PATH='FALSE' \
-  #      -DCMAKE_BUILD_WITH_INSTALL_RPATH='TRUE' \
-  make
+  make -j2
   
-  # TODO: use install?
-  mkdir --verbose --parents -- "${install_dir}/doc" \
-                               "${install_dir}/man" \
-                               "${install_dir}/md5"
-  mv --no-clobber --verbose "--target-directory=${install_dir}" -- \
+  mkdir --verbose --parents -- "${install_dir}/bin" \
+                               "${install_dir}/include" \
+                               "${install_dir}/lib/cmake/mozjpeg" \
+                               "${install_dir}/lib/pkgconfig" \
+                               "${install_dir}/share/doc/mozjpeg" \
+                               "${install_dir}/share/man/man1"
+  #                             "${install_dir}/md5"
+  mv --no-clobber --verbose "--target-directory=${install_dir}/bin" -- \
                             "${build_dir}/cjpeg" \
                             "${build_dir}/cjpeg-static" \
                             "${build_dir}/djpeg" \
                             "${build_dir}/djpeg-static" \
                             "${build_dir}/jpegtran" \
                             "${build_dir}/jpegtran-static" \
+                            "${build_dir}/rdjpgcom" \
+                            "${build_dir}/tjbench" \
+                            "${build_dir}/tjbench-static" \
+                            "${build_dir}/wrjpgcom"
+  #                          "${build_dir}/jcstest" \
+  #                          "${build_dir}/tjexample" \
+  #                          "${build_dir}/tjunittest" \
+  #                          "${build_dir}/tjunittest-static" \
+  cp --no-clobber --verbose "--target-directory=${install_dir}/include" -- \
+                            "${build_dir}/jconfig.h" \
+                            "${mozjpeg_src_dir}/jerror.h" \
+                            "${mozjpeg_src_dir}/jmorecfg.h" \
+                            "${mozjpeg_src_dir}/jpeglib.h" \
+                            "${mozjpeg_src_dir}/turbojpeg.h"
+  mv --no-clobber --verbose "--target-directory=${install_dir}/lib/cmake/mozjpeg" -- \
+                            "${build_dir}/pkgscripts/mozjpegConfig.cmake" \
+                            "${build_dir}/pkgscripts/mozjpegConfigVersion.cmake" \
+                            "${build_dir}/CMakeFiles/Export/lib/cmake/mozjpeg/mozjpegTargets.cmake" \
+                            "${build_dir}/CMakeFiles/Export/lib/cmake/mozjpeg/mozjpegTargets-release.cmake"
+  mv --no-clobber --verbose "--target-directory=${install_dir}/lib" -- \
                             "${build_dir}/libjpeg.a" \
                             "${build_dir}/libjpeg.so" \
                             "${build_dir}/libjpeg.so.62" \
@@ -1044,20 +1067,13 @@ manage_mozjpeg() {
                             "${build_dir}/libturbojpeg.a" \
                             "${build_dir}/libturbojpeg.so" \
                             "${build_dir}/libturbojpeg.so.0" \
-                            "${build_dir}/libturbojpeg.so.0.2.0" \
-                            "${build_dir}/rdjpgcom" \
-                            "${build_dir}/wrjpgcom"
-  #                          "${build_dir}/jcstest" \
-  #                          "${build_dir}/tjbench" \
-  #                          "${build_dir}/tjbench-static" \
-  #                          "${build_dir}/tjexample" \
-  #                          "${build_dir}/tjunittest" \
-  #                          "${build_dir}/tjunittest-static" \
-  mv --no-clobber --verbose "--target-directory=${install_dir}/md5" -- \
-                            "${build_dir}/md5/md5cmp"
-  cp --no-clobber --verbose "--target-directory=${install_dir}" -- \
-                            "${mozjpeg_src_dir}/turbojpeg.h"
-  cp --no-clobber --verbose "--target-directory=${install_dir}/doc" -- \
+                            "${build_dir}/libturbojpeg.so.0.2.0"
+  mv --no-clobber --verbose "--target-directory=${install_dir}/lib/pkgconfig" -- \
+                            "${build_dir}/pkgscripts/libjpeg.pc" \
+                            "${build_dir}/pkgscripts/libturbojpeg.pc"
+  #mv --no-clobber --verbose "--target-directory=${install_dir}/md5" -- \
+  #                          "${build_dir}/md5/md5cmp"
+  cp --no-clobber --verbose "--target-directory=${install_dir}/share/doc/mozjpeg" -- \
                             "${mozjpeg_src_dir}/example.txt" \
                             "${mozjpeg_src_dir}/libjpeg.txt" \
                             "${mozjpeg_src_dir}/LICENSE.md" \
@@ -1067,9 +1083,10 @@ manage_mozjpeg() {
                             "${mozjpeg_src_dir}/README.md" \
                             "${mozjpeg_src_dir}/release/License.rtf" \
                             "${mozjpeg_src_dir}/structure.txt" \
+                            "${mozjpeg_src_dir}/tjexample.c" \
                             "${mozjpeg_src_dir}/usage.txt" \
                             "${mozjpeg_src_dir}/wizard.txt"
-  cp --no-clobber --verbose "--target-directory=${install_dir}/man" -- \
+  cp --no-clobber --verbose "--target-directory=${install_dir}/share/man/man1" -- \
                             "${mozjpeg_src_dir}/cjpeg.1" \
                             "${mozjpeg_src_dir}/djpeg.1" \
                             "${mozjpeg_src_dir}/jpegtran.1" \
@@ -1079,11 +1096,12 @@ manage_mozjpeg() {
   cd -- "${install_dir}"
   sha256r "${install_dir}-sha256sums.txt"
   
-  create_symlink "${install_dir}/cjpeg"    'mozcjpeg'
-  create_symlink "${install_dir}/djpeg"    'mozdjpeg'
-  create_symlink "${install_dir}/jpegtran" 'mozjpegtran'
-  create_symlink "${install_dir}/rdjpgcom" 'mozrdjpgcom'
-  create_symlink "${install_dir}/wrjpgcom" 'mozwrjpgcom'
+  create_symlink "${install_dir}/bin/cjpeg"    'mozcjpeg'
+  create_symlink "${install_dir}/bin/djpeg"    'mozdjpeg'
+  create_symlink "${install_dir}/bin/jpegtran" 'mozjpegtran'
+  create_symlink "${install_dir}/bin/rdjpgcom" 'mozrdjpgcom'
+  create_symlink "${install_dir}/bin/tjbench"  'moztjbench'
+  create_symlink "${install_dir}/bin/wrjpgcom" 'mozwrjpgcom'
   
   rm -R -f -- "${build_dir}"
   cd -- "${mozjpeg_src_dir}"
