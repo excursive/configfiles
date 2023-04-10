@@ -1,5 +1,5 @@
 [Context]
 shared=!network
-devices=!kvm;!shm;!all;dri
+devices=!all;!shm;!kvm;dri
 features=!bluetooth
-filesystems=!host;!home;!xdg-download;!xdg-run/gvfsd;
+filesystems=!home;!host
