@@ -1006,10 +1006,10 @@ batch_optimize_files() {
         zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,iCCP,sBIT,sRGB,iTXt,tEXt,zTXt,bKGD,hIST,pHYs,sPLT,tIME "${in_file}" "${temp_file}"
       ;;
       'pngstrip')
-        zopflipng -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
+        zopflipng -y --keepchunks=PLTE,tRNS,cHRM,gAMA,iCCP,sRGB "${in_file}" "${temp_file}"
       ;;
       'pngmstrip')
-        zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,sRGB "${in_file}" "${temp_file}"
+        zopflipng -m -y --keepchunks=PLTE,tRNS,cHRM,gAMA,iCCP,sRGB "${in_file}" "${temp_file}"
       ;;
       'pngmncstripall')
         zopflipng -m -y --keepcolortype --keepchunks=PLTE,tRNS "${in_file}" "${temp_file}"
