@@ -631,7 +631,7 @@ Category=Game;Development;"
 
 
 manage_discimagecreator() {
-  local dic_version='7375cb4ae3d7dce78d02c3734a0974cf61eb34a0'
+  local dic_version='0e7c48f1aae0ff7fcb0fe34acffe010488bc5745'
   
   local dic_dir="${PWD}/DiscImageCreator"
   
