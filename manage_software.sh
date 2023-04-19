@@ -655,8 +655,6 @@ manage_discimagecreator() {
                             "${dic_src_dir}/Release_ANSI/default.dat" \
                             "${dic_src_dir}/Release_ANSI/driveOffset.txt"
   
-  strip --strip-all --verbose -- "${install_dir}/bin/DiscImageCreator"
-  
   cd -- "${install_dir}"
   sha256r "${install_dir}-sha256sums.txt"
   
