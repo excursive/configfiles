@@ -1176,7 +1176,7 @@ Category=Development;Game;Graphics;"
 
 
 manage_aseprite() {
-  local aseprite_version='32b5d20a8d88d92e413cad474325fb64a9860f12'
+  local aseprite_version='733f7ec2c28b2bb57999cc15599b39563d2decf8'
   
   local aseprite_dir="${PWD}/aseprite"
   
