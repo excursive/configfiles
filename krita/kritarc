@@ -1,17 +1,17 @@
-AntialiasSelectionOutline=false
 AutoSaveInterval=420
 BackgroundColorForNewImage=255,255,255
 BackgroundOpacityForNewImage=255
 BackgroundStyleForNewImage=2
-CanvasOnlyActive=false
 ColorManagement/UseSystemMonitorProfile=false
 ConvertToImageColorSpaceOnImport=false
 CreateBackupFile=true
+NumberOfLayersForNewImage=2
 ShowEraserOutlineWhilePainting=true
 ShowOutlineWhilePainting=true
+SpecificColorSelector/UsePercentage=false
 ToolOptionsInDocker=false
+TrimFramesImport=false
 TrimKra=false
-UseZip64=false
 activateTransformToolAfterPaste=false
 autosavefileshidden=true
 backupfilelocation=2
@@ -22,11 +22,13 @@ checkerscolor=220,220,220
 checkerscolor2=255,255,255
 checksize=32
 compressLayersInKra=true
+disableTouchOnCanvas=false
 enableBrushSpeedLogging=false
 enableOpenGLFramerateLogging=false
 enablePerfLog=false
 enableProgressReporting=true
-filterdialog/rememberlastpreset=false
+forceAlwaysFullSizedEraserOutline=false
+forceAlwaysFullSizedOutline=false
 fpsLimit=60
 hideDockersFullScreen=true
 hideMenuFullScreen=false
@@ -37,15 +39,16 @@ hideStatusbarFullScreen=false
 hideTitleBarFullscreen=false
 hideToolbarFullscreen=false
 layerTreeIndentation=20
-levelOfDetailEnabled=false
 logviewer_enabled=false
+memoryHardLimitPercent=50
+memoryPoolLimitPercent=0
+memorySoftLimitPercent=10
 numberofbackupfiles=1
 pasteBehaviour=2
 pasteFormat=0
 pixelGridColor=255,255,255
 pixelGridDrawingThreshold=24
-presetIconSize=45
-presethistory=z) Stamp Grass Patch,k) Blender Pixelize,m) RGBA 03 Rake,u) Pixel Art Dithering,u) Pixel Art,u) Pixel Art Fill,i) Wet Paint Details,e) Marker Chisel Smooth,e) Marker Details,b) Basic-1
+presetIconSize=48
 saveSessionOnQuit=false
 scrollingcheckers=false
 selectionOverlayMaskColor=255,0,0,128
@@ -60,6 +63,10 @@ toolbarslider_2=opacity
 toolbarslider_3=flow
 undoStackLimit=300
 useCreamyAlphaDarken=true
+useOnDiskAnimationCacheSwapping=false
+
+[KisToolEncloseAndFill]
+fillThreshold=1
 
 [KisToolSelectBase]
 selectionAction=1
@@ -69,7 +76,18 @@ selectionMode=0
 antiAliasSelection=false
 threshold=1
 
+[KisToolSelectElliptical]
+antiAliasSelection=false
+roundCornersX=0
+roundCornersY=0
+
+[KisToolSelectMagnetic]
+antiAliasSelection=false
+
 [KisToolSelectOutline]
+antiAliasSelection=false
+
+[KisToolSelectPath]
 antiAliasSelection=false
 
 [KisToolSelectPolygonal]
@@ -86,19 +104,14 @@ threshold=1
 
 [KritaFill/KisToolFill]
 continuousFillMode=fillSimilarRegions
-fillSelection=false
 thresholdAmount=1
 
 [advancedColorSelector]
-colorSelectorConfiguration=2|4|15|17
 commonColorsHeight=20
 commonColorsWidth=20
 customSelectorBackgroundColor=160,160,164
-gamma=2.2
-hsxSettingType=3
 lastUsedColorsHeight=20
 lastUsedColorsWidth=20
-lumaG=0.7152
-lumaR=0.2126
+minimalShadeSelectorLineHeight=12
 showColorSelector=true
 useCustomColorForBackground=false
