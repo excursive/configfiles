@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='2d7d80d3025d42d5c0186525c8c54f85d1d03232'
+  local gallery_dl_version='5283db1aaed400f2f588f72808a6a903d3eea6db'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
@@ -563,7 +563,7 @@ manage_qt5_deb() {
 
 
 manage_fceux() {
-  local fceux_version='2b8c61802029721229a26592e4578f92efe814fb'
+  local fceux_version='ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b'
   
   local fceux_dir="${PWD}/fceux"
   
