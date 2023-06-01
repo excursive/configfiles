@@ -12,16 +12,13 @@ sudo apt-get purge unattended-upgrades
 
 sudo apt-get dist-upgrade
 
-sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib g++ autoconf automake cmake valgrind curl
-sudo apt-get install flatpak sqlite3 brasero vim git ffmpeg flac vlc steam gimp audacity
+sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib autoconf automake cmake valgrind curl
+sudo apt-get install flatpak sqlite3 brasero vim vim-gtk3 git ffmpeg flac vlc mpv gimp audacity
+sudo apt-get install cd-paranoia libcdio-utils cdrdao libcue-dev libxml2-utils libbluray2 libaacs0 libbdplus0
 sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
-sudo apt-get install cd-paranoia libcdio-utils cdrdao mkcue libcue-dev cue2toc libxml2-utils dvdbackup libbluray2 libaacs0 libbdplus0
 
-
-#sudo apt-get --no-install-recommends install mpv python3-pyxattr
-
-#====wine additional packages --no-install-recommends (excluding binfmt-support gnome-exe-thumbnailer icoutils libcapi20-3 libcapi20-3:i386 libgsf-1-114 libgsf-1-common libmsi0 libodbc1 libosmesa6 libosmesa6:i386 libp11-kit-gnome-keyring:i386 libp11-kit0:i386 msitools ocl-icd-libopencl1 ocl-icd-libopencl1:i386 odbcinst odbcinst1debian2 p11-kit-modules:i386 p7zip unixodbc wine wine-gecko2.21 wine-gecko2.21:i386 wine-mono0.0.8 wine1.6 wine1.6-amd64 wine1.6-i386:i386 winetricks)
+#sudo apt-get --no-install-recommends install python3-pyxattr
 
 
 
