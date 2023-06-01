@@ -812,6 +812,10 @@ tablet_calibration() {
   # C - keep at top left corner (of all monitors), stretch v at left edge, stretch h at top edge, stretch h+v at bottom right corner
 }
 
+tablet_touch_off() {
+  xsetwacom --set 'Wacom Intuos PT M Finger touch' 'Touch' 'off'
+}
+
 ffmpeg_bitexact() {
   local out_file="${1}"
   shift 1
