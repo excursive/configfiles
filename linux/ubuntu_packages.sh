@@ -3,18 +3,32 @@
 set -e
 set -o pipefail
 
-printf '\n\n\n================\n'
-printf       '     general    \n'
-printf       '================\n\n'
-
 
 sudo apt-get purge unattended-upgrades
+sudo apt-get purge transmission-gtk transmission-common
+sudo apt-get purge thunderbird thunderbird-gnome-support thunderbird-locale-en thunderbird-locale-en-us
+sudo apt-get purge rhythmbox gir1.2-rb-3.0 librhythmbox-core10 rhythmbox-data rhythmbox-plugins rhythmbox-plugin-alternative-toolbar
+sudo snap disable firefox
+sudo systemctl stop 'var-snap-firefox-common-host\x2dhunspell.mount'
+sudo systemctl disable 'var-snap-firefox-common-host\x2dhunspell.mount'
+sudo snap remove --purge firefox
+sudo apt-get purge firefox
 
+#sudo groupadd --gid XXXX groupname
+#sudo mkdir --mode=755 /media/____
+#sudo mkdir --mode=755 /media/____/____
+#sudo mkdir --mode=755 /media/____/____
+#sudo nano /etc/fstab
+
+#sudo usermod -a -G groupname user1
+#sudo usermod -a -G groupname user2
+
+sudo apt-get update
 sudo apt-get dist-upgrade
-
-sudo apt-get install ubuntu-restricted-extras build-essential gcc-multilib g++-multilib autoconf automake cmake valgrind curl
-sudo apt-get install flatpak sqlite3 brasero vim vim-gtk3 git ffmpeg flac vlc mpv gimp audacity
-sudo apt-get install cd-paranoia libcdio-utils cdrdao libcue-dev libxml2-utils libbluray2 libaacs0 libbdplus0
+sudo apt-get install ubuntu-restricted-extras
+sudo apt-get install build-essential autoconf automake cmake valgrind curl
+sudo apt-get install flatpak sqlite3 brasero vim vim-gtk3 git git-crypt ffmpeg flac vlc mpv
+sudo apt-get install cd-paranoia libcdio-utils cdrdao libxml2-utils libbluray2 libaacs0 libbdplus0
 sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
 
