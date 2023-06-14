@@ -179,6 +179,7 @@
   "sync": {
     "global": false,
     "xss": true,
+    "TabGuardMode": "incognito",
     "cascadeRestrictions": false,
     "overrideTorBrowserPolicy": true,
     "clearclick": true
