@@ -26,6 +26,7 @@ flatpak install flathub org.kde.kdenlive
 flatpak install flathub fr.natron.Natron
 
 #flatpak install flathub com.visualstudio.code
+flatpak install flathub org.kde.okteta
 flatpak install flathub org.godotengine.Godot
 flatpak install flathub org.famistudio.FamiStudio
 
