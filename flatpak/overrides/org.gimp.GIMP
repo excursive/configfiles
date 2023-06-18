@@ -1,2 +1,2 @@
 [Context]
-filesystems=!xdg-config/GIMP;xdg-run/gvfs:ro;xdg-run/gvfsd:ro;xdg-config/gtk-3.0:ro;~/wip
+filesystems=!xdg-config/GIMP;xdg-run/gvfs:ro;xdg-run/gvfsd:ro;xdg-config/gtk-3.0:ro;~/scratch

@@ -1,2 +1,2 @@
 [Context]
-filesystems=~/wip;xdg-run/gvfs:ro
+filesystems=~/scratch;xdg-run/gvfs:ro
