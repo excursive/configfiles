@@ -563,7 +563,7 @@ manage_qt5_deb() {
 
 
 manage_fceux() {
-  local fceux_version='ea6ed69b874e3ae94072f1b4f14b9a8f0fdd774b'
+  local fceux_version='34eb7601c415b81901fd02afbd5cfdc84b5047ac'
   
   local fceux_dir="${PWD}/fceux"
   
