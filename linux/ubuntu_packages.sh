@@ -68,7 +68,7 @@ printf '\n\n\n================\n'
 printf       '    aesprite    \n'
 printf       '================\n\n'
 
-sudo apt-get install g++ cmake libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev curl libfreetype6-dev libgif-dev libharfbuzz-dev libjpeg-dev libpng-dev libpixman-1-dev zlib1g-dev
+sudo apt-get install g++ cmake libx11-dev libxcursor-dev libxi-dev libgl1-mesa-dev libfontconfig1-dev curl libfreetype6-dev libgif-dev libharfbuzz-dev libjpeg-dev libpng-dev libpixman-1-dev zlib1g-dev libwebp-dev
 
 sudo apt-get install ninja-build
 
