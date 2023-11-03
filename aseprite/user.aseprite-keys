@@ -34,16 +34,16 @@
         <key command="CopyMerged" shortcut="Ctrl+Shift+C" removed="true" />
         <key command="Paste" shortcut="Ctrl+V" removed="true" />
         <key command="Paste" shortcut="Shift+Ins" removed="true" />
-        <key command="Paste" shortcut="Ctrl+K" />
         <key command="Clear" shortcut="Del" />
         <key command="Clear" shortcut="Backspace" />
         <key command="Fill" shortcut="F" removed="true" />
+        <key command="Fill" shortcut="Ctrl+U" />
         <key command="Stroke" shortcut="S" removed="true" />
         <key command="Flip" shortcut="Shift+H" removed="true">
             <param name="orientation" value="horizontal" />
             <param name="target" value="mask" />
         </key>
-        <key command="Flip" shortcut="5">
+        <key command="Flip" shortcut="Shift+A">
             <param name="orientation" value="horizontal" />
             <param name="target" value="mask" />
         </key>
@@ -82,23 +82,25 @@
         <key command="NewLayer" shortcut="Ctrl+Shift+V" removed="true">
             <param name="fromClipboard" value="true" />
         </key>
-        <key command="NewLayer" shortcut="Ctrl+J" removed="true">
-            <param name="viaCopy" value="true" />
+        <key command="NewLayer" shortcut="Ctrl+K">
+            <param name="fromClipboard" value="true" />
         </key>
-        <key command="NewLayer" shortcut="Shift+J">
+        <key command="NewLayer" shortcut="Ctrl+J" removed="true">
             <param name="viaCopy" value="true" />
         </key>
         <key command="NewLayer" shortcut="Ctrl+Shift+J" removed="true">
             <param name="viaCut" value="true" />
         </key>
-        <key command="NewLayer" shortcut="Shift+Q">
-            <param name="viaCut" value="true" />
-        </key>
-        <key command="GotoPreviousLayer" context="Normal" shortcut="Down" />
-        <key command="GotoNextLayer" context="Normal" shortcut="Up" />
+        <key command="GotoPreviousLayer" context="Normal" shortcut="Down" removed="true" />
+        <key command="GotoPreviousLayer" context="Normal" shortcut="Shift+." />
+        <key command="GotoNextLayer" context="Normal" shortcut="Up" removed="true" />
+        <key command="GotoNextLayer" context="Normal" shortcut="Shift+," />
         <key command="NewFrame" shortcut="Alt+N" removed="true" />
         <key command="NewFrame" shortcut="Shift+I" />
         <key command="NewFrame" shortcut="Alt+B" removed="true">
+            <param name="content" value="empty" />
+        </key>
+        <key command="NewFrame" shortcut="Ctrl+Shift+X">
             <param name="content" value="empty" />
         </key>
         <key command="NewFrame" shortcut="Alt+M" removed="true">
@@ -107,7 +109,7 @@
         <key command="NewFrame" shortcut="Alt+Shift+D" removed="true">
             <param name="content" value="cellinked" />
         </key>
-        <key command="NewFrame" shortcut="Shift+X">
+        <key command="NewFrame" shortcut="Ctrl+Shift+I">
             <param name="content" value="cellinked" />
         </key>
         <key command="NewFrame" shortcut="Alt+D" removed="true">
@@ -127,16 +129,17 @@
         <key command="GotoFrame" shortcut="Alt+G" removed="true" />
         <key command="PlayAnimation" shortcut="Enter" removed="true" />
         <key command="PlayAnimation" shortcut="Enter Pad" removed="true" />
-        <key command="PlayAnimation" shortcut="Space" />
+        <key command="PlayAnimation" shortcut="P" />
         <key command="PlayPreviewAnimation" shortcut="Shift+Enter" removed="true" />
         <key command="MaskAll" shortcut="Ctrl+A" removed="true" />
-        <key command="MaskAll" shortcut="Shift+&apos;" />
+        <key command="MaskAll" shortcut="Shift+;" />
         <key command="MaskContent" shortcut="Ctrl+T" removed="true" />
-        <key command="MaskContent" shortcut="Y" />
+        <key command="MaskContent" shortcut="Shift+K" />
         <key command="DeselectMask" shortcut="Ctrl+D" removed="true" />
-        <key command="DeselectMask" shortcut="&apos;" />
+        <key command="DeselectMask" shortcut=";" />
         <key command="ReselectMask" shortcut="Ctrl+Shift+D" removed="true" />
         <key command="InvertMask" shortcut="Ctrl+Shift+I" removed="true" />
+        <key command="InvertMask" shortcut="Ctrl+;" />
         <key command="Refresh" shortcut="F5" removed="true" />
         <key command="TogglePreview" shortcut="F7" removed="true" />
         <key command="FullscreenPreview" shortcut="F8" removed="true" />
@@ -445,9 +448,9 @@
         </key>
         <key command="BrightnessContrast" shortcut="1" />
         <key command="DuplicateLayer" shortcut="Ctrl+I" />
-        <key command="MergeDownLayer" shortcut="Shift+K" />
+        <key command="MergeDownLayer" shortcut="Shift+X" />
         <key command="RemoveLayer" shortcut="Ctrl+X" />
-        <key command="Flip" shortcut="Shift+5">
+        <key command="Flip" shortcut="Shift+O">
             <param name="orientation" value="horizontal" />
             <param name="target" value="canvas" />
         </key>
@@ -456,13 +459,15 @@
     </commands>
     <tools>
         <key tool="rectangular_marquee" shortcut="M" removed="true" />
-        <key tool="rectangular_marquee" shortcut="J" />
+        <key tool="rectangular_marquee" shortcut="Q" />
         <key tool="elliptical_marquee" shortcut="Shift+M" removed="true" />
-        <key tool="lasso" shortcut="Q" />
+        <key tool="lasso" shortcut="Q" removed="true" />
+        <key tool="lasso" shortcut="J" />
         <key tool="polygonal_lasso" shortcut="Shift+Q" removed="true" />
+        <key tool="polygonal_lasso" shortcut="Shift+J" />
         <key tool="magic_wand" shortcut="W" removed="true" />
         <key tool="pencil" shortcut="B" removed="true" />
-        <key tool="pencil" shortcut="E" />
+        <key tool="pencil" shortcut="U" />
         <key tool="spray" shortcut="Shift+B" removed="true" />
         <key tool="eraser" shortcut="E" removed="true" />
         <key tool="eraser" shortcut="Shift+E" />
@@ -472,10 +477,10 @@
         <key tool="slice" shortcut="Shift+C" removed="true" />
         <key tool="zoom" shortcut="Z" removed="true" />
         <key tool="paint_bucket" shortcut="G" removed="true" />
-        <key tool="paint_bucket" shortcut="P" />
+        <key tool="paint_bucket" shortcut="Ctrl+P" />
         <key tool="gradient" shortcut="Shift+G" removed="true" />
         <key tool="line" shortcut="L" removed="true" />
-        <key tool="line" shortcut="Ctrl+E" />
+        <key tool="line" shortcut="Shift+U" />
         <key tool="curve" shortcut="Shift+L" removed="true" />
         <key tool="rectangle" shortcut="U" removed="true" />
         <key tool="filled_rectangle" shortcut="U" removed="true" />
@@ -488,7 +493,7 @@
     </tools>
     <quicktools>
         <key tool="eyedropper" shortcut="Alt" removed="true" />
-        <key tool="eyedropper" shortcut="U" />
+        <key tool="eyedropper" shortcut="E" />
         <key tool="move" shortcut="Ctrl" removed="true" />
         <key tool="move" shortcut="K" />
         <key tool="hand" shortcut="Space" removed="true" />

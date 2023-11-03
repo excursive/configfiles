@@ -75,6 +75,7 @@ set magic
 set termguicolors
 set noshowmode
 
+set background=dark
 " let g:two_firewatch_italics=1
 colorscheme two-firewatch
 let g:lightline= { 'colorscheme': 'powerline_two_firewatch', }
