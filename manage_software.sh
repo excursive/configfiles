@@ -1110,12 +1110,12 @@ Category=Development;Game;Graphics;"
 
 
 manage_aseprite() {
-  local aseprite_version='733f7ec2c28b2bb57999cc15599b39563d2decf8'
+  local aseprite_version='ab2d7f79a36362a652950130a25fa780c44c0f70'
   
   local aseprite_dir="${PWD}/aseprite"
   
   local ase_install_dir="${aseprite_dir}/aseprite-${aseprite_version}"
-  local skia_install_dir="${aseprite_dir}/skia-aseprite-m81"
+  local skia_install_dir="${aseprite_dir}/skia-aseprite-m102"
   
   local build_dir="${aseprite_dir}/build"
   local ase_build_dir="${build_dir}/aseprite"
@@ -1132,10 +1132,10 @@ manage_aseprite() {
   build_dir_check "${build_dir}"
   mkdir --verbose --parents -- "${src_dir}" "${ase_build_dir}" "${skia_build_dir}" "${ase_install_dir}"
   
-  # in case python doesn't point to python2 binary,
+  # in case python doesn't point to python3 binary,
   # set up a temp folder with a link to temporarily add to path
   mkdir --verbose --parents -- "${temp_bin_dir}"
-  ln -s '/usr/bin/python2' "${temp_bin_dir}/python"
+  ln -s '/usr/bin/python3' "${temp_bin_dir}/python"
   
   
   if [ -e "${skia_install_dir}" ]; then
@@ -1151,59 +1151,87 @@ manage_aseprite() {
     #checkout_commit "${depot_tools_dir}" 'b073999c6f90103a36a923e63ae8cf7a5c9c6c8c' \
     #                'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
     
-    printf '\n======== Checking out commit aseprite-m81 skia was forked from\n'
-    local skia_version='3e98c0e1d11516347ecc594959af2c1da4d04fc9'
+    printf '\n======== Checking out commit aseprite-m102 skia was forked from\n'
+    local skia_version='b627d35809c7ace8349b6191bdda53a8e3179543'
     checkout_commit "${skia_src_dir}" "$skia_version" \
                     'https://skia.googlesource.com/skia.git'
     
     printf '\n==== Syncing skia dependencies\n'
     env PATH="${PATH}:${temp_bin_dir}" python tools/git-sync-deps
     
-    printf '\n==== Modifying files to match aseprite-m81 skia\n'
-    sed -i -e '1878i\
-            return;' \
-                 'src/gpu/GrRenderTargetContext.cpp'
-    sed -i -e '249c\
-static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(double n, double d) {' \
-                 'include/private/SkFloatingPoint.h'
-    sed -i -e '66c\
-    # Setup the env before\
-    #env_setup = "cmd /c $win_sdk\\\\bin\\\\SetEnv.cmd /x86 \&\& "' \
+    
+    printf '\n==== Modifying files to match aseprite-m102 skia\n'
+    sed -i -e '92s/^    /    #/' -e '95s/^    /    #/' \
                  'gn/toolchain/BUILD.gn'
-    sed -i -e '25i\
+    sed -i -e '47i\
+    # We need to link with the zlib library (the system one or a' \
+           -e '47i\
+    # static one) to avoid multiple definitions of crc32 and inflate' \
+           -e '47i\
+    # functions between zlib and freetype' \
+           -e '47i\
+    defines += [ "FT_CONFIG_OPTION_SYSTEM_ZLIB" ]' \
+           -e '47i\
+' \
+                 'third_party/freetype2/BUILD.gn'
+    sed -i -e '28i\
     include_dirs = [ "../externals/freetype/include" ]' \
-           -e '30i\
-      "HAVE_FREETYPE",' \
+           -e '29s/^      #/      /' \
+           -e '109i\
+      "$_src/hb-ft.cc",' \
+           -e '109i\
+      "$_src/hb-ft.h",' \
+           -e '272d' \
+           -e '273d' \
                  'third_party/harfbuzz/BUILD.gn'
-    sed -i -e '49c\
-            return std::make_tuple(p, ct, at);' \
-                 'src/gpu/GrProcessorUnitTest.cpp'
-    sed -i -e '833c\
-    return std::make_tuple(code != GrDrawOpAtlas::ErrorCode::kError, glyphsPlacedInAtlas);' \
-           -e '856c\
-        return std::make_tuple(true, end - begin);' \
-                 'src/gpu/text/GrTextBlob.cpp'
     
     
     printf '\n======== Building skia\n'
     cd -- "${skia_src_dir}"
     env PATH="${PATH}:${temp_bin_dir}" bin/gn gen "${skia_build_dir}" \
-      --args='is_debug=false is_official_build=true skia_use_sfntly=false skia_use_dng_sdk=false skia_use_piex=false'
+      --args='is_debug=false is_official_build=true skia_use_system_libwebp=false skia_use_sfntly=false skia_use_freetype=true skia_use_harfbuzz=true skia_pdf_subset_harfbuzz=true skia_use_system_freetype2=false skia_use_system_harfbuzz=false skia_use_dng_sdk=false skia_use_piex=false'
     cd -- "${skia_build_dir}"
-    ninja -C "${skia_build_dir}" skia modules
+    env PATH="${PATH}:${temp_bin_dir}" ninja -C "${skia_build_dir}" skia modules
     
     # TODO: make library directory dynamic to handle other architectures
-    mkdir --verbose --parents -- "${skia_install_dir}/lib/x86_64-linux-gnu"
-    mv --no-clobber --verbose "--target-directory=${skia_install_dir}/lib/x86_64-linux-gnu" -- \
+    mkdir --parents -- "${skia_install_dir}/lib/x86_64-linux-gnu"
+    mv --no-clobber "--target-directory=${skia_install_dir}/lib/x86_64-linux-gnu" -- \
                               "${skia_build_dir}"/*.a
+    
     cd -- "${skia_src_dir}"
-    cp --no-clobber --verbose -R --parents "--target-directory=${skia_install_dir}" -- \
+    cp --no-clobber -R --parents "--target-directory=${skia_install_dir}" -- \
        include \
        modules/particles/include/*.h \
        modules/skottie/include/*.h \
+       modules/skparagraph/include/*.h \
+       modules/skplaintexteditor/include/*.h \
        modules/skresources/include/*.h \
        modules/sksg/include/*.h \
-       modules/skshaper/include/*.h
+       modules/skshaper/include/*.h \
+       src/core/*.h \
+       src/gpu/gl/*.h \
+       third_party/externals/freetype/docs/FTL.TXT \
+       third_party/externals/freetype/docs/GPLv2.TXT \
+       third_party/externals/freetype/LICENSE.TXT \
+       third_party/externals/freetype/include \
+       third_party/externals/libwebp/COPYING \
+       third_party/externals/libwebp/PATENTS \
+       third_party/externals/libwebp/src/dec/*.h \
+       third_party/externals/libwebp/src/dsp/*.h \
+       third_party/externals/libwebp/src/enc/*.h \
+       third_party/externals/libwebp/src/mux/*.h \
+       third_party/externals/libwebp/src/utils/*.h \
+       third_party/externals/libwebp/src/webp/*.h \
+       third_party/externals/harfbuzz/COPYING \
+       third_party/externals/harfbuzz/src/*.h
+       #third_party/externals/angle2/LICENSE \
+       #third_party/externals/angle2/include \
+       #third_party/externals/libpng/LICENSE \
+       #third_party/externals/libpng/*.h \
+       #third_party/externals/swiftshader/LICENSE.TXT \
+       #third_party/externals/swiftshader/include \
+       #third_party/externals/zlib/LICENSE \
+       #third_party/externals/zlib/*.h
     
     cd -- "${skia_install_dir}"
     sha256r "${skia_install_dir}-sha256sums.txt"
@@ -1237,6 +1265,9 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
         -DUSE_SHARED_ZLIB='ON' \
         -DENABLE_NEWS='OFF' \
         -DENABLE_UPDATER='OFF' \
+        -DCMAKE_BUILD_RPATH_USE_ORIGIN='TRUE' \
+        -DCMAKE_INSTALL_PREFIX="${ase_install_dir}" \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH='TRUE' \
         -G Ninja \
         "${ase_src_dir}"
   ninja aseprite
@@ -1253,6 +1284,8 @@ static inline double sk_ieee_double_divide_TODO_IS_DIVIDE_BY_ZERO_SAFE_HERE(doub
   rm -R -f -- "${build_dir}" "${temp_bin_dir}"
   cd -- "${ase_src_dir}"
   clean_and_update_repo "$aseprite_version" 'skip_update'
+  
+  create_symlinks "${ase_install_dir}/bin/aseprite"
   
   local escaped_ase_install_dir="$(escape_desktop_entry_string "${ase_install_dir}")"
   local escaped_ase_executable_path=\""$(escape_desktop_entry_argument "${ase_install_dir}/bin/aseprite")"\"
