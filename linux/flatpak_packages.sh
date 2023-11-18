@@ -47,6 +47,6 @@ flatpak install flathub com.dosbox.DOSBox
 #flatpak install flathub org.scummvm.ScummVM
 
 #flatpak install flathub net.lutris.Lutris
-#flatpak install flathub net.runelite.RuneLite
+#flatpak install --user flathub net.runelite.RuneLite
 
 #flatpak install flathub net.displaycal.DisplayCAL
