@@ -43,6 +43,7 @@ user_pref("browser.shell.checkDefaultBrowser", true);
 user_pref("browser.startup.homepage_override.mstone", "ignore");
 user_pref("browser.startup.page", 3);
 user_pref("browser.tabs.closeWindowWithLastTab", false);
+user_pref("browser.tabs.warnOnClose", false);
 user_pref("browser.toolbars.bookmarks.visibility", "always");
 user_pref("browser.urlbar.placeholderName", "DuckDuckGo");
 user_pref("browser.urlbar.searchSuggestionsChoice", false);

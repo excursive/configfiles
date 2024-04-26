@@ -42,11 +42,12 @@ flatpak install flathub io.mgba.mGBA
 #flatpak install flathub org.ppsspp.PPSSPP
 #flatpak install flathub org.citra_emu.citra
 #flatpak install flathub org.yuzu_emu.yuzu
+#flatpak install flathub info.cemu.Cemu
 flatpak install flathub com.dosbox.DOSBox
 #flatpak install flathub net.cebix.basilisk
 #flatpak install flathub org.scummvm.ScummVM
 
 #flatpak install flathub net.lutris.Lutris
-#flatpak install --user flathub net.runelite.RuneLite
+#flatpak install flathub net.runelite.RuneLite
 
 #flatpak install flathub net.displaycal.DisplayCAL

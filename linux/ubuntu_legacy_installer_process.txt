@@ -1,0 +1,13 @@
+Process for avoiding bugs in ubuntu legacy intsaller:
+
+Clear old home dirs
+Set up /home and /tmp encrypted ext4 partitions in Gnome Disks
+Delete all other partitions
+In installer (don't reboot):
+  change /home
+  change /tmp
+  create esp
+  create /boot
+  create encrypted volume for /
+  change /
+After install, fix crypttab and fstab before restarting!
