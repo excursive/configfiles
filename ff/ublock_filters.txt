@@ -1,5 +1,5 @@
-twitter.com##div[data-testid="sidebarColumn"] div:has(> div > section > div[aria-label="Timeline: Trending now"])
-!twitter.com##div[data-testid="sidebarColumn"] div:has(> div > section > div[aria-label="Timeline: "])
+x.com##div[data-testid="sidebarColumn"] div:has(> div > section > div[aria-label="Timeline: Trending now"])
+!x.com##div[data-testid="sidebarColumn"] div:has(> div > section > div[aria-label="Timeline: "])
 
 
 netflix.com##.player-view-childrens
