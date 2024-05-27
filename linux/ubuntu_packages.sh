@@ -32,6 +32,11 @@ sudo apt-get install cd-paranoia libcdio-utils cdrdao libxml2-utils libbluray2 l
 sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
 
+# For blender:
+#sudo usermod -a -G video username
+#sudo usermod -a -G render username
+sudo apt-get install libamdhip64-5
+
 #sudo apt-get --no-install-recommends install python3-pyxattr
 
 

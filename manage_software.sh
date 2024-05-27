@@ -283,9 +283,9 @@ create_symlinks() {
 
 
 manage_blender() {
-  local blender_version='3.2.1'
-  local blender_sha256='d363a836d03a2462341d7f5cac98be2024120e648258f9ae8e7b69c9f88d6ac1'
-  local blender_dl_url='Blender3.2/blender-3.2.1-linux-x64.tar.xz'
+  local blender_version='4.1.1'
+  local blender_sha256='ab2ea3fe991601a5e6bd2cda786ecaa919c0b39e0550e59978b5d40270c260d3'
+  local blender_dl_url='Blender4.1/blender-4.1.1-linux-x64.tar.xz'
   
   local blender_dir="${PWD}/blender"
   local install_dir="${blender_dir}/blender-${blender_version}-linux-x64"
@@ -310,10 +310,10 @@ manage_blender() {
   local escaped_executable_path=\""$(escape_desktop_entry_argument "${install_dir}/blender")"\"
   local launcher_text="[Desktop Entry]
 Type=Application
-Name=Blender
+Name=Blender (standalone)
 Comment=Free and open source 3D creation suite
 Icon=${escaped_install_dir}/blender.svg
-Exec=env MESA_LOADER_DRIVER_OVERRIDE=i965 ${escaped_executable_path}
+Exec=${escaped_executable_path}
 Path=${escaped_install_dir}
 Terminal=false
 Category=Video;Graphics;"
