@@ -35,7 +35,7 @@ sudo dpkg-reconfigure libdvd-pkg
 # For blender:
 #sudo usermod -a -G video username
 #sudo usermod -a -G render username
-sudo apt-get install libamdhip64-5
+sudo apt-get install libamdhip64-5 rocminfo rocm-device-libs
 
 #sudo apt-get --no-install-recommends install python3-pyxattr
 
