@@ -775,6 +775,10 @@ ytdl_cookies() {
        --user-agent 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0' "$@"
 }
 
+soundcloud_output() {
+  ytdl_options --output '%(extractor)s-%(uploader)s-%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' "$@"
+}
+
 youtube_output() {
   ytdl_options --output '%(uploader_id)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' "$@"
 }
