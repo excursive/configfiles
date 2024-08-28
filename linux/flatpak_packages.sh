@@ -1,13 +1,14 @@
 #!/bin/bash
 
-#flatpak remote-add --user --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
-flatpak remote-add --if-not-exists flathub 'https://flathub.org/repo/flathub.flatpakrepo'
+#flatpak remote-add --user --if-not-exists flathub 'https://dl.flathub.org/repo/flathub.flatpakrepo'
+flatpak remote-add --if-not-exists flathub 'https://dl.flathub.org/repo/flathub.flatpakrepo'
 
 flatpak install flathub com.github.tchx84.Flatseal
 #flatpak install flathub org.gtk.Gtk3theme.Adwaita-dark
 flatpak install flathub org.mozilla.firefox
 #flatpak install flathub com.google.Chrome
 flatpak install flathub org.gnome.Rhythmbox3
+flatpak install flathub com.spotify.Client
 #flatpak install flathub org.videolan.VLC
 #flatpak install flathub org.libreoffice.LibreOffice
 #flatpak install flathub org.gnome.Calculator
@@ -25,6 +26,10 @@ flatpak install flathub org.inkscape.Inkscape
 flatpak install flathub org.kde.kdenlive
 flatpak install flathub org.blender.Blender
 flatpak install flathub fr.natron.Natron
+
+flatpak install flathub org.ardour.Ardour
+flatpak install flathub org.audacityteam.Audacity
+flatpak install flathub fm.reaper.Reaper
 
 #flatpak install flathub com.visualstudio.code
 flatpak install flathub org.kde.okteta
