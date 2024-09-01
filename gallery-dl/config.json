@@ -128,7 +128,7 @@
         "mangadex":
         {
             "api-parameters": null,
-            "lang": null,
+            "lang": "en",
             "ratings": ["safe", "suggestive", "erotica", "pornographic"]
         },
         "mastodon":
