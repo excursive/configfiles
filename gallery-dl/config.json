@@ -179,6 +179,12 @@
         {
             "refresh-token": null,
             "include": ["avatar", "background", "artworks", "novel-user"],
+            "novel":
+            {
+                "covers": true,
+                "embeds": true,
+                "full-series": true
+            },
             "metadata": true,
             "tags": "original",
             "ugoira": true
