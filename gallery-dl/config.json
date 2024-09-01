@@ -178,7 +178,7 @@
         "pixiv":
         {
             "refresh-token": null,
-            "include": ["avatar", "background", "artworks"],
+            "include": ["avatar", "background", "artworks", "novel-user"],
             "metadata": true,
             "tags": "original",
             "ugoira": true
@@ -206,6 +206,8 @@
         },
         "tumblr":
         {
+            "api-key": null,
+            "api-secret": null,
             "avatar": true,
             "external": true,
             "inline": true,
