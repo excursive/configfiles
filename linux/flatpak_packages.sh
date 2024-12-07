@@ -10,6 +10,7 @@ flatpak install flathub org.mozilla.firefox
 flatpak install flathub org.gnome.Rhythmbox3
 flatpak install flathub com.spotify.Client
 #flatpak install flathub org.videolan.VLC
+#flatpak install flathub io.mpv.Mpv
 #flatpak install flathub org.libreoffice.LibreOffice
 #flatpak install flathub org.gnome.Calculator
 #flatpak install flathub org.gnome.GHex
@@ -51,6 +52,7 @@ flatpak install flathub io.mgba.mGBA
 flatpak install flathub com.dosbox.DOSBox
 #flatpak install flathub net.cebix.basilisk
 #flatpak install flathub org.scummvm.ScummVM
+#flatpak install flathub com.adobe.Flash-Player-Projector
 
 #flatpak install flathub net.lutris.Lutris
 #flatpak install flathub net.runelite.RuneLite

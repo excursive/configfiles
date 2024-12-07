@@ -26,13 +26,13 @@ sudo apt-get purge firefox
 sudo apt-get update
 sudo apt-get dist-upgrade
 sudo apt-get install ubuntu-restricted-extras
-sudo apt-get install build-essential autoconf automake cmake valgrind lm-sensors curl lz4
-sudo apt-get install flatpak sqlite3 brasero vim vim-gtk3 git git-crypt ffmpeg flac vlc mpv steam-devices
+sudo apt-get install build-essential autoconf automake cmake valgrind lm-sensors curl lz4 python3-lxml python3-bs4
+sudo apt-get install flatpak sqlite3 brasero vim vim-gtk3 git git-crypt ffmpeg flac sox vlc mpv steam-devices
 sudo apt-get install cd-paranoia libcdio-utils cdrdao libxml2-utils libbluray2 libaacs0 libbdplus0
 sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
 
-sudo apt-get install ardour
+sudo apt-get install ardour ardour-video-timeline
 
 # For blender:
 #sudo usermod -a -G video username

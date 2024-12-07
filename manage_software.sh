@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='dd62768e104d93e94eb7086295b337a2ee31bd22'
+  local gallery_dl_version='4cd9ce8b39b25e79321fbffe17fd310fe2161f11'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
@@ -500,7 +500,7 @@ python3 '"${escaped_gallery_dl_path}"' "$@"'
 
 
 manage_yt_dlp() {
-  local yt_dlp_version='4d9231208332d4c32364b8cd814bff8b20232cae'
+  local yt_dlp_version='4bd2655398aed450456197a6767639114a24eac2'
   
   local yt_dlp_dir="${PWD}/yt-dlp"
   
@@ -539,15 +539,12 @@ python3 '"${escaped_youtube_dl_path}"' "$@"'
 
 manage_winetricks() {
   # sed deletion is by line number, remember to update both
-  local winetricks_version='fa11b11a91a984666bf83b42e09be33ec0d6b294'
+  local winetricks_version='bc91718a5cad45e9f33de9b351a5960d5395bed5'
   
   local winetricks_dir="${PWD}/winetricks"
   
   checkout_commit "${winetricks_dir}" "$winetricks_version" \
                   'https://github.com/Winetricks/winetricks.git'
-  
-  printf '\n==== Deleting checksum skip for downloads over 500 MB (lines 1318 to 1326)\n'
-  sed -i -e '1321,1329d' "${winetricks_dir}/src/winetricks"
   
   create_symlinks "${winetricks_dir}/src/winetricks"
 }
