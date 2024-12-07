@@ -628,7 +628,7 @@ Category=Game;Development;"
 
 
 manage_discimagecreator() {
-  local dic_version='0e7c48f1aae0ff7fcb0fe34acffe010488bc5745'
+  local dic_version='1e8c556b7f307cc9d681d8f735301c5fa9bc3cff'
   
   local dic_dir="${PWD}/DiscImageCreator"
   
@@ -770,7 +770,7 @@ manage_cc65() {
 
 
 manage_cyanrip() {
-  local cyanrip_version='25879a9c16b81410a1dee793f6674020edb7029e'
+  local cyanrip_version='063d848b92576b81b9fc77b01708664f695d0679'
   
   local cyanrip_dir="${PWD}/cyanrip"
   
