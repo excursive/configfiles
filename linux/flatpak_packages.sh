@@ -12,6 +12,8 @@ flatpak install flathub com.spotify.Client
 #flatpak install flathub org.videolan.VLC
 #flatpak install flathub io.mpv.Mpv
 #flatpak install flathub org.libreoffice.LibreOffice
+#flatpak install flathub com.github.johnfactotum.Foliate
+#flatpak install flathub com.calibre_ebook.calibre
 #flatpak install flathub org.gnome.Calculator
 #flatpak install flathub org.gnome.GHex
 flatpak install flathub com.transmissionbt.Transmission
