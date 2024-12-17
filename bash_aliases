@@ -7,7 +7,9 @@ alias ddsafe="dd conv=excl bs=65536 iflag=skip_bytes"
 alias md5c="md5sum -c --quiet"
 alias sha256c="sha256sum -c --quiet"
 
-alias chardiff="git diff --no-index --word-diff=color --word-diff-regex=. --"
+alias colordiff="git --no-pager diff --no-index --color=always"
+alias worddiff="git --no-pager diff --no-index --color=always --word-diff=color"
+alias chardiff="git --no-pager diff --no-index --color=always --word-diff=color --word-diff-regex=."
 
 alias pngreduce="pngquant --speed 1 --strip --verbose"
 
@@ -200,6 +202,19 @@ md5r() {
     printf -- '%s\n' "$output" > "${1}"
   else
     find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty md5sum --
+  fi
+}
+
+sha1r() {
+  if [ -n "${1}" ]; then
+    local output="$(sha1r)"
+    if [ -e "${1}" ]; then
+      printf 'Error: Output file already exists\n' 1>&2
+      return 1
+    fi
+    printf -- '%s\n' "$output" > "${1}"
+  else
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty sha1sum --
   fi
 }
 

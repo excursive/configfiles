@@ -494,11 +494,37 @@ sha256audior() {
 
 
 
+md5r() {
+  if [ -n "${1}" ]; then
+    local output="$(md5r)"
+    if [ -e "${1}" ]; then
+      printf 'Error: Output file already exists\n' 1>&2
+      return 1
+    fi
+    printf -- '%s\n' "$output" > "${1}"
+  else
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty md5sum --
+  fi
+}
+
+sha1r() {
+  if [ -n "${1}" ]; then
+    local output="$(sha1r)"
+    if [ -e "${1}" ]; then
+      printf 'Error: Output file already exists\n' 1>&2
+      return 1
+    fi
+    printf -- '%s\n' "$output" > "${1}"
+  else
+    find . -type f -print0 | sort -z -- | xargs -0 --no-run-if-empty sha1sum --
+  fi
+}
+
 sha256r() {
   if [ -n "${1}" ]; then
     local output="$(sha256r)"
     if [ -e "${1}" ]; then
-      printf 'Error: Output file already exists\n\n' 1>&2
+      printf 'Error: Output file already exists\n' 1>&2
       return 1
     fi
     printf -- '%s\n' "$output" > "${1}"

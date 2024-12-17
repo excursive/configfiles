@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='4cd9ce8b39b25e79321fbffe17fd310fe2161f11'
+  local gallery_dl_version='d7873b9eb718c364139a170f16c77324d4d86a4f'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
@@ -500,7 +500,7 @@ python3 '"${escaped_gallery_dl_path}"' "$@"'
 
 
 manage_yt_dlp() {
-  local yt_dlp_version='4bd2655398aed450456197a6767639114a24eac2'
+  local yt_dlp_version='54216696261bc07cacd9a837c501d9e0b7fed09e'
   
   local yt_dlp_dir="${PWD}/yt-dlp"
   
@@ -538,7 +538,6 @@ python3 '"${escaped_youtube_dl_path}"' "$@"'
 
 
 manage_winetricks() {
-  # sed deletion is by line number, remember to update both
   local winetricks_version='bc91718a5cad45e9f33de9b351a5960d5395bed5'
   
   local winetricks_dir="${PWD}/winetricks"
@@ -906,7 +905,7 @@ manage_pngquant() {
 
 
 manage_gifski() {
-  local gifski_version='12a362e0d14d555ae10e3b0795f6320af1458927'
+  local gifski_version='bb9676eafb91dac24090759f3dfea63761cce06f'
   
   local gifski_dir="${PWD}/gifski"
   
