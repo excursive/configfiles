@@ -1,0 +1,2 @@
+[Context]
+filesystems=~/Videos:ro;~/Pictures;~/Downloads:ro;xdg-run/gvfs:ro
