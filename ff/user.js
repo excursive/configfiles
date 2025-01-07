@@ -37,8 +37,9 @@ user_pref("browser.search.hiddenOneOffs", "Bing,Amazon.com,eBay,Twitter,Wikipedi
 user_pref("browser.search.suggest.enabled.private", false);
 user_pref("browser.search.suggest.enabled", false);
 user_pref("browser.search.widget.inNavBar", false);
-user_pref("browser.sessionhistory.max_entries", 100);
-user_pref("browser.sessionstore.max_serialize_back", 100);
+user_pref("browser.sessionhistory.max_entries", 60);
+user_pref("browser.sessionstore.interval", 600000);
+user_pref("browser.sessionstore.max_serialize_back", 20);
 user_pref("browser.sessionstore.restore_pinned_tabs_on_demand", true);
 user_pref("browser.sessionstore.warnOnQuit", true);
 user_pref("browser.shell.checkDefaultBrowser", true);
