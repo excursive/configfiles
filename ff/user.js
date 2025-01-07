@@ -3,6 +3,7 @@ user_pref("app.normandy.enabled", false);
 user_pref("app.shield.optoutstudies.enabled", false);
 user_pref("browser.bookmarks.addedImportButton", true);
 user_pref("browser.bookmarks.restore_default_bookmarks", false);
+user_pref("browser.cache.disk.enable", false);
 user_pref("browser.contentblocking.category", "custom");
 user_pref("browser.crashReports.unsubmittedCheck.autoSubmit2", false);
 user_pref("browser.discovery.enabled", false);
