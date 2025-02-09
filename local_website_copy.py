@@ -3,12 +3,11 @@
 import sys
 import os
 import re
-from lxml import etree
-from lxml.html import soupparser
 import urllib.request
+import urllib.parse
+import urllib.error
+from lxml import etree
 from pathlib import Path
-from pprint import pprint
-from urllib.parse import urlparse
 from decimal import Decimal
 from operator import itemgetter
 
@@ -17,6 +16,20 @@ try:
 except AssertionError:
     print('Error: Python installation out of date')
     sys.exit(1)
+
+
+skip_http_errors = False
+if len(sys.argv) >= 4 and sys.argv[3] == '--skip-errors':
+    skip_http_errors = True
+
+
+url_scheme_regex = re.compile('^(http|https)://(.+)$')
+def strip_url_scheme(url):
+    url_match = url_scheme_regex.match(url)
+    if url_match is None:
+        print(f"Error: Invalid URL: {url}")
+        sys.exit(2)
+    return url_match.group(2)
 
 
 # Need to escape ? and # in src/href so the browser doesn't try
@@ -30,24 +43,52 @@ opener = urllib.request.build_opener()
 opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0')]
 urllib.request.install_opener(opener)
 
-def dl_if_not_exists(url, out_file):
-    #TODO: Determine if ' or others need to be escaped as well
-    #out_file = out_file_no_char_escapes.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
-    
+def dl_if_not_exists(out_file, url):
     Path(os.path.dirname(out_file)).mkdir(parents=True, exist_ok=True)
     try:
         assert not os.path.exists(out_file)
     except AssertionError:
-        print(f"{out_file} already exists. Skipping.")
+        #print(f"{out_file} already exists. Skipping.")
         return
     
-    urllib.request.urlretrieve(url, out_file)
+    try:
+        urllib.request.urlretrieve(url, out_file)
+    except urllib.error.HTTPError as e:
+        print(f"\n==== HTTP Error:\nCode: {e.code}\nURL: {e.url}\nReason: {e.reason}")
+        if not skip_http_errors:
+            sys.exit(4)
+
+
+# could break on invalid urls that aren't quoted and contain an end parenthesis.
+style_url_regex = re.compile("(url\\(['\"]?)([^'\")]*)(['\"]?\\))")
+def replace_css_url(matchobj):
+    url = matchobj.group(2)
+    if url.startswith('data:'):
+        return matchobj.group(0)
+    url = urllib.parse.urljoin(stylesheet_url, url)
+    out_file = strip_url_scheme(url)
+    dl_if_not_exists(out_file, url)
+    return f"{matchobj.group(1)}{out_file}{matchobj.group(3)}"
 
 
 
-for f in sys.argv[1:]:
+# TODO: Handle multiple pages
+if sys.argv[1] and sys.argv[2]:
+    f = sys.argv[1]
+    current_url = sys.argv[2]
+    relative_path_to_base_dir = os.path.relpath('.', strip_url_scheme(current_url))
+    
     tree = etree.parse(f, parser=etree.HTMLParser())
-    #tree = soupparser.parse(f)
+    
+    base_url_for_relative_links = current_url
+    base_tags = tree.xpath('//base')
+    if len(base_tags) > 0:
+        base_tag = base_tags[0]
+        base_url_for_relative_links = urllib.parse.urljoin(current_url, base_tag.get('href'))
+    else:
+        base_tag = etree.Element('base')
+    base_tag.set('href', relative_path_to_base_dir)
+    
     
     non_num_regex = re.compile('[^0-9.]')
     imgs_with_origs = tree.xpath('//img')
@@ -65,8 +106,8 @@ for f in sys.argv[1:]:
         else:
             url = img.get('src')
         
-        split_url = url.split('/', 3)
-        out_img = f"{split_url[2]}/{split_url[3]}"
+        url = urllib.parse.urljoin(base_url_for_relative_links, url)
+        out_img = strip_url_scheme(url)
         
         img.set('src', correct_link(out_img))
         try:
@@ -78,7 +119,13 @@ for f in sys.argv[1:]:
         for link in links_to_img:
             link.set('href', correct_link(out_img))
         
-        dl_if_not_exists(url, out_img)
+        dl_if_not_exists(out_img, url)
+    
+    
+    stylesheet_url = base_url_for_relative_links
+    styles = tree.xpath('//style')
+    for style in styles:
+        style.text = style_url_regex.sub(replace_css_url, style.text)
     
     
     links = tree.xpath('//link')
@@ -86,11 +133,11 @@ for f in sys.argv[1:]:
         match link.get('rel'):
             case 'stylesheet' | 'icon':
                 url = link.get('href')
-                split_url = url.split('/', 3)
-                out_file = f"{split_url[2]}/{split_url[3]}"
+                url = urllib.parse.urljoin(base_url_for_relative_links, url)
+                out_file = strip_url_scheme(url)
                 #TODO: Should # be escaped for local stylesheets and/or icons?
                 link.set('href', correct_link(out_file))
-                dl_if_not_exists(url, out_file)
+                dl_if_not_exists(out_file, url)
                 
                 # Browser blocks reading external stylesheets with the error
                 # "Cross-Origin Request Blocked", so convert to inline stylesheet
@@ -111,34 +158,24 @@ for f in sys.argv[1:]:
                         if link_title is not None:
                             style.set('title', link_title)
                         
-                        style.text = css
+                        stylesheet_url = url
+                        style.text = style_url_regex.sub(replace_css_url, css)
                         link.getparent().replace(link, style)
             case _:
                 link.getparent().remove(link)
     
     
-    style_url_start_regex = re.compile("url\\('https?://")
-    style_url_regex = re.compile("url\\('([^']*)'\\)")
-    styles = tree.xpath('//style')
-    for style in styles:
-        for url in style_url_regex.findall(style.text):
-            if url.startswith('data:'):
-                continue
-            split_url = url.split('/', 3)
-            out_file = f"{split_url[2]}/{split_url[3]}"
-            dl_if_not_exists(url, out_file)
-        style.text = style_url_start_regex.sub("url('", style.text)
     
     
     iframes = tree.xpath('//iframe')
     for iframe in iframes:
         iframe.getparent().remove(iframe)
 #        url = iframe.get('src')
-#        split_url = url.split('/', 3)
-#        out_file = f"{split_url[2]}/{split_url[3]}"
+#        url = urllib.parse.urljoin(base_url_for_relative_links, url)
+#        out_file = strip_url_scheme(url)
 #        # I think we don't want to escape # for local iframe urls
 #        iframe.set('src', out_file.replace('%', '%25').replace('?', '%3F'))
-#        dl_if_not_exists(url, out_file)
+#        dl_if_not_exists(out_file, url)
     
     
     scripts = tree.xpath('//script')
@@ -151,7 +188,8 @@ for f in sys.argv[1:]:
         assert not os.path.exists(out_html_file)
     except AssertionError:
         print(f"{out_html_file} already exists. Skipping.")
-        continue
+        sys.exit(0)
+        #continue
     
     tree.write(out_html_file, encoding='utf-8', method='html', pretty_print=False)
     #lxml doesn't write a newline after last line
