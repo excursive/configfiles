@@ -415,7 +415,7 @@ Category=Graphics;"
 
 
 manage_rust() {
-  local rust_installer_sha256='173f4881e2de99ba9ad1acb59e65be01b2a44979d83b6ec648d0d22f8654cbce'
+  local rust_installer_sha256='32a680a84cf76014915b3f8aa44e3e40731f3af92cd45eb0fcc6264fd257c428'
   
   dl_and_verify_file "$rust_installer_sha256" 'rustup-init.sh' \
                      'https://sh.rustup.rs/'
@@ -551,8 +551,27 @@ manage_winetricks() {
 
 
 
-manage_qt5_deb() {
-  printf '\n======== unfinished\n'
+manage_rs2004server() {
+  local rs2004server_version='6f41a8abdcd1a87a6068d54b3987ed20a8f7a7a0'
+  
+  local rs2004server_dir="${PWD}/2004Scape/Server"
+  mkdir --verbose --parents -- "${PWD}/2004Scape"
+  
+  checkout_commit "${rs2004server_dir}" "$rs2004server_version" \
+                  'https://github.com/2004Scape/Server.git'
+}
+
+
+
+
+manage_rs2004client2() {
+  local rs2004client2_version='43473be3faaab6e0564ca1a3ca51fbe729bdf66f'
+  
+  local rs2004client2_dir="${PWD}/2004Scape/Client2"
+  mkdir --verbose --parents -- "${PWD}/2004Scape"
+  
+  checkout_commit "${rs2004client2_dir}" "$rs2004client2_version" \
+                  'https://github.com/2004Scape/Client2.git'
 }
 
 
@@ -1330,7 +1349,8 @@ case "$1" in
   'bchunk') manage_bchunk ;;
   'discimagecreator') manage_discimagecreator ;;
   'fceux') manage_fceux ;;
-  'qt5-deb') manage_qt5_deb ;;
+  'rs2004client2') manage_rs2004client2 ;;
+  'rs2004server') manage_rs2004server ;;
   'winetricks') manage_winetricks ;;
   'youtube-dl') manage_youtube_dl ;;
   'yt-dlp') manage_yt_dlp ;;
