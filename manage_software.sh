@@ -500,7 +500,7 @@ python3 '"${escaped_gallery_dl_path}"' "$@"'
 
 
 manage_yt_dlp() {
-  local yt_dlp_version='54216696261bc07cacd9a837c501d9e0b7fed09e'
+  local yt_dlp_version='4985a4041770eaa0016271809a1fd950dc809a55'
   
   local yt_dlp_dir="${PWD}/yt-dlp"
   
@@ -552,7 +552,7 @@ manage_winetricks() {
 
 
 manage_rs2004server() {
-  local rs2004server_version='6f41a8abdcd1a87a6068d54b3987ed20a8f7a7a0'
+  local rs2004server_version='a0cc239e26fed291959afa9914a63fabf2550286'
   
   local rs2004server_dir="${PWD}/2004Scape/Server"
   mkdir --verbose --parents -- "${PWD}/2004Scape"
