@@ -56,7 +56,7 @@ def dl_if_not_exists(url, out_file):
     try:
         assert not os.path.exists(out_file)
     except AssertionError:
-        print(f"{out_file} already exists. Skipping.")
+        print(f"Skipping existing file: {out_file}")
         return
 
     time.sleep(random.uniform(3.0, 8.0))
@@ -75,6 +75,12 @@ for item in sys.argv[1:]:
     files = tree.xpath('//file')
     for file in files:
         file_name = file.get('name')
+        
+        private_tag_list = file.xpath('./private')
+        if len(private_tag_list) > 0 and private_tag_list[0].text == 'true':
+            print(f"  Access Restricted File: {file_name}")
+            continue
+        
         file_name_escaped = urllib.parse.quote(file_name)
 
         dl_if_not_exists(f"https://archive.org/download/{item}/{file_name_escaped}", f"{item}/{file_name}")
