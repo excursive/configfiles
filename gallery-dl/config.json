@@ -26,9 +26,6 @@
         "path-strip": "auto",
         "path-extended": true,
 
-        "url-metadata": "gdl_file_url",
-        "path-metadata": "gdl_path",
-        "http-metadata": "gdl_http",
 
 
         "artstation":
@@ -225,24 +222,32 @@
         },
         "twitter":
         {
-            "directory": ["{category}", "{author[id]}"],
+            "directory": {
+                    "author['id'] != user['id']": ["{category}", "{user[id]}", "retweets"],
+                    ""                          : ["{category}", "{author[id]}"]
+            },
+            "filename": "{author[id]}-{tweet_id}-{num}.{extension}",
             "username": null,
             "password": null,
             "cards": "ytdl",
-            "conversations": true,
+            "conversations": false,
+            "include": ["info", "avatar", "background", "timeline"],
             "logout": true,
+            "locked": "abort",
             "pinned": true,
             "quoted": true,
             "replies": true,
-            "retweets": "original",
-            "strategy": null,
+            "retweets": true,
             "syndication": true,
             "text-tweets": true,
             "timeline": {
                     "strategy": "with_replies"
             },
+            "transform": true,
             "twitpic": true,
-            "videos": true
+            "unavailable": true,
+            "videos": true,
+            "postprocessors": ["writetweetmetadata"]
         },
         "weibo":
         {
@@ -344,7 +349,19 @@
         {
             "name" : "compare",
             "action": "enumerate",
+            "equal": "abort:5",
             "shallow": false
+        },
+
+        "writetweetmetadata":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "{author[id]}-{tweet_id}.json",
+            "event": "post",
+            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "mtime": false
         },
 
         "writemetadata":
