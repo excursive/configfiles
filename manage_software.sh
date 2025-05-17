@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='87f02acd9e2767b337808994973ad44e592c6b0e'
+  local gallery_dl_version='25e293c16fc209355f8423e62c6a917c77bd2dc5'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
@@ -500,7 +500,7 @@ python3 '"${escaped_gallery_dl_path}"' "$@"'
 
 
 manage_yt_dlp() {
-  local yt_dlp_version='5e457af57fae9645b1b8fa0ed689229c8fb9656b'
+  local yt_dlp_version='505b400795af557bdcfd9d4fa7e9133b26ef431c'
   
   local yt_dlp_dir="${PWD}/yt-dlp"
   

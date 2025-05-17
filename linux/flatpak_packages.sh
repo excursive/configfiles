@@ -17,6 +17,7 @@ flatpak install flathub com.spotify.Client
 #flatpak install flathub org.gnome.Calculator
 #flatpak install flathub org.gnome.GHex
 flatpak install flathub com.transmissionbt.Transmission
+flatpak install flathub org.gnome.Boxes
 flatpak install flathub com.usebottles.bottles
 flatpak install flathub com.valvesoftware.Steam
 
