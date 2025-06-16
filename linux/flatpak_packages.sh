@@ -56,7 +56,8 @@ flatpak install flathub io.mgba.mGBA
 #flatpak install flathub info.cemu.Cemu
 #flatpak install flathub com.dosbox.DOSBox
 flatpak install flathub io.github.dosbox-staging
-flatpak install flathub net._86box._86Box
+flatpak install flathub com.dosbox_x.DOSBox-X
+#flatpak install flathub net._86box._86Box
 #flatpak install flathub net.cebix.basilisk
 #flatpak install flathub org.scummvm.ScummVM
 #flatpak install flathub com.adobe.Flash-Player-Projector
