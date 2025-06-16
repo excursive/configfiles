@@ -34,6 +34,7 @@ sudo apt-get install libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
 
 sudo apt-get install ardour ardour-video-timeline
+sudo apt-get install qemu-system qemu-user-static
 
 # For blender:
 #sudo usermod -a -G video username

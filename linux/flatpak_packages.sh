@@ -20,9 +20,11 @@ flatpak install flathub com.transmissionbt.Transmission
 flatpak install flathub org.gnome.Boxes
 flatpak install flathub com.usebottles.bottles
 flatpak install flathub com.valvesoftware.Steam
+flatpak install flathub io.github.ilya_zlobintsev.LACT
 
 flatpak install flathub org.gimp.GIMP
 flatpak install flathub org.kde.krita
+flatpak install flathub io.github.OpenToonz
 flatpak install flathub org.inkscape.Inkscape
 #flatpak install flathub com.github.libresprite.LibreSprite
 
@@ -52,7 +54,9 @@ flatpak install flathub io.mgba.mGBA
 #flatpak install flathub org.citra_emu.citra
 #flatpak install flathub org.yuzu_emu.yuzu
 #flatpak install flathub info.cemu.Cemu
-flatpak install flathub com.dosbox.DOSBox
+#flatpak install flathub com.dosbox.DOSBox
+flatpak install flathub io.github.dosbox-staging
+flatpak install flathub net._86box._86Box
 #flatpak install flathub net.cebix.basilisk
 #flatpak install flathub org.scummvm.ScummVM
 #flatpak install flathub com.adobe.Flash-Player-Projector
