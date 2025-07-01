@@ -186,6 +186,11 @@
             "tags": "original",
             "ugoira": true
         },
+        "poipiku":
+        {
+            "directory": ["{category}", "{user_id}"],
+            "filename": "{post_id}_{num}.{extension}"
+        },
         "reddit":
         {
             "refresh-token": null,
