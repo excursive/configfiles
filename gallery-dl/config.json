@@ -216,6 +216,11 @@
         {
             "api-key": null,
             "api-secret": null,
+            "directory": {
+                    "reblogged": ["{category}", "{blog[uuid]}", "reblogs"],
+                    ""         : ["{category}", "{blog[uuid]}"]
+            },
+            "filename": "{id}_{num}.{extension}",
             "avatar": true,
             "external": false,
             "inline": true,
