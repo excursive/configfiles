@@ -189,7 +189,8 @@
         "poipiku":
         {
             "directory": ["{category}", "{user_id}"],
-            "filename": "{post_id}_{num}.{extension}"
+            "filename": "{post_id}_{num}.{extension}",
+            "postprocessors": ["writepostidpostmetadata"]
         },
         "reddit":
         {
@@ -228,7 +229,8 @@
             "offset": 0,
             "original": true,
             "ratelimit": "abort",
-            "reblogs": true
+            "reblogs": true,
+            "postprocessors": ["writeidpostmetadata"]
         },
         "twitter":
         {
@@ -361,6 +363,28 @@
             "action": "enumerate",
             "equal": "abort:5",
             "shallow": false
+        },
+
+        "writeidpostmetadata":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "{id}.json",
+            "event": "post",
+            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "mtime": false
+        },
+
+        "writepostidpostmetadata":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "{post_id}.json",
+            "event": "post",
+            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "mtime": false
         },
 
         "writetweetmetadata":
