@@ -26,6 +26,12 @@
         "path-strip": "auto",
         "path-extended": true,
 
+        "oauth":
+        {
+            "browser": false
+        },
+
+
 
 
         "artstation":
