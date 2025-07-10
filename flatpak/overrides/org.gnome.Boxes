@@ -1,0 +1,2 @@
+[Context]
+filesystems=host-os:ro;host-etc:ro;xdg-run/dconf:ro
