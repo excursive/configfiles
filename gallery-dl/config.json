@@ -219,6 +219,16 @@
             "username": null,
             "password": null
         },
+        "tiktok":
+        {
+            "directory": ["{category}", "{author[id]}"],
+            "audio": true,
+            "videos": true,
+            "user": {
+                    "avatar": true,
+                    "module": null
+            }
+        },
         "tumblr":
         {
             "api-key": null,
