@@ -353,14 +353,14 @@
         "skip": true,
         "log": {
             "level": "warning",
-            "format": "{asctime} [{name}][{levelname}] {message}",
+            "format": "{asctime} [{levelname}] [{extractor.url}] [{name}] {message}",
             "format-date": "%Y-%m-%d %H:%M:%S"
         },
         "logfile": {
             "path": "./gallery-dl/log.txt",
             "mode": "a",
             "level": "warning",
-            "format": "{asctime} [{name}][{levelname}] {message}",
+            "format": "{asctime} [{levelname}] [{extractor.url}] [{name}] {message}",
             "format-date": "%Y-%m-%d %H:%M:%S"
         },
         "unsupportedfile": {
