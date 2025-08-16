@@ -26,6 +26,9 @@ alias gifoptimize='gifsicle --merge --no-app-extensions --no-names --no-comments
 
 alias aadebug="apparmor_parser -Q --debug"
 
+alias gettextscale="gsettings get org.gnome.desktop.interface text-scaling-factor"
+alias settextscale="gsettings set org.gnome.desktop.interface text-scaling-factor"
+
 
 
 
