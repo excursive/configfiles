@@ -63,6 +63,7 @@ flatpak install flathub com.dosbox_x.DOSBox-X
 #flatpak install flathub com.adobe.Flash-Player-Projector
 
 #flatpak install flathub net.lutris.Lutris
+#flatpak install flathub com.adamcake.Bolt
 #flatpak install flathub net.runelite.RuneLite
 
 #flatpak install flathub net.displaycal.DisplayCAL
