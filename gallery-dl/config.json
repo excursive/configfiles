@@ -257,7 +257,7 @@
             "filename": "{author[id]}-{tweet_id}-{num}.{extension}",
             "username": null,
             "password": null,
-            "cards": "ytdl",
+            "cards": true,
             "conversations": false,
             "include": ["info", "avatar", "background", "timeline"],
             "logout": true,
@@ -286,17 +286,28 @@
         },
         "ytdl":
         {
+            "module": null,
             "enabled": false,
-            "format": "bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]",
+            "deprecations": true,
             "logging": true,
-            "module": "yt_dlp",
             "raw-options":
             {
                 "nooverwrites": true,
+                "writedescription": true,
+                "writeinfojson": true,
+                "clean_infojson": false,
+                "writeannotations": false,
+                "writethumbnail": true,
+                "allow_playlist_files": true,
+                "write_all_thumbnails": false,
+                "writesubtitles": true,
+                "writeautomaticsub": false,
+                "subtitleslangs": "all",
                 "call_home": false,
-                "fixup": "never"
+                "fixup": "warn",
+                "live_from_start": true
             },
-            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites --fixup never"
+            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         },
         "zerochan":
         {
@@ -330,18 +341,29 @@
 
         "ytdl":
         {
-            "format": null,
+            "module": null,
+            "deprecations": true,
             "forward-cookies": false,
             "logging": true,
-            "module": null,
             "outtmpl": null,
             "raw-options":
             {
                 "nooverwrites": true,
+                "writedescription": true,
+                "writeinfojson": true,
+                "clean_infojson": false,
+                "writeannotations": false,
+                "writethumbnail": true,
+                "allow_playlist_files": true,
+                "write_all_thumbnails": false,
+                "writesubtitles": true,
+                "writeautomaticsub": false,
+                "subtitleslangs": "all",
                 "call_home": false,
-                "fixup": "never"
+                "fixup": "warn",
+                "live_from_start": true
             },
-            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --no-post-overwrites --fixup never"
+            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         }
     },
 
