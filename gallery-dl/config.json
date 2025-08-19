@@ -257,7 +257,7 @@
             "filename": "{author[id]}-{tweet_id}-{num}.{extension}",
             "username": null,
             "password": null,
-            "cards": true,
+            "cards": "ytdl",
             "conversations": false,
             "include": ["info", "avatar", "background", "timeline"],
             "logout": true,
