@@ -500,7 +500,7 @@ python3 '"${escaped_gallery_dl_path}"' "$@"'
 
 
 manage_yt_dlp() {
-  local yt_dlp_version='c2fc4f3e7f6d757250183b177130c64beee50520'
+  local yt_dlp_version='5c8bcfdbc638dfde13e93157637d8521413ed774'
   
   local yt_dlp_dir="${PWD}/yt-dlp"
   
