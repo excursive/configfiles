@@ -53,9 +53,9 @@
         },
         "deviantart":
         {
-            "filename": "{index}_{title}.{extension}",
             "directory": ["{category}", "{author[userid]}"],
             "folder": {
+                "subfolders": true,
                 "directory": ["{category}", "{author[userid]}", "{folder[title]}"]
             },
             "favorite": {
@@ -81,11 +81,14 @@
             "folders": false,
             "group": true,
             "include": ["gallery", "scraps", "journal"],
+            "intermediary": true,
             "journals": "html",
             "mature": true,
-            "metadata": true,
+            "metadata": ["camera", "stats", "submission"],
             "original": true,
             "pagination": "manual",
+            "previews": true,
+            "quality": "png",
             "wait-min": 1
         },
         "e621":
