@@ -795,10 +795,6 @@ ytdl() {
 #       --user-agent 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0' "$@"
 #}
 
-soundcloud_output() {
-  ytdl_options --output '%(extractor)s-%(uploader_id)s-%(uploader)s-%(timestamp)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' "$@"
-}
-
 youtube_output() {
   ytdl_options --output '%(extractor)s.%(channel_id)s.%(timestamp)s.%(id)s.%(format_id)s.%(ext)s' "$@"
 }
