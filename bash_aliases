@@ -800,7 +800,7 @@ soundcloud_output() {
 }
 
 youtube_output() {
-  ytdl_options --output '%(extractor)s-%(uploader_id)s-%(uploader)s-%(timestamp)s-%(title)s-%(id)s-%(format_id)s.%(ext)s' "$@"
+  ytdl_options --output '%(extractor)s.%(channel_id)s.%(timestamp)s.%(id)s.%(format_id)s.%(ext)s' "$@"
 }
 
 youtube_backup() {
