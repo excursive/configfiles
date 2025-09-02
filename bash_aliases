@@ -780,7 +780,7 @@ video_snapshot() {
 }
 
 ytdl_options() {
-  yt-dlp --no-overwrites --no-continue --no-mtime --no-call-home \
+  yt-dlp --abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --no-call-home \
              --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json \
              --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all \
              --no-post-overwrites --no-embed-info-json --fixup warn "$@"
