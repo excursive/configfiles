@@ -52,6 +52,7 @@
         "§:atl-paas.net",
         "§:atlassian.com",
         "§:authorize.net",
+        "§:awswaf.com"
         "§:bandcamp.com",
         "§:bcbits.com",
         "§:bitbucket.org",
@@ -168,6 +169,7 @@
         "§:polyhaven.com",
         "§:posemaniacs.com",
         "§:preservica.com",
+        "§:prestigeonline.com",
         "§:privatter.net",
         "§:proton.me",
         "§:protonmail.com",
