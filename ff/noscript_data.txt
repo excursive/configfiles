@@ -52,7 +52,7 @@
         "§:atl-paas.net",
         "§:atlassian.com",
         "§:authorize.net",
-        "§:awswaf.com"
+        "§:awswaf.com",
         "§:bandcamp.com",
         "§:bcbits.com",
         "§:bitbucket.org",
