@@ -224,13 +224,15 @@
         },
         "tiktok":
         {
-            "directory": ["{category}", "{author[id]}"],
+            "directory": ["{category}", "{author[secUid]}"],
+            "filename": "{id}_{num}.{img_id|audio_id|video[id]}.{extension}",
             "audio": true,
             "videos": true,
             "user": {
                     "avatar": true,
                     "module": null
-            }
+            },
+            "postprocessors": ["writeidpostmetadata"]
         },
         "tumblr":
         {
@@ -295,7 +297,11 @@
             "logging": true,
             "raw-options":
             {
+                "ignoreerrors": false,
+                "skip_unavailable_fragments": false,
                 "nooverwrites": true,
+                "continue_dl": false,
+                "updatetime": false,
                 "writedescription": true,
                 "writeinfojson": true,
                 "clean_infojson": false,
@@ -307,10 +313,12 @@
                 "writeautomaticsub": false,
                 "subtitleslangs": "all",
                 "call_home": false,
+                "nopostoverwrites": true,
+                "embed_infojson": false,
                 "fixup": "warn",
                 "live_from_start": true
             },
-            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
+            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --no-call-home --live-from-start --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         },
         "zerochan":
         {
@@ -351,7 +359,11 @@
             "outtmpl": null,
             "raw-options":
             {
+                "ignoreerrors": false,
+                "skip_unavailable_fragments": false,
                 "nooverwrites": true,
+                "continue_dl": false,
+                "updatetime": false,
                 "writedescription": true,
                 "writeinfojson": true,
                 "clean_infojson": false,
@@ -363,10 +375,12 @@
                 "writeautomaticsub": false,
                 "subtitleslangs": "all",
                 "call_home": false,
+                "nopostoverwrites": true,
+                "embed_infojson": false,
                 "fixup": "warn",
                 "live_from_start": true
             },
-            "cmdline-args": "--no-overwrites --no-continue --no-mtime --no-call-home --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
+            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --no-call-home --live-from-start --write-description --write-info-json --write-playlist-metafiles --no-clean-info-json --no-write-annotations --write-thumbnail --write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         }
     },
 
