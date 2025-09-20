@@ -799,6 +799,10 @@ youtube_output() {
   ytdl_options --output 'yt-dlp/%(extractor)s/%(channel_id)s/%(extractor)s.%(channel_id)s.%(timestamp)s.%(id)s.%(format_id)s.%(ext)s' "$@"
 }
 
+youtube_ios() {
+  youtube_output --extractor-args 'youtube:player_client=default,ios;formats=missing_pot' "$@"
+}
+
 youtube_backup() {
   youtube_output --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' "$@"
 }

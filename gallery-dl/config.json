@@ -225,7 +225,7 @@
         "tiktok":
         {
             "directory": ["{category}", "{author[secUid]}"],
-            "filename": "{id}_{num}.{img_id|audio_id|video[id]}.{extension}",
+            "filename": "{id}.{type}{num:?_//}.{img_id|audio_id|video[id]}.{extension}",
             "audio": true,
             "videos": true,
             "user": {
@@ -354,7 +354,7 @@
         {
             "module": null,
             "deprecations": true,
-            "forward-cookies": false,
+            "forward-cookies": true,
             "logging": true,
             "outtmpl": null,
             "raw-options":
