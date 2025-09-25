@@ -305,20 +305,18 @@
                 "writedescription": false,
                 "writeinfojson": false,
                 "clean_infojson": false,
-                "writeannotations": false,
                 "writethumbnail": false,
                 "allow_playlist_files": false,
                 "write_all_thumbnails": false,
                 "writesubtitles": false,
                 "writeautomaticsub": false,
                 "subtitleslangs": "all",
-                "call_home": false,
                 "nopostoverwrites": true,
                 "embed_infojson": false,
                 "fixup": "warn",
                 "live_from_start": true
             },
-            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --no-call-home --live-from-start --no-write-description --no-write-info-json --no-write-playlist-metafiles --no-clean-info-json --no-write-annotations --no-write-thumbnail --no-write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
+            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --live-from-start --no-write-description --no-write-info-json --no-write-playlist-metafiles --no-clean-info-json --no-write-thumbnail --no-write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         },
         "zerochan":
         {
@@ -367,20 +365,18 @@
                 "writedescription": false,
                 "writeinfojson": false,
                 "clean_infojson": false,
-                "writeannotations": false,
                 "writethumbnail": false,
                 "allow_playlist_files": false,
                 "write_all_thumbnails": false,
                 "writesubtitles": false,
                 "writeautomaticsub": false,
                 "subtitleslangs": "all",
-                "call_home": false,
                 "nopostoverwrites": true,
                 "embed_infojson": false,
                 "fixup": "warn",
                 "live_from_start": true
             },
-            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --no-call-home --live-from-start --no-write-description --no-write-info-json --no-write-playlist-metafiles --no-clean-info-json --no-write-annotations --no-write-thumbnail --no-write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
+            "cmdline-args": "--abort-on-error --abort-on-unavailable-fragments --no-overwrites --no-continue --no-mtime --live-from-start --no-write-description --no-write-info-json --no-write-playlist-metafiles --no-clean-info-json --no-write-thumbnail --no-write-subs --no-write-auto-subs --sub-langs all --no-post-overwrites --no-embed-info-json --fixup warn"
         }
     },
 
