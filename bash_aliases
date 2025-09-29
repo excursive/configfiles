@@ -159,6 +159,10 @@ tar_deterministic() {
   [ "$?" -eq 0 ] && [ "$2" = 'gzip' ] && gzip_deterministic "${output}"
 }
 
+cmpdir() {
+  diff --brief --recursive --no-dereference --no-ignore-file-name-case -- "${1}"
+}
+
 delete_if_identical_to() {
   if [ -f "${1}" ] && [ -f "${2}" ] && [ ! -L "${1}" ] && [ ! -L "${2}" ] && \
      [ "$(readlink -e -- "${1}")" != "$(readlink -e -- "${2}")" ] && \
