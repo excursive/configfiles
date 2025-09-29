@@ -160,7 +160,7 @@ tar_deterministic() {
 }
 
 cmpdir() {
-  diff --brief --recursive --no-dereference --no-ignore-file-name-case -- "${1}"
+  diff --brief --recursive --no-dereference --no-ignore-file-name-case -- "${1}" "${2}"
 }
 
 delete_if_identical_to() {
