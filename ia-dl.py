@@ -2,6 +2,7 @@
 
 import sys
 import os
+import argparse
 import re
 import zlib
 import hashlib
@@ -48,7 +49,7 @@ def sha256_file(file_name):
 
 
 opener = urllib.request.build_opener()
-opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0')]
+opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0')]
 urllib.request.install_opener(opener)
 
 def dl_if_not_exists(url, out_file):
@@ -65,7 +66,14 @@ def dl_if_not_exists(url, out_file):
 
 
 
-for item in sys.argv[1:]:
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument('--no-download-missing', action='store_true')
+parser.add_argument('archive_item', nargs='+')
+args = parser.parse_args()
+
+
+
+for item in args.archive_item:
     Path(item).mkdir(exist_ok=True)
     file_list = f"{item}_files.xml"
     dl_if_not_exists(f"https://archive.org/download/{item}/{file_list}", f"{item}/{file_list}")
@@ -76,14 +84,19 @@ for item in sys.argv[1:]:
     for file in files:
         file_name = file.get('name')
         
-        private_tag_list = file.xpath('./private')
-        if len(private_tag_list) > 0 and private_tag_list[0].text == 'true':
-            print(f"  Access Restricted File: {file_name}")
-            continue
-        
-        file_name_escaped = urllib.parse.quote(file_name)
+        if not os.path.exists(f"{item}/{file_name}"):
+            private_tag_list = file.xpath('./private')
+            if len(private_tag_list) > 0 and private_tag_list[0].text == 'true':
+                print(f"  Access Restricted File: {file_name}")
+                continue
+            
+            if args.no_download_missing:
+                print(f"            Missing File: {file_name}")
+                continue
+            
+            file_name_escaped = urllib.parse.quote(file_name)
 
-        dl_if_not_exists(f"https://archive.org/download/{item}/{file_name_escaped}", f"{item}/{file_name}")
+            dl_if_not_exists(f"https://archive.org/download/{item}/{file_name_escaped}", f"{item}/{file_name}")
 
         if file_name == file_list:
             continue
@@ -106,6 +119,8 @@ for item in sys.argv[1:]:
         if calc_sha1 != sha1:
             print(f"\n==== Error: {file_name} sha1 {calc_sha1} does not match IA record {sha1}")
             sys.exit(2)
+
+        print(f"OK: {file_name}")
 
 
 
