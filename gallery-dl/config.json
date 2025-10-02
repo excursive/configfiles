@@ -38,6 +38,20 @@
             "max-posts": null,
             "pro-first": false
         },
+        "bluesky":
+        {
+            "directory": {
+                    "author['did'] != user['did']": ["{category}", "{user[did]}", "reposts"],
+                    ""                            : ["{category}", "{user[did]}"]
+            },
+            "filename": "{post_id}_{num}.{extension}",
+            "include": ["info", "avatar", "background"],
+            "metadata": ["facets", "user"],
+            "quoted": true,
+            "reposts": true,
+            "videos": true,
+            "postprocessors": ["writepostidpostmetadata"]
+        },
         "danbooru":
         {
             "external": false,
@@ -255,14 +269,14 @@
         {
             "directory": {
                     "author['id'] != user['id']": ["{category}", "{user[id]}", "retweets"],
-                    ""                          : ["{category}", "{author[id]}"]
+                    ""                          : ["{category}", "{user[id]}"]
             },
             "filename": "{author[id]}-{tweet_id}-{num}.{extension}",
             "username": null,
             "password": null,
             "cards": "ytdl",
             "conversations": false,
-            "include": ["info", "avatar", "background", "timeline"],
+            "include": ["info", "avatar", "background"],
             "logout": true,
             "locked": "abort",
             "pinned": true,
