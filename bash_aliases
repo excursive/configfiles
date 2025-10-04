@@ -807,6 +807,10 @@ youtube_ios() {
   youtube_output --extractor-args 'youtube:player_client=default,ios;formats=missing_pot' "$@"
 }
 
+youtube_ios_mp4() {
+  youtube_ios --format 'bestvideo[ext=mp4]+bestaudio[ext=m4a]' "$@"
+}
+
 youtube_backup() {
   youtube_output --format 'bestvideo[ext=mp4],bestaudio[ext=m4a],bestvideo[ext=webm],bestaudio[acodec=opus]' "$@"
 }
