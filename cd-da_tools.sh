@@ -756,6 +756,78 @@ trim_overreads() {
 
 
 
+encode_tracks() {
+  printf -- '\n==== Processing tracks:\n'
+  local track=''
+  for track in "$@"; do
+    local track_out_name=''
+    local metadata=''
+    local -a raw_arguments=()
+    case "${track}" in
+      *'.bin')
+        track_out_name="${track%.bin}.flac"
+        metadata="${track%.bin}-metadata.txt"
+        raw_arguments+=( '--force-raw-format' \
+                         '--endian=little' \
+                         '--channels=2' \
+                         '--bps=16' \
+                         '--sample-rate=44100' \
+                         '--sign=signed' )
+      ;;
+      *'.wav')
+        track_out_name="${track%.wav}.flac"
+        metadata="${track%.wav}-metadata.txt"
+      ;;
+      *'.flac')
+        track_out_name="${track}"
+        metadata="${track%.flac}-metadata.txt"
+        metaflac --remove-all -- "${track}" || exit 1
+      ;;
+    esac
+    printf '%s' "${track}"
+    
+    local track_temp=''
+    track_temp="$(mktemp --dry-run "--suffix=.flac" "track_temp_XXXXXX")" || exit 1
+    flac --silent --no-padding --warnings-as-errors --delete-input-file --verify \
+         "${raw_arguments[@]}" \
+         --compression-level-8 --exhaustive-model-search --qlp-coeff-precision-search \
+         --output-name="${track_temp}" -- "${track}" || exit 1
+    metaflac --dont-use-padding --remove-all -- "${track_temp}" || exit 1
+    
+    if ! [ -e "${metadata}" ]; then
+      if ! is_listed_track "${track}"; then
+        printf ' (no metadata for pregap/lead-in/lead-out)'
+      else
+        printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
+      fi
+      metaflac --dont-use-padding --add-seekpoint=1s --add-padding=1024 -- "${track_temp}" || exit 1
+    else
+      metaflac --dont-use-padding --add-seekpoint=1s --import-tags-from="${metadata}" --add-padding=1024 -- "${track_temp}" || exit 1
+      rm -f -- "${metadata}"
+    fi
+    
+    mv --no-clobber --no-target-directory "${track_temp}" "${track_out_name}" || exit 1
+    printf '\n'
+  done
+}
+
+
+
+run_encode_tracks() {
+  if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
+    printf -- '  Flac encodes all tracks named d#-##.(bin|wav|flac) in current directory.\n\n'
+    exit 0
+  fi
+  
+  local -a tracks=()
+  readarray -d '' -t tracks < \
+      <(find . -type f -regextype posix-extended -regex '\./d[123456789][0123456789]*-(0[123456789]|[123456789][0123456789]|00-pregap)\.(bin|wav|flac)' -printf '%P\0' | sort -z --version-sort -- -)
+  
+  encode_tracks "${tracks[@]}"
+}
+
+
+
 cleanup_split_tracks() {
   if [ "$1" = '-h' ] || [ "$1" = '--help' ]; then
     printf -- 'Arguments: [ disc number ]\n'
@@ -772,7 +844,7 @@ cleanup_split_tracks() {
   
   local -a tracks=()
   readarray -d '' -t tracks < \
-      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap)?\.(wav|flac)" -printf '%P\0' | sort -z -- -)
+      <(find . -type f -regextype posix-extended -regex "\./d${disc_number}-(0[123456789]|[123456789][0123456789]|00-pregap)\.(bin|wav|flac)" -printf '%P\0' | sort -z --version-sort -- -)
   
   concat_wav_test "d${disc_number}.wav" "${tracks[@]}"
   
@@ -796,51 +868,11 @@ cleanup_split_tracks() {
   printf '==== Appending track raw audio sha256sums to sha256sums-raw.txt\n\n'
   sha256audio "${tracks[@]}" >> 'sha256sums-raw.txt'
   
-  printf -- '\n==== Processing tracks:\n'
-  local track=''
-  for track in "${tracks[@]}"; do
-    local track_out_name=''
-    local metadata=''
-    case "${track}" in
-      *'.wav')
-        track_out_name="${track%.wav}.flac"
-        metadata="${track%.wav}-metadata.txt"
-      ;;
-      *'.flac')
-        track_out_name="${track}"
-        metadata="${track%.flac}-metadata.txt"
-        metaflac --remove-all -- "${track}" || exit 1
-      ;;
-    esac
-    printf '%s' "${track}"
-    
-    local track_temp=''
-    track_temp="$(mktemp --dry-run "--suffix=.flac" "track_temp_XXXXXX")" || exit 1
-    flac --silent --no-padding --warnings-as-errors --delete-input-file --verify \
-         --compression-level-8 --exhaustive-model-search --qlp-coeff-precision-search \
-         --output-name="${track_temp}" -- "${track}" || exit 1
-    metaflac --dont-use-padding --remove-all -- "${track_temp}" || exit 1
-    
-    if ! [ -e "${metadata}" ]; then
-      if ! is_listed_track "${track}"; then
-        printf ' (no metadata for pregap/lead-in/lead-out)'
-      else
-        printf ' \e[0;31m(warning: metadata not found for track)\e[0m'
-      fi
-      metaflac --dont-use-padding --add-seekpoint=1s --add-padding=1024 -- "${track_temp}" || exit 1
-    else
-      metaflac --dont-use-padding --add-seekpoint=1s --import-tags-from="${metadata}" --add-padding=1024 -- "${track_temp}" || exit 1
-      rm -f -- "${metadata}"
-    fi
-    
-    mv --no-clobber --no-target-directory "${track_temp}" "${track_out_name}" || exit 1
-    printf '\n'
-  done
+  encode_tracks "${tracks[@]}"
   
   rm -f -- "d${disc_number}.wav" || exit 1
   printf '\n==== Disc %s complete!\n\n' "$disc_number"
 }
-
 
 
 
@@ -1101,6 +1133,9 @@ case "$operation" in
   ;;
   'parse-mb-request' | 'parse_mb_request')
     parse_mb_request "$@"
+  ;;
+  'run-encode-tracks' | 'run_encode_tracks')
+    run_encode_tracks "$@"
   ;;
   'cleanup-split-tracks' | 'cleanup_split_tracks')
     cleanup_split_tracks "$@"
