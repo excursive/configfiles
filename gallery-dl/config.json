@@ -88,11 +88,12 @@
             "auto-watch": true,
             "auto-unwatch": false,
             "comments": true,
+            "comments-avatars": true,
             "extra": true,
             "flat": true,
             "folders": false,
             "group": true,
-            "include": ["gallery", "scraps", "journal"],
+            "include": ["avatar", "background"],
             "intermediary": true,
             "journals": "html",
             "mature": true,
@@ -196,7 +197,7 @@
         "pixiv":
         {
             "refresh-token": null,
-            "include": ["avatar", "background", "artworks", "novel-user"],
+            "include": ["avatar", "background"],
             "novel":
             {
                 "covers": true,
@@ -217,12 +218,11 @@
         {
             "refresh-token": null,
             "comments": 500,
-            "morecomments": false,
-            "date-min": 0,
-            "date-max": 253402210800,
-            "id-min": null,
-            "id-max": null,
+            "morecomments": true,
+            "embeds": true,
+            "previews": true,
             "recursion": 0,
+            "selftext": false,
             "videos": true
         },
         "redgifs":
@@ -239,10 +239,16 @@
             "directory": ["{category}", "{author[secUid]}"],
             "filename": "{id}.{type}{num:?_//}.{img_id|audio_id|video[id]}.{extension}",
             "audio": true,
+            "covers": true,
+            "photos": true,
             "videos": true,
-            "user": {
-                    "avatar": true,
+            "posts": {
+                    "order-posts": "desc",
+                    "ytdl": false,
                     "module": null
+            },
+            "user": {
+                    "include": ["avatar"]
             },
             "postprocessors": ["writeidpostmetadata"]
         },

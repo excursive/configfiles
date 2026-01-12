@@ -22,12 +22,14 @@ flatpak install flathub org.gnome.Boxes
 flatpak install flathub com.usebottles.bottles
 flatpak install flathub com.valvesoftware.Steam
 flatpak install flathub io.github.ilya_zlobintsev.LACT
+flatpak install flathub io.github.wiiznokes.fan-control
 
 flatpak install flathub org.gimp.GIMP
 flatpak install flathub org.kde.krita
 flatpak install flathub io.github.OpenToonz
 flatpak install flathub org.inkscape.Inkscape
 #flatpak install flathub com.github.libresprite.LibreSprite
+#flatpak install flathub org.filmulator.Filmulator
 
 #flatpak install flathub com.obsproject.Studio
 flatpak install flathub org.kde.kdenlive
@@ -49,11 +51,13 @@ flatpak install flathub org.DolphinEmu.dolphin-emu
 flatpak install flathub org.duckstation.DuckStation
 flatpak install flathub net.pcsx2.PCSX2
 flatpak install flathub net.rpcs3.RPCS3
+#flatpak install flathub net.shadps4.shadPS4
 flatpak install flathub io.mgba.mGBA
 #flatpak install flathub org.desmume.DeSmuME
 #flatpak install flathub org.ppsspp.PPSSPP
 #flatpak install flathub org.citra_emu.citra
 #flatpak install flathub org.yuzu_emu.yuzu
+#flatpak install flathub io.github.ryubing.Ryujinx
 #flatpak install flathub info.cemu.Cemu
 #flatpak install flathub com.dosbox.DOSBox
 flatpak install flathub io.github.dosbox-staging
