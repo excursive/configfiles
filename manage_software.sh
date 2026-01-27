@@ -415,7 +415,7 @@ Category=Graphics;"
 
 
 manage_rust() {
-  local rust_installer_sha256='32a680a84cf76014915b3f8aa44e3e40731f3af92cd45eb0fcc6264fd257c428'
+  local rust_installer_sha256='17247e4bcacf6027ec2e11c79a72c494c9af69ac8d1abcc1b271fa4375a106c2'
   
   dl_and_verify_file "$rust_installer_sha256" 'rustup-init.sh' \
                      'https://sh.rustup.rs/'
@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='02aab26a17d41a6987ce9e8ec852d9560dfe915b'
+  local gallery_dl_version='3836c2a99f684b32069c6663ced8a8b7d8901b6e'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
