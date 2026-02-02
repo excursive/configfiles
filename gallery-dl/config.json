@@ -191,12 +191,17 @@
         "pinterest":
         {
             "directory": ["{category}", "{domain}"],
+            "filename": "id_{id}{num:?.num_//}{media_id:?.media_id_//}{page_id:?.page_id_//}.{extension}",
             "sections": true,
-            "videos": true
+            "stories": true,
+            "videos": true,
+            "postprocessors": ["writeidunderscorepostmetadata"]
         },
         "pixiv":
         {
             "refresh-token": null,
+            "directory": ["{category}", "{user[id]}"],
+            "filename": "{id}_p{num}.{extension}",
             "include": ["avatar", "background"],
             "novel":
             {
@@ -206,7 +211,8 @@
             },
             "metadata": true,
             "tags": "original",
-            "ugoira": true
+            "ugoira": true,
+            "postprocessors": ["writeidpostmetadata"]
         },
         "poipiku":
         {
@@ -451,6 +457,17 @@
             "mode": "json",
             "directory": ".",
             "filename": "{post_id}.json",
+            "event": "post",
+            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "mtime": false
+        },
+
+        "writeidunderscorepostmetadata":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "id_{id}.json",
             "event": "post",
             "archive": "./gallery-dl/{category}-metadata.sqlite3",
             "mtime": false
