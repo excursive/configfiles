@@ -25,6 +25,7 @@ flatpak install flathub io.github.ilya_zlobintsev.LACT
 flatpak install flathub io.github.wiiznokes.fan-control
 
 flatpak install flathub org.gimp.GIMP
+flatpak install flathub org.gimp.GIMP.Plugin.GMic
 flatpak install flathub org.kde.krita
 flatpak install flathub io.github.OpenToonz
 flatpak install flathub org.inkscape.Inkscape

@@ -57,6 +57,19 @@ sudo apt-get install libtool
 
 
 
+printf '\n\n\n==============\n'
+printf       '     krita    \n'
+printf       '==============\n\n'
+
+# for building in docker environment
+sudo apt-get install docker.io python3 python3-venv python3-pip wget
+
+#for building on host linux
+#sudo apt-get install 
+
+
+
+
 printf '\n\n\n================\n'
 printf       '      godot     \n'
 printf       '================\n\n'
