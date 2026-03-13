@@ -61,11 +61,15 @@ printf '\n\n\n==============\n'
 printf       '     krita    \n'
 printf       '==============\n\n'
 
+#runtime dep
+sudo apt-get install libqt5sql5-sqlite
+
 # for building in docker environment
 sudo apt-get install docker.io python3 python3-venv python3-pip wget
 
 #for building on host linux
-#sudo apt-get install 
+sudo apt-get build-dep krita
+sudo apt-get install libqt5quickcontrols2-5
 
 
 
