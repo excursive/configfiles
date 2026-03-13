@@ -369,7 +369,7 @@ Category=Audio;"
 
 
 
-manage_krita() {
+manage_krita_appimage() {
   local krita_version='4.4.3'
   local krita_sha256='95b35a7ff2d591d8adad6159b98558f9b88e99a24568ba9ee217126188f5d026'
   local krita_dl_url='stable/krita/4.4.3/krita-4.4.3-x86_64.appimage'
@@ -1124,6 +1124,93 @@ Category=Development;Game;Graphics;"
 
 
 
+manage_krita() {
+  local krita_version='7d9aefc93f15998eca13458bb9a065e2cca77c02'
+  
+  local refresh='yes'
+  local cmake='yes'
+  local build='yes'
+  local install='yes'
+  local cleanup='yes'
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      '--no-refresh') refresh='no' ;;
+      '--no-cmake') cmake='no' ;;
+      '--no-build') build='no' ;;
+      '--no-install') install='no' ;;
+      '--no-cleanup') cleanup='no' ;;
+      'build')
+        refresh='no'
+        cmake='yes'
+        build='yes'
+        install='yes'
+        cleanup='no'
+      ;;
+      '--') break ;;
+      *)
+        printf -- '\e[0;31m==== Error:\e[0m Invalid option\n' 1>&2
+        exit 1
+      ;;
+    esac
+    shift 1
+  done
+  
+  printf -- '\n======== Selected actions:'
+  printf -- '\n==== refresh: %s' "$refresh"
+  printf -- '\n====   cmake: %s' "$cmake"
+  printf -- '\n====   build: %s' "$build"
+  printf -- '\n==== install: %s' "$install"
+  printf -- '\n==== cleanup: %s' "$cleanup"
+  printf -- '\n\n'
+  
+  local krita_dir="${PWD}/krita"
+  
+  local install_dir="${krita_dir}/inst"
+  local build_dir="${krita_dir}/build"
+  local src_dir="${krita_dir}/src"
+  
+  local krita_src_dir="${src_dir}/krita"
+  
+  if [ "$refresh" != 'no' ]; then
+    #install_dir_check "${install_dir}"
+    #build_dir_check "${build_dir}"
+    mkdir --verbose --parents -- "${src_dir}" "${build_dir}" "${install_dir}"
+    
+    checkout_commit "${krita_src_dir}" "$krita_version" \
+                    'https://invent.kde.org/graphics/krita.git'
+  fi
+  
+  if [ "$cmake" != 'no' ]; then
+    cmake -S "${krita_src_dir}" \
+          -B "${build_dir}" \
+          -DCMAKE_INSTALL_PREFIX="${install_dir}" \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DKRITA_DEVS=ON
+  fi
+  
+  if [ "$build" != 'no' ]; then
+    make --directory="${build_dir}" -j3
+  fi
+  
+  if [ "$install" != 'no' ]; then
+    make --directory="${build_dir}" install
+    
+    cd -- "${install_dir}"
+    sha256r "${install_dir}-sha256sums.txt"
+    
+    create_symlinks "${install_dir}/bin/krita"
+  fi
+  
+  if [ "$cleanup" != 'no' ]; then
+    rm -R -f -- "${build_dir}"
+    cd -- "${krita_src_dir}"
+    clean_and_update_repo "$krita_version" 'skip_update'
+  fi
+}
+
+
+
+
 manage_aseprite() {
   local aseprite_version='ab2d7f79a36362a652950130a25fa780c44c0f70'
   
@@ -1337,6 +1424,10 @@ starting_dir="${PWD}"
 
 case "$1" in
   'aseprite') manage_aseprite ;;
+  'krita')
+    shift 1
+    manage_krita "$@"
+  ;;
   'godot') manage_godot ;;
   'mozjpeg') manage_mozjpeg ;;
   'gifsicle') manage_gifsicle ;;
@@ -1359,7 +1450,7 @@ case "$1" in
   'vim-two-firewatch') manage_vim_two_firewatch ;;
   'vim-gruvbox') manage_vim_gruvbox ;;
   'rust') manage_rust ;;
-  'krita') manage_krita ;;
+  'krita-appimage') manage_krita_appimage ;;
   'lmms') manage_lmms ;;
   'blender') manage_blender ;;
   '')
