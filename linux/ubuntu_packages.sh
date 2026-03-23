@@ -69,7 +69,7 @@ sudo apt-get install docker.io python3 python3-venv python3-pip wget
 
 #for building on host linux
 sudo apt-get build-dep krita
-sudo apt-get install libqt5quickcontrols2-5
+sudo apt-get install qtquickcontrols2-5-dev
 
 
 
