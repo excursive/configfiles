@@ -1,3 +1,4 @@
 [Context]
 shared=network
 devices=all
+filesystems=!/media;!/run/media;!/mnt

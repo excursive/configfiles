@@ -1,2 +1,2 @@
 [Context]
-filesystems=~/Videos:ro;~/Pictures;~/Downloads:ro;xdg-run/gvfs:ro
+filesystems=xdg-run/gvfs:ro;~/Downloads:ro;~/Videos:ro;~/Pictures/vlc-screencaps
