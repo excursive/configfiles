@@ -4,7 +4,7 @@
         "base-directory": "./gallery-dl/",
         "parent-directory": false,
         "postprocessors": ["identical", "writemetadata"],
-        "archive": "./gallery-dl/{category}.sqlite3",
+        "archive": ["gallery-dl", "{category}.sqlite3"],
         "cookies": null,
         "cookies-update": true,
         "proxy": null,
@@ -447,7 +447,7 @@
             "directory": ".",
             "filename": "{id}.json",
             "event": "post",
-            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
         },
 
@@ -458,7 +458,7 @@
             "directory": ".",
             "filename": "{post_id}.json",
             "event": "post",
-            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
         },
 
@@ -469,7 +469,7 @@
             "directory": ".",
             "filename": "id_{id}.json",
             "event": "post",
-            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
         },
 
@@ -480,7 +480,7 @@
             "directory": ".",
             "filename": "{author[id]}-{tweet_id}.json",
             "event": "post",
-            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
         },
 
@@ -491,7 +491,7 @@
             "directory": ".",
             "extension": "json",
             "event": "after",
-            "archive": "./gallery-dl/{category}-metadata.sqlite3",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
         },
 
