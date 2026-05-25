@@ -29,6 +29,8 @@
             "browser": false
         },
 
+        "whitelist": ["oauth", "recursive", "bluesky", "pinterest", "pixiv", "poipiku", "reddit", "tiktok", "tumblr", "twitter"],
+
 
 
 
@@ -223,13 +225,16 @@
         "reddit":
         {
             "refresh-token": null,
+            "directory": ["{category}", "{subreddit}"],
+            "filename": "id-{id}.num-{num}.{extension}",
             "comments": 500,
             "morecomments": true,
             "embeds": true,
             "previews": true,
             "recursion": 0,
-            "selftext": false,
-            "videos": true
+            "selftext": true,
+            "videos": true,
+            "postprocessors": ["writeidpostmetadata"]
         },
         "redgifs":
         {
