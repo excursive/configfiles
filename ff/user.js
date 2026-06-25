@@ -101,7 +101,7 @@ user_pref("privacy.cpd.siteSettings", false);
 user_pref("privacy.donottrackheader.enabled", true);
 user_pref("privacy.fingerprintingProtection", true);
 user_pref("privacy.history.custom", true);
-user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting", false);
 user_pref("privacy.sanitize.sanitizeOnShutdown", true);
 user_pref("privacy.sanitize.timeSpan", 0);
 user_pref("privacy.trackingprotection.cryptomining.enabled", true);
