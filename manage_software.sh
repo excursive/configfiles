@@ -481,12 +481,12 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='609345db079bb23c4bd7991edd7e266b1e6a3809'
+  local gallery_dl_version='78b87d4ca71f1d652c68f3840fb4f9b8eca51f3a'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
   checkout_commit "${gallery_dl_dir}" "$gallery_dl_version" \
-                  'https://github.com/mikf/gallery-dl.git'
+                  'https://codeberg.org/mikf/gallery-dl.git'
   
   local escaped_gallery_dl_path="$(escape_shell_path "${gallery_dl_dir}/gallery_dl/__main__.py")"
   local launcher_text='#!/bin/bash
