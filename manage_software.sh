@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='62001b437ac300c5dbf242f0587f0d65ce03daa4'
+  local gallery_dl_version='5b79e4e35421b6cf34d8e465adae3a047f3240c8'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
