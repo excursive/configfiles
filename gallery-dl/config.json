@@ -29,7 +29,7 @@
             "browser": false
         },
 
-        "whitelist": ["oauth", "recursive", "bluesky", "pinterest", "pixiv", "poipiku", "reddit", "tiktok", "tumblr", "twitter"],
+        "whitelist": ["oauth", "recursive", "bluesky", "deviantart", "imgur", "pinterest", "pixiv", "poipiku", "reddit", "tiktok", "tumblr", "twitter"],
 
 
 
@@ -90,7 +90,7 @@
             "auto-watch": true,
             "auto-unwatch": false,
             "comments": true,
-            "comments-avatars": true,
+            "comments-avatars": false,
             "extra": true,
             "flat": true,
             "folders": false,
@@ -103,8 +103,7 @@
             "original": true,
             "pagination": "manual",
             "previews": true,
-            "quality": "png",
-            "wait-min": 1
+            "quality": "png"
         },
         "e621":
         {
@@ -129,6 +128,14 @@
         },
         "imgur":
         {
+            "directory": {
+                    "subcategory == 'album'": ["{category}", "{album[date]!T}.{album[id]}"],
+                    ""                      : ["{category}"]
+            },
+            "filename": {
+                    "subcategory == 'album'": "{num}.{date!T}.{id}.{extension}",
+                    ""                      : "{date!T}.{id}.{extension}"
+            },
             "mp4": true
         },
         "inkbunny":
@@ -193,11 +200,10 @@
         "pinterest":
         {
             "directory": ["{category}", "{domain}"],
-            "filename": "id_{id}{num:?.num_//}{media_id:?.media_id_//}{page_id:?.page_id_//}.{extension}",
+            "filename": "{filename}.{extension}",
             "sections": true,
             "stories": true,
-            "videos": true,
-            "postprocessors": ["writeidunderscorepostmetadata"]
+            "videos": true
         },
         "pixiv":
         {
@@ -225,14 +231,19 @@
         "reddit":
         {
             "refresh-token": null,
-            "directory": ["{category}", "{subreddit}"],
-            "filename": "id-{id}.num-{num}.{extension}",
-            "comments": 500,
+            "api": "oauth",
+            "directory": ["{category}", "{subreddit}", "{id}"],
+            "filename": {
+                    "comment": "id-{id}.comment_id-{comment[id]}.num-{num}.{extension}",
+                    ""       : "id-{id}.num-{num}.{extension}"
+            },
+            "comments": 0,
             "morecomments": true,
             "embeds": true,
             "previews": true,
             "recursion": 0,
             "selftext": true,
+            "whitelist": ["reddit:image"],
             "videos": true,
             "postprocessors": ["writeidpostmetadata"]
         },
@@ -267,6 +278,8 @@
         {
             "api-key": null,
             "api-secret": null,
+            "access-token": null,
+            "access-token-secret": null,
             "directory": {
                     "reblogged": ["{category}", "{blog[uuid]}", "reblogs"],
                     ""         : ["{category}", "{blog[uuid]}"]
@@ -298,6 +311,7 @@
             "locked": "abort",
             "pinned": true,
             "quoted": true,
+            "quoted-expand": true,
             "replies": true,
             "retweets": true,
             "syndication": true,
