@@ -50,7 +50,7 @@ printf '\n\n\n================\n'
 printf       '     mozjpeg    \n'
 printf       '================\n\n'
 
-sudo apt-get install libtool
+sudo apt-get install libtool zlib1g-dev libpng-dev
 
 #====sudo apt-get install nasm
 
