@@ -481,7 +481,7 @@ manage_vim_lightline() {
 
 
 manage_gallery_dl() {
-  local gallery_dl_version='61070f02d387494ac3a2bb5bfd8345aba85b1303'
+  local gallery_dl_version='156b07180b537b4ac5142a1798b081a54c093f03'
   
   local gallery_dl_dir="${PWD}/gallery-dl"
   
@@ -1036,6 +1036,7 @@ manage_mozjpeg() {
         -DCMAKE_BUILD_RPATH_USE_ORIGIN='TRUE' \
         -DCMAKE_INSTALL_PREFIX="${install_dir}" \
         -DCMAKE_BUILD_WITH_INSTALL_RPATH='TRUE' \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         "${mozjpeg_src_dir}"
   make -j2
   make install

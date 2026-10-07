@@ -68,6 +68,10 @@
         "deviantart":
         {
             "directory": ["{category}", "{author[userid]}"],
+            "filename": {
+                    "subcategory == 'status'": "{index}.{extension}",
+                    ""                       : "{index}.{extension}"
+            },
             "folder": {
                 "subfolders": true,
                 "directory": ["{category}", "{author[userid]}", "{folder[title]}"]
