@@ -133,12 +133,12 @@
         "imgur":
         {
             "directory": {
-                    "subcategory == 'album'": ["{category}", "{album[date]!T}.{album[id]}"],
+                    "subcategory == 'album'": ["{category}", "{album[id]}"],
                     ""                      : ["{category}"]
             },
             "filename": {
-                    "subcategory == 'album'": "{num}.{date!T}.{id}.{extension}",
-                    ""                      : "{date!T}.{id}.{extension}"
+                    "subcategory == 'album'": "{num}.{id}.{extension}",
+                    ""                      : "{id}.{extension}"
             },
             "mp4": true
         },
@@ -213,14 +213,29 @@
         {
             "refresh-token": null,
             "directory": ["{category}", "{user[id]}"],
-            "filename": "{id}_p{num}.{extension}",
-            "include": ["avatar", "background"],
-            "novel":
-            {
+            "filename": "{id}.{num}.{extension}",
+            "avatar": {
+                "filename": "{subcategory}.{date!T}.{extension}",
+                "postprocessors": ["write_post_metadata_subcategory_date"]
+            },
+            "background": {
+                "filename": "{subcategory}.{date!T}.{extension}",
+                "postprocessors": ["write_post_metadata_subcategory_date"]
+            },
+            "series": {
+                "directory": ["{category}", "{user[id]}", "series-{series[id]}"],
+                "filename": "subcategory-series.num_series-{num_series}.id-{id}.num-{num}.{extension}"
+            },
+            "sketch": {
+                "directory": ["{category}", "sketch", "{user[unique_name]}"],
+                "filename": "subcategory-sketch.post_id-{post_id}.id-{id}.{extension}"
+            },
+            "novel": {
                 "covers": true,
                 "embeds": true,
                 "full-series": true
             },
+            "include": ["avatar", "background"],
             "metadata": true,
             "tags": "original",
             "ugoira": true,
@@ -463,6 +478,28 @@
             "shallow": false
         },
 
+        "write_post_metadata_id_id":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "id-{id}.json",
+            "event": "post",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
+            "mtime": false
+        },
+
+        "write_post_metadata_albumid_albumid":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "album_id-{album[id]}.json",
+            "event": "post",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
+            "mtime": false
+        },
+
         "writeidpostmetadata":
         {
             "name": "metadata",
@@ -502,6 +539,17 @@
             "mode": "json",
             "directory": ".",
             "filename": "{author[id]}-{tweet_id}.json",
+            "event": "post",
+            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
+            "mtime": false
+        },
+
+        "write_post_metadata_subcategory_date":
+        {
+            "name": "metadata",
+            "mode": "json",
+            "directory": ".",
+            "filename": "{subcategory}.{date!T}.json",
             "event": "post",
             "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
             "mtime": false
