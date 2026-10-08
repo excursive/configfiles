@@ -3,7 +3,7 @@
     {
         "base-directory": "./gallery-dl/",
         "parent-directory": false,
-        "postprocessors": ["identical", "writemetadata"],
+        "postprocessors": ["identical", "write_after_metadata"],
         "archive": ["gallery-dl", "{category}.sqlite3"],
         "cookies": null,
         "cookies-update": true,
@@ -52,7 +52,7 @@
             "quoted": true,
             "reposts": true,
             "videos": true,
-            "postprocessors": ["writepostidpostmetadata"]
+            "postprocessors": ["write_post_metadata_post_id"]
         },
         "danbooru":
         {
@@ -68,10 +68,7 @@
         "deviantart":
         {
             "directory": ["{category}", "{author[userid]}"],
-            "filename": {
-                    "subcategory == 'status'": "{index}.{extension}",
-                    ""                       : "{index}.{extension}"
-            },
+            "filename": "{index}.{extension}",
             "folder": {
                 "subfolders": true,
                 "directory": ["{category}", "{author[userid]}", "{folder[title]}"]
@@ -132,13 +129,11 @@
         },
         "imgur":
         {
-            "directory": {
-                    "subcategory == 'album'": ["{category}", "{album[id]}"],
-                    ""                      : ["{category}"]
-            },
-            "filename": {
-                    "subcategory == 'album'": "{num}.{id}.{extension}",
-                    ""                      : "{id}.{extension}"
+            "directory": ["{category}"],
+            "filename": "{id}.{extension}",
+            "album": {
+                "directory": ["{category}", "{album[id]}"],
+                "filename": "{num}.{id}.{extension}"
             },
             "mp4": true
         },
@@ -239,13 +234,13 @@
             "metadata": true,
             "tags": "original",
             "ugoira": true,
-            "postprocessors": ["writeidpostmetadata"]
+            "postprocessors": ["write_post_metadata_id"]
         },
         "poipiku":
         {
             "directory": ["{category}", "{user_id}"],
             "filename": "{post_id}_{num}.{extension}",
-            "postprocessors": ["writepostidpostmetadata"]
+            "postprocessors": ["write_post_metadata_post_id"]
         },
         "reddit":
         {
@@ -264,7 +259,7 @@
             "selftext": true,
             "whitelist": ["reddit:image"],
             "videos": true,
-            "postprocessors": ["writeidpostmetadata"]
+            "postprocessors": ["write_post_metadata_id"]
         },
         "redgifs":
         {
@@ -291,7 +286,7 @@
             "user": {
                     "include": ["avatar"]
             },
-            "postprocessors": ["writeidpostmetadata"]
+            "postprocessors": ["write_post_metadata_id"]
         },
         "tumblr":
         {
@@ -312,7 +307,7 @@
             "original": true,
             "ratelimit": "abort",
             "reblogs": true,
-            "postprocessors": ["writeidpostmetadata"]
+            "postprocessors": ["write_post_metadata_id"]
         },
         "twitter":
         {
@@ -321,6 +316,14 @@
                     ""                          : ["{category}", "{user[id]}"]
             },
             "filename": "{author[id]}-{tweet_id}-{num}.{extension}",
+            "avatar": {
+                "filename": "{subcategory}.{date!T}.{extension}",
+                "postprocessors": ["write_post_metadata_subcategory_date"]
+            },
+            "background": {
+                "filename": "{subcategory}.{date!T}.{extension}",
+                "postprocessors": ["write_post_metadata_subcategory_date"]
+            },
             "username": null,
             "password": null,
             "cards": "ytdl",
@@ -342,7 +345,7 @@
             "twitpic": true,
             "unavailable": true,
             "videos": true,
-            "postprocessors": ["writetweetmetadata"]
+            "postprocessors": ["write_post_metadata_tweet_id"]
         },
         "weibo":
         {
@@ -500,7 +503,7 @@
             "mtime": false
         },
 
-        "writeidpostmetadata":
+        "write_post_metadata_id":
         {
             "name": "metadata",
             "mode": "json",
@@ -511,7 +514,7 @@
             "mtime": false
         },
 
-        "writepostidpostmetadata":
+        "write_post_metadata_post_id":
         {
             "name": "metadata",
             "mode": "json",
@@ -522,18 +525,7 @@
             "mtime": false
         },
 
-        "writeidunderscorepostmetadata":
-        {
-            "name": "metadata",
-            "mode": "json",
-            "directory": ".",
-            "filename": "id_{id}.json",
-            "event": "post",
-            "archive": ["gallery-dl", "{category}-metadata.sqlite3"],
-            "mtime": false
-        },
-
-        "writetweetmetadata":
+        "write_post_metadata_tweet_id":
         {
             "name": "metadata",
             "mode": "json",
@@ -555,7 +547,7 @@
             "mtime": false
         },
 
-        "writemetadata":
+        "write_after_metadata":
         {
             "name": "metadata",
             "mode": "json",
